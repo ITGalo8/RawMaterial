@@ -1,15 +1,16 @@
 import axios from 'axios';
 
+console.log('API URL:', import.meta.env.VITE_API_URL);
 
-console.log('API URL:', process.env.REACT_APP_API_URL);
 const Api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
 let isRefreshing = false;
 let failedRequestsQueue = [];
 
+// Request interceptor
 Api.interceptors.request.use((config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
@@ -18,11 +19,12 @@ Api.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor
 Api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve) => {
@@ -42,25 +44,23 @@ Api.interceptors.response.use(
         }
 
         const response = await axios.post(
-          '/auth/validateRefreshToken',
+          `${import.meta.env.VITE_API_URL}/auth/validateRefreshToken`,
           { refreshToken },
           { withCredentials: true }
         );
 
         const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-        
+
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', newRefreshToken);
-        
+
         Api.defaults.headers.Authorization = `Bearer ${accessToken}`;
-        
-        // Retry all queued requests
-        failedRequestsQueue.forEach(cb => cb());
+
+        failedRequestsQueue.forEach((cb) => cb());
         failedRequestsQueue = [];
-        
+
         return Api(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, clear tokens and redirect to login
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         window.location.href = '/';

@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-
-const API_URL = process.env.REACT_APP_API_URL;
+axios.defaults.withCredentials = true;
+import Api from "../../auth/Api"
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -20,13 +20,13 @@ const Login = () => {
     const fetchRoles = async () => {
       setRoleLoading(true);
       try {
-        const response = await axios.get(`${API_URL}/common/showRole`);
+        const response = await Api.get(`/common/showRole`);
         console.log("response data", response.data);
         setRoles(response.data.data || []);
       } catch (err) {
         console.log(err?.response?.data || err.message);
         setError("Unable to load roles. Please try again later.");
-      } finally {
+      } finally { 
         setRoleLoading(false);
       }
     };
@@ -37,8 +37,8 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.post(
-        `${API_URL}/auth/login`,
+      const response = await Api.post(
+        `/auth/login`,
         {
           email,
           password,
@@ -57,7 +57,7 @@ const Login = () => {
         "Authorization"
       ] = `Bearer ${response.data.data.accessToken}`;
 
-      navigate("/dashboard");
+      navigate('/dashboard');
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || "Login failed. Please try again.";
