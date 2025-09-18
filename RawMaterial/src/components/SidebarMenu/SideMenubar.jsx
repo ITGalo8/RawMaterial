@@ -27,8 +27,14 @@ const SideMenubar = () => {
   return (
     <div className="sidebar">
       <ul className="sidebar-list">
+
         <li>
-          <NavLink to="/raw-material">
+          <NavLink to="/dashboard">
+            {/* <FaWarehouse /> */}
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/raw-material-stock">
             <FaWarehouse /> Raw Material Stock
           </NavLink>
         </li>
@@ -44,7 +50,7 @@ const SideMenubar = () => {
         </li>
         <li>
           <NavLink to="/product-bom">
-            <FaCogs /> Product BOM
+            <FaCogs /> Product Bom
           </NavLink>
         </li>
         <li>
@@ -102,6 +108,12 @@ const SideMenubar = () => {
               </li>
             </ul>
           )}
+        </li>
+
+        <li>
+          <NavLink to="/logout">
+            <FaClipboardList /> Logout
+          </NavLink>
         </li>
       </ul>
     </div>
