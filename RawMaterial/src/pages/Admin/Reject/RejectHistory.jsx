@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Api from "../../Auth/Api";
+import Api from "../../../Auth/Api";
 import "./RejectHistory.css";
 
 const RejectHistory = () => {

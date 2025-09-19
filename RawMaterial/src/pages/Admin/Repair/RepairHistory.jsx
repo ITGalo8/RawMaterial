@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import Api from "../../Auth/Api";
+import Api from "../../../Auth/Api";
 import "./RepairHistory.css";
 
 const RepairHistory = () => {

@@ -7,134 +7,46 @@ import {
   FaCogs,
   FaClipboardList,
   FaTools,
-  FaHistory,
   FaTimesCircle,
   FaIndustry,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import "./SidebarMenu.css";
 
-const SideMenubar = () => {
+const SideMenubar = ({ role }) => {
   const [openMenus, setOpenMenus] = useState({
     repair: false,
     reject: false,
-    production: false,
+    production: false, 
+    bom: false,
   });
 
   const toggleMenu = (menu) => {
     setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
   };
 
+  // Allowed roles for Line Worker menu
+  const lineWorkerRoles = [
+    "MPC Work",
+    "Assemble",
+    "Diassemble",
+    "Stamping",
+    "Store",
+    "Testing",
+    "Winding",
+    "Winding Connection",
+  ];
+
   return (
     <div className="sidebar">
       <ul className="sidebar-list">
-
-        <li>
-          <NavLink to="/dashboard">
-            {/* <FaWarehouse /> */}
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/raw-material-stock">
-            <FaWarehouse /> Raw Material Stock
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/add-rawmaterial">
-            <FaPlus /> Add Raw Material
-          </NavLink>
-        </li>
-        <li>
-          <NavLink to="/add-item">
-            <FaBox /> Add Item
-          </NavLink>
-        </li>
-        {/* <li>
-          <NavLink to="/product-bom">
-            <FaCogs /> Product Bom
-          </NavLink>
-        </li> */}
-
-         <li onClick={() => toggleMenu("Bom")} className="dropdown">
-          <span>
-            <FaTools /> Bom
-          </span>
-          {openMenus.Bom && (
-            <ul className="submenu">
-              <li>
-                <NavLink to="/Bom/upload-bom">Upload Bom</NavLink>
-              </li>
-              <li>
-                <NavLink to="/repair/repair-history">Update Bom</NavLink>
-              </li>
-
-              <li>
-                <NavLink to="/Bom/product-bom">Show Bom</NavLink>
-              </li>
-            </ul>
-          )}
-        </li>
-        <li>
-          <NavLink to="/product-count">
-            <FaClipboardList /> Product Count
-          </NavLink>
-        </li>
-
-        {/* Repair Data */}
-        <li onClick={() => toggleMenu("repair")} className="dropdown">
-          <span>
-            <FaTools /> Repair Data
-          </span>
-          {openMenus.repair && (
-            <ul className="submenu">
-              <li>
-                <NavLink to="/repair/repairForm">Repair Form</NavLink>
-              </li>
-              <li>
-                <NavLink to="/repair/repair-history">Repair History</NavLink>
-              </li>
-            </ul>
-          )}
-        </li>
-
-        {/* Reject Data */}
-        <li onClick={() => toggleMenu("reject")} className="dropdown">
-          <span>
-            <FaTimesCircle /> Reject Data
-          </span>
-          {openMenus.reject && (
-            <ul className="submenu">
-              <li>
-                <NavLink to="/reject/reject-Form">Reject Form</NavLink>
-              </li>
-              <li>
-                <NavLink to="/reject/reject-history">Reject History</NavLink>
-              </li>
-            </ul>
-          )}
-        </li>
-
-        {/* New Production */}
-        <li onClick={() => toggleMenu("production")} className="dropdown">
-          <span>
-            <FaIndustry /> New Production
-          </span>
-          {openMenus.production && (
-            <ul className="submenu">
-              <li>
-                <NavLink to="/production/form">New Production Form</NavLink>
-              </li>
-              <li>
-                <NavLink to="/production/history">New Production History</NavLink>
-              </li>
-            </ul>
-          )}
-        </li>
-
-        <li>
-          <NavLink to="/logout">
-            <FaClipboardList /> Logout
-          </NavLink>
-        </li>
+        {lineWorkerRoles.includes(role) && (
+          <li>
+            <NavLink to="/lineWorker-dashboard">
+              <FaWarehouse /> Line Worker
+            </NavLink>
+          </li>
+        )}
       </ul>
     </div>
   );

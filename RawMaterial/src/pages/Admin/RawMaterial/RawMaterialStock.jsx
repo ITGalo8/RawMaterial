@@ -10,7 +10,7 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 import "./RawMaterialStock.css";
-import Api from "../../auth/Api"
+import Api from "../../../auth/Api"
 
 const RawMaterialStock = () => {
   const [data, setData] = useState([]);

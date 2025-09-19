@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import './AddItem.css';
-import Api from '../../Auth/Api';
+import Api from '../../../Auth/Api';
 
 const AddItem = () => {
   const [name, setName] = useState('');

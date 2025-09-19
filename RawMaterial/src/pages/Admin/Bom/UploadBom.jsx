@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './UploadBom.css';
-import Api from '../../Auth/Api';
+import Api from '../../../Auth/Api';
 
 const UploadBom = () => {
   const [loading, setLoading] = useState(false);

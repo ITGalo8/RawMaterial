@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { useNavigate } from "react-router-dom";
 import "./ProductCount.css";
-import Api from "../../auth/Api";
+import Api from "../../../auth/Api";
 
 const ProductCount = () => {
   const [data, setData] = useState([]);

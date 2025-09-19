@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Api from "../../auth/Api";
-import "./Dashboard.css";
+import Api from "../../../auth/Api";
+import "./AdminDashboard.css";
 
 const SimpleCard = ({
   backgroundColor,
