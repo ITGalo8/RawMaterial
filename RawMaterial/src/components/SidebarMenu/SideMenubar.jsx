@@ -39,7 +39,7 @@ const SideMenubar = () => {
           </NavLink>
         </li>
         <li>
-          <NavLink to="/add-raw-material">
+          <NavLink to="/add-rawmaterial">
             <FaPlus /> Add Raw Material
           </NavLink>
         </li>
@@ -48,10 +48,30 @@ const SideMenubar = () => {
             <FaBox /> Add Item
           </NavLink>
         </li>
-        <li>
+        {/* <li>
           <NavLink to="/product-bom">
             <FaCogs /> Product Bom
           </NavLink>
+        </li> */}
+
+         <li onClick={() => toggleMenu("Bom")} className="dropdown">
+          <span>
+            <FaTools /> Bom
+          </span>
+          {openMenus.Bom && (
+            <ul className="submenu">
+              <li>
+                <NavLink to="/Bom/upload-bom">Upload Bom</NavLink>
+              </li>
+              <li>
+                <NavLink to="/repair/repair-history">Update Bom</NavLink>
+              </li>
+
+              <li>
+                <NavLink to="/Bom/product-bom">Show Bom</NavLink>
+              </li>
+            </ul>
+          )}
         </li>
         <li>
           <NavLink to="/product-count">
@@ -67,10 +87,10 @@ const SideMenubar = () => {
           {openMenus.repair && (
             <ul className="submenu">
               <li>
-                <NavLink to="/repair/form">Repair Form</NavLink>
+                <NavLink to="/repair/repairForm">Repair Form</NavLink>
               </li>
               <li>
-                <NavLink to="/repair/history">Repair History</NavLink>
+                <NavLink to="/repair/repair-history">Repair History</NavLink>
               </li>
             </ul>
           )}
@@ -84,10 +104,10 @@ const SideMenubar = () => {
           {openMenus.reject && (
             <ul className="submenu">
               <li>
-                <NavLink to="/reject/form">Reject Form</NavLink>
+                <NavLink to="/reject/reject-Form">Reject Form</NavLink>
               </li>
               <li>
-                <NavLink to="/reject/history">Reject History</NavLink>
+                <NavLink to="/reject/reject-history">Reject History</NavLink>
               </li>
             </ul>
           )}

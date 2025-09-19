@@ -1,5 +1,6 @@
 .dashboard-container {
   padding: 20px;
+  margin-left: 20rem;
 }
 
 .dashboard-heading {
@@ -14,6 +15,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
+  padding-top: 7rem;
 }
 
 /* Force max 3 per row on large screens */

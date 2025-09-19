@@ -6,7 +6,14 @@ import Login from "./pages/Login/Login";
 import Logout from "./pages/Logout/Logout";
 import RawMaterialStock from "./pages/RawMaterial/RawMaterialStock";
 import AddItem from "./pages/AddItem/AddItem";
-import ProductBom from "./pages/Bom/ProductBom";
+import UploadBom from "./pages/Bom/UploadBom";
+import AddRawMaterial from "./pages/Add Raw Material/AddRawMaterial";
+import ProductCount from "./pages/ProductCount/ProductCount";
+import RepairForm from "./pages/Repair/RepairForm";
+import RepairHistory from "./pages/Repair/RepairHistory";
+import RejectForm from "./pages/Reject/RejectForm";
+import RejectHistory from "./pages/Reject/RejectHistory";
+import ProductBom from './pages/Bom/ProductBom'
 
 
 const App = () => {
@@ -20,7 +27,14 @@ const App = () => {
           <Route path="raw-material-stock" element={<RawMaterialStock />} />
           <Route path="logout" element={<Logout />} />
           <Route path="add-item" element={<AddItem />} />
-          <Route path="product-bom" element={<ProductBom />} />
+          <Route path="/Bom/upload-bom" element={<UploadBom />} />
+          <Route path="/Bom/product-bom" element={<ProductBom />} />
+          <Route path="add-rawmaterial" element={<AddRawMaterial />} />
+          <Route path="product-count" element={<ProductCount />} />
+          <Route path="/repair/repairForm" element={<RepairForm />} />
+          <Route path="/repair/repair-history" element={<RepairHistory />} />
+          <Route path="/reject/reject-Form" element={<RejectForm />} />
+          <Route path="/reject/reject-history" element={<RejectHistory />} />
         </Route>
       </Routes>
     </Router>
