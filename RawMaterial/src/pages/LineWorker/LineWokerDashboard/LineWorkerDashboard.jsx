@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './LineWorkerDashboard.css';
-import Api from '../../../auth/Api'
 
 const LineWorkerDashboard = () => {
   const [rawMaterials, setRawMaterials] = useState([]);
@@ -24,14 +23,23 @@ const LineWorkerDashboard = () => {
       setLoading(true);
       
       // Fetch raw materials
-      const materialsResponse = await Api.get('http://69.62.73.56:5050/line-worker/rawMaterialForItemRequest');
+      const materialsResponse = await fetch('http://69.62.73.56:5050/line-worker/rawMaterialForItemRequest');
       
-        setRawMaterials(materialsResponse.data);
-        calculateStats(materialsResponse.data);
+      if (!materialsResponse.ok) {
+        throw new Error(`HTTP error! status: ${materialsResponse.status}`);
+      }
       
-
+      const materialsData = await materialsResponse.json();
+      
+      if (materialsData.success) {
+        setRawMaterials(materialsData.data);
+        calculateStats(materialsData.data);
+      } else {
+        throw new Error(materialsData.message || 'Failed to fetch materials data');
+      }
+      
       // Fetch store persons
-      const storePersonsResponse = await Api.get('http://69.62.73.56:5050/line-worker/showStorePersons');
+      const storePersonsResponse = await fetch('http://69.62.73.56:5050/line-worker/showStorePersons');
       
       if (!storePersonsResponse.ok) {
         throw new Error(`HTTP error! status: ${storePersonsResponse.status}`);
@@ -83,7 +91,7 @@ const LineWorkerDashboard = () => {
 
   if (loading) {
     return (
-      <div className="dashboard-container">
+      <div className="line-worker-dashboard">
         <div className="loading">Loading data...</div>
       </div>
     );
@@ -91,7 +99,7 @@ const LineWorkerDashboard = () => {
 
   if (error) {
     return (
-      <div className="dashboard-container">
+      <div className="line-worker-dashboard">
         <div className="error">
           Error: {error}
           <button className="retry-button" onClick={fetchData}>
@@ -103,13 +111,13 @@ const LineWorkerDashboard = () => {
   }
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
+    <div className="line-worker-dashboard">
+      <div className="dashboard-header">
         <h1>Line Worker Dashboard</h1>
         <div className="last-updated">
           Last updated: <span>{new Date().toLocaleTimeString()}</span>
         </div>
-      </header>
+      </div>
 
       <div className="stats-container">
         <div className="stat-card">

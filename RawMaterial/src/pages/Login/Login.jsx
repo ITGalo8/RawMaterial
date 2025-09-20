@@ -238,7 +238,6 @@ const Login = () => {
         "Authorization"
       ] = `Bearer ${response.data.data.accessToken}`;
 
-      console.log("roleName", );
       if (roleName === "Admin" || roleName === "SuperAdmin") {
         navigate("/admin-dashboard");
       } else if (roleName === "MPC Work" || roleName === "Assemble" || roleName === "Diassemble" || roleName === "Stamping" || roleName === "Store" || roleName === "Testing" || roleName === "Winding" || roleName === "Winding Connection") {

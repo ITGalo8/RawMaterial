@@ -43,7 +43,7 @@ const SideMenubar = ({ role }) => {
         {lineWorkerRoles.includes(role) && (
           <li>
             <NavLink to="/lineWorker-dashboard">
-              <FaWarehouse /> Line Worker
+              <FaWarehouse /> Line Worker Dashboard
             </NavLink>
           </li>
         )}
