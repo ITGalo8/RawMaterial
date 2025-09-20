@@ -6,14 +6,14 @@ import Login from "./pages/Login/Login";
 import LineWorkerDashboard from "./pages/LineWorker/LineWokerDashboard/LineWorkerDashboard";
 
 const App = () => {
-  return (
+  return ( 
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Layout />}>
           <Route path="admin-dashboard" element={<AdminDashboard />} />
           <Route
-            path="lineWorker-dashboard"
+            path="lineworker-dashboard"
             element={<LineWorkerDashboard />}
           />
         </Route>
