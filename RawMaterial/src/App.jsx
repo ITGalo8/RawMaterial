@@ -4,6 +4,7 @@ import Layout from "./pages/Layout/Layout";
 import AdminDashboard from "./pages/Admin/AdminDashboard/AdminDashboard";
 import Login from "./pages/Login/Login";
 import LineWorkerDashboard from "./pages/LineWorker/LineWokerDashboard/LineWorkerDashboard";
+import StoreKeeper from "./pages/LineWorker/StoreKeeper/StoreKeeper";
 
 const App = () => {
   return ( 
@@ -12,6 +13,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Layout />}>
           <Route path="admin-dashboard" element={<AdminDashboard />} />
+           <Route path="store-keeper" element={<StoreKeeper />} />
           <Route
             path="lineworker-dashboard"
             element={<LineWorkerDashboard />}
