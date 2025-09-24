@@ -17,7 +17,7 @@ const SideMenubar = ({ role }) => {
   const [openMenus, setOpenMenus] = useState({
     repair: false,
     reject: false,
-    production: false, 
+    production: false,
     bom: false,
   });
 
@@ -25,13 +25,12 @@ const SideMenubar = ({ role }) => {
     setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
   };
 
-  // Allowed roles for Line Worker menu
+  // Allowed roles for Line Worker menu (excluding Store and Admin)
   const lineWorkerRoles = [
     "MPC Work",
     "Assemble",
     "Diassemble",
     "Stamping",
-    "Store",
     "Testing",
     "Winding",
     "Winding Connection",
@@ -40,10 +39,33 @@ const SideMenubar = ({ role }) => {
   return (
     <div className="sidebar">
       <ul className="sidebar-list">
+        {/* Line Worker Dashboard - NOT shown for Store and Admin roles */}
         {lineWorkerRoles.includes(role) && (
           <li>
             <NavLink to="lineworker-dashboard">
               <FaWarehouse /> Line Worker Dashboard
+            </NavLink>
+          </li>
+        )}
+
+        {/* StoreKeeper page only visible for Store role */}
+        {role === "Store" && (
+          <li>
+            <NavLink to="store-keeper">
+              <FaWarehouse /> Approval Request
+            </NavLink>
+
+             <NavLink to="user-stock-data">
+              <FaWarehouse /> User Stock Data
+            </NavLink>
+          </li>
+        )}
+
+        {/* Additional menus for Superadmin and Testing roles */}
+        {(role === "Superadmin" || role === "Testing") && (
+          <li>
+            <NavLink to="admin-dashboard">
+              <FaCogs /> Admin Dashboard
             </NavLink>
           </li>
         )}

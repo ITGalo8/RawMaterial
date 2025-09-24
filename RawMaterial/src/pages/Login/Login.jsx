@@ -240,8 +240,12 @@ const Login = () => {
 
       if (roleName === "Admin" || roleName === "SuperAdmin") {
         navigate("/admin-dashboard");
-      } else if (roleName === "MPC Work" || roleName === "Assemble" || roleName === "Diassemble" || roleName === "Stamping" || roleName === "Store" || roleName === "Testing" || roleName === "Winding" || roleName === "Winding Connection") {
+      } else if (roleName === "MPC Work" || roleName === "Assemble" || roleName === "Diassemble" || roleName === "Stamping"  || roleName === "Testing" || roleName === "Winding" || roleName === "Winding Connection") {
         navigate("/lineWorker-dashboard");
+      }
+
+      else if (roleName === "Store" ) {
+        navigate("/store-keeper");
       } 
     } catch (error) {
       const errorMessage =

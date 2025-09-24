@@ -40,6 +40,32 @@ const LineWorkerDashboard = () => {
     }
   };
 
+  // Custom styles for react-select to show colors based on stock status
+  const customStyles = {
+    option: (provided, state) => ({
+      ...provided,
+      color: state.data.isDisabled ? '#d32f2f' : '#388e3c', // Red for out of stock, green for in stock
+      backgroundColor: state.isFocused ? '#f5f5f5' : 'white',
+      cursor: state.data.isDisabled ? 'not-allowed' : 'pointer',
+      opacity: state.data.isDisabled ? 0.7 : 1,
+    }),
+    multiValue: (provided, state) => {
+      const material = rawMaterials.find(m => m.id === state.data.value);
+      return {
+        ...provided,
+        backgroundColor: material?.outOfStock ? '#ffebee' : '#e8f5e8',
+        color: material?.outOfStock ? '#d32f2f' : '#388e3c',
+      };
+    },
+    multiValueLabel: (provided, state) => {
+      const material = rawMaterials.find(m => m.id === state.data.value);
+      return {
+        ...provided,
+        color: material?.outOfStock ? '#d32f2f' : '#388e3c',
+      };
+    },
+  };
+
   const handleMaterialSelect = (selectedOptions) => {
     const selected = selectedOptions || [];
     const newSelectedMaterials = selected.map(opt => 
@@ -100,72 +126,72 @@ const LineWorkerDashboard = () => {
   };
 
   const handleSubmitRequest = async () => {
-  // Validation (keep your existing validation code)
-  if (!selectedStorePerson) {
-    setSubmitMessage('Please select a store person');
-    return;
-  }
-
-  if (selectedMaterials.length === 0) {
-    setSubmitMessage('Please select at least one material');
-    return;
-  }
-
-  const materialsWithInvalidQuantities = selectedMaterials.filter(material => {
-    const quantity = quantities[material.id] || 0;
-    return quantity <= 0;
-  });
-
-  if (materialsWithInvalidQuantities.length > 0) {
-    setSubmitMessage('Please enter valid quantities for all materials (minimum 1)');
-    return;
-  }
-
-  try {
-    setSubmitting(true);
-    setSubmitMessage('');
-
-    // Prepare request data in the exact required format
-    const requestData = {
-      type: PRE, // Move type to top level
-      rawMaterialRequested: selectedMaterials.map(material => ({
-        rawMaterialId: material.id,
-        quantity: quantities[material.id].toString(), // Ensure it's a string
-        unit: material.unit
-      })),
-      requestedTo: selectedStorePerson.id
-    };
-
-    console.log('Submitting request:', JSON.stringify(requestData, null, 2));
-
-    // Send request to API
-    const response = await Api.post('/line-worker/createItemRequest', requestData);
-
-    // Handle success
-    if (response.data.success) {
-      setSubmitMessage('Request submitted successfully!');
-      
-      console.log('Request successful:', response.data);
-      // Reset form
-      setSelectedMaterials([]);
-      setSelectedStorePerson(null);
-      setQuantities({});
-      
-      // Refresh data to get updated stock levels
-      setTimeout(() => {
-        fetchData();
-      }, 1000);
-    } else {
-      setSubmitMessage('Failed to submit request: ' + (response.data.message || 'Unknown error'));
+    // Validation (keep your existing validation code)
+    if (!selectedStorePerson) {
+      setSubmitMessage('Please select a store person');
+      return;
     }
 
-  } catch (err) {
-    console.error('Error submitting request:', err);
-    setSubmitMessage('Error submitting request: ' + (err.response?.data?.message || err.message));
-  } finally {
-    setSubmitting(false);
-  }
-};
+    if (selectedMaterials.length === 0) {
+      setSubmitMessage('Please select at least one material');
+      return;
+    }
+
+    const materialsWithInvalidQuantities = selectedMaterials.filter(material => {
+      const quantity = quantities[material.id] || 0;
+      return quantity <= 0;
+    });
+
+    if (materialsWithInvalidQuantities.length > 0) {
+      setSubmitMessage('Please enter valid quantities for all materials (minimum 1)');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setSubmitMessage('');
+
+      // Prepare request data in the exact required format
+      const requestData = {
+        type: PRE, // Move type to top level
+        rawMaterialRequested: selectedMaterials.map(material => ({
+          rawMaterialId: material.id,
+          quantity: quantities[material.id].toString(), // Ensure it's a string
+          unit: material.unit
+        })),
+        requestedTo: selectedStorePerson.id
+      };
+
+      console.log('Submitting request:', JSON.stringify(requestData, null, 2));
+
+      // Send request to API
+      const response = await Api.post('/line-worker/createItemRequest', requestData);
+
+      // Handle success
+      if (response.data.success) {
+        setSubmitMessage('Request submitted successfully!');
+        
+        console.log('Request successful:', response.data);
+        // Reset form
+        setSelectedMaterials([]);
+        setSelectedStorePerson(null);
+        setQuantities({});
+        
+        // Refresh data to get updated stock levels
+        setTimeout(() => {
+          fetchData();
+        }, 1000);
+      } else {
+        setSubmitMessage('Failed to submit request: ' + (response.data.message || 'Unknown error'));
+      }
+
+    } catch (err) {
+      console.error('Error submitting request:', err);
+      setSubmitMessage('Error submitting request: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const isSubmitDisabled = submitting || !selectedStorePerson || selectedMaterials.length === 0;
 
@@ -216,19 +242,30 @@ const LineWorkerDashboard = () => {
               isMulti
               options={rawMaterials.map(mat => ({
                 value: mat.id,
-                label: `${mat.name} (${mat.stock} ${mat.unit})`,
-                isDisabled: mat.stock <= 0
+                label: `${mat.name} (${mat.stock} ${mat.unit})${mat.outOfStock ? ' - OUT OF STOCK' : ''}`,
+                isDisabled: mat.outOfStock // Disable out of stock items
               }))}
               onChange={handleMaterialSelect}
               value={selectedMaterials.map(m => ({
                 value: m.id,
-                label: `${m.name} (${m.stock} ${m.unit})`
+                label: `${m.name} (${m.stock} ${m.unit})${m.outOfStock ? ' - OUT OF STOCK' : ''}`
               }))}
               className="multi-select"
               classNamePrefix="react-select"
               placeholder="Search and select materials..."
               noOptionsMessage={() => "No materials found"}
+              styles={customStyles} // Apply custom styles
             />
+            <div className="stock-status-legend">
+              <div className="legend-item">
+                <span className="legend-color in-stock"></span>
+                <span>In Stock</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-color out-of-stock"></span>
+                <span>Out of Stock</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -244,14 +281,15 @@ const LineWorkerDashboard = () => {
             
             <div className="materials-list">
               {selectedMaterials.map((material) => (
-                <div key={material.id} className="material-item">
+                <div key={material.id} className={`material-item ${material.outOfStock ? 'out-of-stock' : ''}`}>
                   <div className="material-info">
                     <span className="material-name">{material.name}</span>
                     <div className="material-details">
-                      <span className="available-stock">
+                      <span className={`available-stock ${material.outOfStock ? 'out-of-stock' : 'in-stock'}`}>
                         Available: {material.stock} {material.unit}
+                        {material.outOfStock && <span className="out-of-stock-badge">OUT OF STOCK</span>}
                       </span>
-                      {material.stock <= 10 && (
+                      {!material.outOfStock && material.stock <= 10 && (
                         <span className="low-stock-warning">Low stock!</span>
                       )}
                     </div>
@@ -268,6 +306,7 @@ const LineWorkerDashboard = () => {
                         onChange={(e) => handleQuantityChange(material.id, e.target.value)}
                         className="quantity-input"
                         placeholder="0"
+                        disabled={material.outOfStock}
                       />
                       <span className="quantity-unit">{material.unit}</span>
                     </div>
@@ -289,7 +328,7 @@ const LineWorkerDashboard = () => {
         {/* Submit Section */}
         <div className="form-card submit-section">
           <div className="card-header">
-            <h2 className="card-title">Submit Request</h2>
+            {/* <h2 className="card-title">Submit Request</h2> */}
           </div>
           
           <div className="submit-content">
