@@ -6,6 +6,8 @@ import Login from "./pages/Login/Login";
 import LineWorkerDashboard from "./pages/LineWorker/LineWokerDashboard/LineWorkerDashboard";
 import StoreKeeper from "./pages/LineWorker/StoreKeeper/StoreKeeper";
 import UserStockData from "./pages/LineWorker/StoreKeeper/UserStockData/UserStockData";
+import StockUpdate from "./pages/LineWorker/StoreKeeper/StockUpdate/StockUpdate";
+import StockUpdateHistory from "./pages/LineWorker/StoreKeeper/StockUpdateHistory/StockUpdateHistory";
 
 const App = () => {
   return ( 
@@ -16,6 +18,8 @@ const App = () => {
           <Route path="admin-dashboard" element={<AdminDashboard />} />
            <Route path="store-keeper" element={<StoreKeeper />} />
            <Route path="user-stock-data" element={<UserStockData />} />
+           <Route path="stock-update" element={<StockUpdate />} />
+           <Route path="stock-update-history" element={<StockUpdateHistory />} />
           <Route
             path="lineworker-dashboard"
             element={<LineWorkerDashboard />}

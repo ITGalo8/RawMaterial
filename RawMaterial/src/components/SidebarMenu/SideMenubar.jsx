@@ -58,6 +58,16 @@ const SideMenubar = ({ role }) => {
              <NavLink to="user-stock-data">
               <FaWarehouse /> User Stock Data
             </NavLink>
+
+             <NavLink to="stock-update">
+              <FaWarehouse /> Stock Update
+            </NavLink>
+
+            <NavLink to="stock-update-history">
+              <FaWarehouse /> Stock Update History
+            </NavLink>
+
+            
           </li>
         )}
 
