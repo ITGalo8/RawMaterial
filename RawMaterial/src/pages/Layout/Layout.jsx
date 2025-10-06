@@ -1,4 +1,3 @@
-// Layout.js
 import { Outlet } from "react-router-dom";
 import SideMenubar from '../../components/SidebarMenu/SideMenubar'
 
@@ -9,7 +8,7 @@ const Layout = () => {
     <div className="layout">
       <SideMenubar role={role} />
       <div className="main-content">
-        <Outlet /> {/* This renders the nested routes */}
+        <Outlet />
       </div>
     </div>
   );
