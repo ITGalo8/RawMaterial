@@ -1,90 +1,3 @@
-// import React, { useState } from "react";
-// import { NavLink } from "react-router-dom";
-// import {
-//   FaWarehouse,
-//   FaPlus,
-//   FaBox,
-//   FaCogs,
-//   FaClipboardList,
-//   FaTools,
-//   FaTimesCircle,
-//   FaIndustry,
-//   FaSignOutAlt,
-// } from "react-icons/fa";
-// import "./SidebarMenu.css";
-
-// const SideMenubar = ({ role }) => {
-//   const [openMenus, setOpenMenus] = useState({
-//     repair: false,
-//     reject: false,
-//     production: false,
-//     bom: false,
-//   });
-
-//   const toggleMenu = (menu) => {
-//     setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
-//   };
-
-//   // Allowed roles for Line Worker menu (excluding Store and Admin)
-//   const lineWorkerRoles = [
-//     "MPC Work",
-//     "Assemble",
-//     "Diassemble",
-//     "Stamping",
-//     "Testing",
-//     "Winding",
-//     "Winding Connection",
-//   ];
-
-//   return (
-//     <div className="sidebar">
-//       <ul className="sidebar-list">
-//         {/* Line Worker Dashboard - NOT shown for Store and Admin roles */}
-//         {lineWorkerRoles.includes(role) && (
-//           <li>
-//             <NavLink to="lineworker-dashboard">
-//               <FaWarehouse /> Line Worker Dashboard
-//             </NavLink>
-//           </li>
-//         )}
-
-//         {/* StoreKeeper page only visible for Store role */}
-//         {role === "Store" && (
-//           <li>
-//             <NavLink to="store-keeper">
-//               <FaWarehouse /> Approval Request
-//             </NavLink>
-
-//              <NavLink to="user-stock-data">
-//               <FaWarehouse /> User Stock Data
-//             </NavLink>
-
-//              <NavLink to="stock-update">
-//               <FaWarehouse /> Stock Update
-//             </NavLink>
-
-//             <NavLink to="stock-update-history">
-//               <FaWarehouse /> Stock Update History
-//             </NavLink>
-
-//           </li>
-//         )}
-
-//         {/* Additional menus for Superadmin and Testing roles */}
-//         {(role === "Superadmin" || role === "Testing") && (
-//           <li>
-//             <NavLink to="admin-dashboard">
-//               <FaCogs /> Admin Dashboard
-//             </NavLink>
-//           </li>
-//         )}
-//       </ul>
-//     </div>
-//   );
-// };
-
-// export default SideMenubar;
-
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useUser } from "../../Context/UserContext";
@@ -101,6 +14,8 @@ import {
   FaUser,
   FaChevronDown,
   FaChevronUp,
+  FaShoppingCart,
+  FaBuilding
 } from "react-icons/fa";
 import "./SidebarMenu.css";
 
@@ -123,7 +38,7 @@ const SideMenubar = () => {
     setIsProfileOpen(!isProfileOpen);
   };
 
-  // Allowed roles for Line Worker menu (excluding Store and Admin)
+  // Allowed roles for Line Worker menu (excluding Store, Admin, and Purchase)
   const lineWorkerRoles = [
     "MPC Work",
     "Assemble",
@@ -155,7 +70,7 @@ const SideMenubar = () => {
 
       {/* Navigation Menu */}
       <ul className="sidebar-list">
-        {/* Line Worker Dashboard - NOT shown for Store and Admin roles */}
+        {/* Line Worker Dashboard - NOT shown for Store, Admin, and Purchase roles */}
         {lineWorkerRoles.includes(user.role) && (
           <li>
             <NavLink
@@ -205,8 +120,8 @@ const SideMenubar = () => {
           </>
         )}
 
-        {/* Additional menus for Superadmin and Testing roles */}
-        {(user.role === "Superadmin" || user.role === "Testing") && (
+        {/* Admin Dashboard for Superadmin and Testing roles */}
+        {(user.role === "Superadmin" || user.role === "Testing" || user.role === "Admin") && (
           <li>
             <NavLink
               to="admin-dashboard"
@@ -215,6 +130,28 @@ const SideMenubar = () => {
               <FaCogs /> Admin Dashboard
             </NavLink>
           </li>
+        )}
+
+       
+        {user.role === "Purchase" && (
+          <>
+            {/* <li>
+              <NavLink
+                to="purchase-dashboard"
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                <FaShoppingCart /> Purchase Dashboard
+              </NavLink>
+            </li> */}
+            <li>
+              <NavLink
+                to="add-company"
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
+                <FaBuilding /> Add Company
+              </NavLink>
+            </li>
+          </>
         )}
       </ul>
     </div>

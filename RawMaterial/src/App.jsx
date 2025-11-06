@@ -1,39 +1,3 @@
-// import React from "react";
-// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-// import Layout from "./pages/Layout/Layout";
-// import AdminDashboard from "./pages/Admin/AdminDashboard/AdminDashboard";
-// import Login from "./pages/Login/Login";
-// import LineWorkerDashboard from "./pages/LineWorker/LineWokerDashboard/LineWorkerDashboard";
-// import StoreKeeper from "./pages/LineWorker/StoreKeeper/StoreKeeper";
-// import UserStockData from "./pages/LineWorker/StoreKeeper/UserStockData/UserStockData";
-// import StockUpdate from "./pages/LineWorker/StoreKeeper/StockUpdate/StockUpdate";
-// import StockUpdateHistory from "./pages/LineWorker/StoreKeeper/StockUpdateHistory/StockUpdateHistory";
-
-// const App = () => {
-//   return ( 
-//     <Router>
-//       <Routes>
-//         <Route path="/login" element={<Login />} />
-//         <Route path="/" element={<Layout />}>
-//           <Route path="admin-dashboard" element={<AdminDashboard />} />
-//            <Route path="store-keeper" element={<StoreKeeper />} />
-//            <Route path="user-stock-data" element={<UserStockData />} />
-//            <Route path="stock-update" element={<StockUpdate />} />
-//            <Route path="stock-update-history" element={<StockUpdateHistory />} />
-//           <Route
-//             path="lineworker-dashboard"
-//             element={<LineWorkerDashboard />}
-//           />
-//         </Route>
-//       </Routes>
-//     </Router>
-//   );
-// };
-
-// export default App;
-
-// App.js
-// App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { UserProvider, useUser } from './Context/UserContext'
@@ -45,6 +9,8 @@ import StoreKeeper from "./pages/LineWorker/StoreKeeper/StoreKeeper";
 import UserStockData from "./pages/LineWorker/StoreKeeper/UserStockData/UserStockData";
 import StockUpdate from "./pages/LineWorker/StoreKeeper/StockUpdate/StockUpdate";
 import StockUpdateHistory from "./pages/LineWorker/StoreKeeper/StockUpdateHistory/StockUpdateHistory";
+import PurchaseDashboard from "./pages/Purchase/PurchaseDashboard";
+import AddCompany from "./pages/Purchase/AddCompany"; // Add this import
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -94,6 +60,8 @@ const AppRoutes = () => {
                 <Navigate to="/admin-dashboard" replace /> :
               user.role === "Store" ?
                 <Navigate to="/store-keeper" replace /> :
+              user.role === "Purchase" ?
+                <Navigate to="/purchase-dashboard" replace /> :
                 <Navigate to="/lineworker-dashboard" replace />
             ) : (
               <Navigate to="/login" replace />
@@ -162,6 +130,26 @@ const AppRoutes = () => {
               "Winding Connection"
             ]}>
               <LineWorkerDashboard />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Purchase Routes */}
+        <Route 
+          path="purchase-dashboard" 
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <PurchaseDashboard />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Add Company Route */}
+        <Route 
+          path="add-company" 
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <AddCompany />
             </ProtectedRoute>
           } 
         />

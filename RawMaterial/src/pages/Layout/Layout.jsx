@@ -8,10 +8,10 @@ const Layout = () => {
     <div className="layout">
       <SideMenubar role={role} />
       <div className="main-content">
-        <Outlet />
+        <Outlet /> 
       </div>
     </div>
   );
 };
 
-export default Layout;
+export default Layout; 
