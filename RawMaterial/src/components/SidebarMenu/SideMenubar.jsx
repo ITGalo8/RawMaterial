@@ -25,6 +25,8 @@ const SideMenubar = () => {
     reject: false,
     production: false,
     bom: false,
+    company: false, // Added company menu state
+    vendor: false,  // Added vendor menu state
   });
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -132,24 +134,76 @@ const SideMenubar = () => {
           </li>
         )}
 
-       
+        {/* Purchase Role Menu */}
         {user.role === "Purchase" && (
           <>
-            {/* <li>
-              <NavLink
-                to="purchase-dashboard"
-                className={({ isActive }) => (isActive ? "active" : "")}
+            <li className="menu-item-with-dropdown">
+              <div 
+                className="menu-header" 
+                onClick={() => toggleMenu('company')}
               >
-                <FaShoppingCart /> Purchase Dashboard
-              </NavLink>
-            </li> */}
-            <li>
-              <NavLink
-                to="add-company"
-                className={({ isActive }) => (isActive ? "active" : "")}
+                <span className="menu-title">
+                  <FaBuilding /> Company
+                </span>
+                <span className="menu-arrow">
+                  {openMenus.company ? <FaChevronUp /> : <FaChevronDown />}
+                </span>
+              </div>
+              {openMenus.company && (
+                <ul className="submenu">
+                  <li>
+                    <NavLink
+                      to="add-company"
+                      className={({ isActive }) => (isActive ? "active" : "")}
+                    >
+                      Add Company
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink
+                      to="update-company"
+                      className={({ isActive }) => (isActive ? "active" : "")}
+                    >
+                      Update Company
+                    </NavLink>
+                  </li>
+                </ul>
+              )}
+            </li>
+
+            <li className="menu-item-with-dropdown">
+              <div 
+                className="menu-header" 
+                onClick={() => toggleMenu('vendor')}
               >
-                <FaBuilding /> Add Company
-              </NavLink>
+                <span className="menu-title">
+                  <FaBuilding /> Vendor
+                </span>
+                <span className="menu-arrow">
+                  {openMenus.vendor ? <FaChevronUp /> : <FaChevronDown />}
+                </span>
+              </div>
+              {openMenus.vendor && (
+                <ul className="submenu">
+                  <li>
+                    <NavLink
+                      to="add-vendor"
+                      className={({ isActive }) => (isActive ? "active" : "")}
+                    >
+                      Add Vendor
+                    </NavLink>
+                  </li>
+
+                  <li>
+                    <NavLink
+                      to="update-vendor"
+                      className={({ isActive }) => (isActive ? "active" : "")}
+                    >
+                      Update Vendor
+                    </NavLink>
+                  </li>
+                </ul>
+              )}
             </li>
           </>
         )}

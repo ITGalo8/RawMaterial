@@ -2,10 +2,9 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Api from '../../auth/Api';
 import './CSS/AddCompany.css';
 
-const AddCompany = () => {
+const AddVendor = () => {
   const [companyData, setCompanyData] = useState({
     name: '',
-    companyCode: '',
     gstNumber: '',
     address: '',
     city: '',
@@ -156,7 +155,7 @@ const AddCompany = () => {
     const errors = {};
     
     if (!companyData.name.trim()) errors.name = 'Company name is required';
-    if (!companyData.companyCode.trim()) errors.companyCode = 'Company code is required';
+    // if (!companyData.companyCode.trim()) errors.companyCode = 'Company code is required';
     
     if (!companyData.gstNumber.trim()) {
       errors.gstNumber = 'GST number is required';
@@ -210,8 +209,6 @@ const AddCompany = () => {
       ...prevState,
       [name]: processedValue
     }));
-
-    // Clear field error when user starts typing
     if (fieldErrors[name]) {
       setFieldErrors(prev => ({
         ...prev,
@@ -252,7 +249,7 @@ const AddCompany = () => {
 
     try {
       const response = await Api.post(
-        '/purchase/companies',
+        '/purchase/vendors',
         companyData,
         {
           headers: {
@@ -262,10 +259,9 @@ const AddCompany = () => {
       );
 
       if (response.status === 200 || response.status === 201) {
-        setMessage('Company added successfully!');
         setCompanyData({
           name: '',
-          companyCode: '',
+        //   companyCode: '',
           gstNumber: '',
           address: '',
           city: '',
@@ -278,6 +274,7 @@ const AddCompany = () => {
           currency: 'INR'
         });
       }
+      alert(response?.data?.message);
     } catch (err) {
       console.error('Error adding company:', err);
       setError(
@@ -293,7 +290,7 @@ const AddCompany = () => {
   const isFormValid = () => {
     return (
       companyData.name.trim() &&
-      companyData.companyCode.trim() &&
+    //   companyData.companyCode.trim() &&
       companyData.gstNumber.trim() &&
       companyData.address.trim() &&
       companyData.city.trim() &&
@@ -307,7 +304,7 @@ const AddCompany = () => {
   const clearForm = () => {
     setCompanyData({
       name: '',
-      companyCode: '',
+    //   companyCode: '',
       gstNumber: '',
       address: '',
       city: '',
@@ -331,8 +328,8 @@ const AddCompany = () => {
       <div className="center-wrapper">
         <div className="form-content">
           <div className="page-header">
-            <h1>Add New Company</h1>
-            <p>Register a new supplier or vendor company in the system</p>
+            <h1>Add New Vendor</h1>
+            
           </div>
 
           {message && (
@@ -397,7 +394,7 @@ const AddCompany = () => {
                   )}
                 </div>
 
-                <div className="form-group">
+                {/* <div className="form-group">
                   <label htmlFor="companyCode" className="form-label">
                     Company Code <span className="required">*</span>
                   </label>
@@ -414,7 +411,7 @@ const AddCompany = () => {
                   {fieldErrors.companyCode && (
                     <span className="field-error">{fieldErrors.companyCode}</span>
                   )}
-                </div>
+                </div> */}
 
                 <div className="form-group">
                   <label htmlFor="currency" className="form-label">
@@ -667,4 +664,4 @@ const AddCompany = () => {
   );
 };
 
-export default AddCompany;
+export default AddVendor;

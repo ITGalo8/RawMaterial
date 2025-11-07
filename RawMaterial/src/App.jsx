@@ -11,6 +11,9 @@ import StockUpdate from "./pages/LineWorker/StoreKeeper/StockUpdate/StockUpdate"
 import StockUpdateHistory from "./pages/LineWorker/StoreKeeper/StockUpdateHistory/StockUpdateHistory";
 import PurchaseDashboard from "./pages/Purchase/PurchaseDashboard";
 import AddCompany from "./pages/Purchase/AddCompany"; // Add this import
+import UpdateCompany from "./pages/Purchase/UpdateCompany";
+import AddVendor from "./pages/Purchase/AddVendor";
+import UpdateVendor from "./pages/Purchase/UpdateVendor";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -150,6 +153,33 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <AddCompany />
+            </ProtectedRoute>
+          } 
+        />
+
+         <Route 
+          path="update-company" 
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <UpdateCompany />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="add-vendor" 
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <AddVendor />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="update-vendor" 
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <UpdateVendor />
             </ProtectedRoute>
           } 
         />
