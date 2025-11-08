@@ -27,6 +27,7 @@ const SideMenubar = () => {
     bom: false,
     company: false, // Added company menu state
     vendor: false,  // Added vendor menu state
+    purchase: false,  // Added purchase menu state
   });
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -200,6 +201,41 @@ const SideMenubar = () => {
                       className={({ isActive }) => (isActive ? "active" : "")}
                     >
                       Update Vendor
+                    </NavLink>
+                  </li>
+                </ul>
+              )}
+            </li>
+
+            <li className="menu-item-with-dropdown">
+              <div 
+                className="menu-header" 
+                onClick={() => toggleMenu('purchase')}
+              >
+                <span className="menu-title">
+                  <FaBuilding /> Purchase
+                </span>
+                <span className="menu-arrow">
+                  {openMenus.purchase ? <FaChevronUp /> : <FaChevronDown />}
+                </span>
+              </div>
+              {openMenus.purchase && (
+                <ul className="submenu">
+                  <li>
+                    <NavLink
+                      to="create-purchase-order"
+                      className={({ isActive }) => (isActive ? "active" : "")}
+                    >
+                      Create Purchase Order
+                    </NavLink>
+                  </li>
+
+                  <li>
+                    <NavLink
+                      to="show-purchase-orders"
+                      className={({ isActive }) => (isActive ? "active" : "")}
+                    >
+                      Show Purchase Orders
                     </NavLink>
                   </li>
                 </ul>

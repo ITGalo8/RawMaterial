@@ -14,6 +14,8 @@ import AddCompany from "./pages/Purchase/AddCompany"; // Add this import
 import UpdateCompany from "./pages/Purchase/UpdateCompany";
 import AddVendor from "./pages/Purchase/AddVendor";
 import UpdateVendor from "./pages/Purchase/UpdateVendor";
+import CreatePurchaseOrder from "./pages/Purchase/CreatePurchaseOrder";
+import ShowPurchaseOrder from "./pages/Purchase/ShowPurchaseOrder";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -180,6 +182,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <UpdateVendor />
+            </ProtectedRoute>
+          } 
+        />
+
+         <Route 
+          path="create-purchase-order" 
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <CreatePurchaseOrder />
+            </ProtectedRoute>
+          } 
+        />
+
+         <Route 
+          path="show-purchase-orders" 
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <ShowPurchaseOrder />
             </ProtectedRoute>
           } 
         />
