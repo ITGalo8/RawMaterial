@@ -38,6 +38,15 @@ const CreatePurchaseOrder = () => {
     }
   ]);
 
+  // New state for other charges
+  const [otherCharges, setOtherCharges] = useState([
+    {
+      id: 1,
+      name: "",
+      amount: ""
+    }
+  ]);
+
   const gstTypes = [
     { value: "IGST_5", label: "IGST 5%" },
     { value: "IGST_12", label: "IGST 12%" },
@@ -149,12 +158,42 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Add new other charge row
+  const addOtherCharge = () => {
+    const newId = otherCharges.length + 1;
+    setOtherCharges([
+      ...otherCharges,
+      {
+        id: newId,
+        name: "",
+        amount: ""
+      }
+    ]);
+  };
+
+  // Remove other charge row
+  const removeOtherCharge = (id) => {
+    if (otherCharges.length > 1) {
+      setOtherCharges(otherCharges.filter(charge => charge.id !== id));
+    }
+  };
+
+  // Update other charge
+  const updateOtherCharge = (id, field, value) => {
+    setOtherCharges(otherCharges.map(charge => {
+      if (charge.id === id) {
+        return { ...charge, [field]: value };
+      }
+      return charge;
+    }));
+  };
+
   // Calculate amounts for an item
   const calculateItemAmounts = (item) => {
     const rate = parseFloat(item.rate) || 0;
     const quantity = parseFloat(item.quantity) || 0;
     
-    // Calculate total amount (rate * quantity)
+    // Calculate total amount (rate * quantity) - WITHOUT GST
     const total = rate * quantity;
     
     let gstRate = 0;
@@ -177,7 +216,7 @@ const CreatePurchaseOrder = () => {
       amount: total,
       taxableAmount,
       gstAmount,
-      totalAmount: finalTotalAmount,
+      totalAmount: total, // Changed from finalTotalAmount to total - shows base amount only without GST
       itemGSTType: isItemWiseGST ? itemGSTType : null
     };
   };
@@ -233,8 +272,8 @@ const CreatePurchaseOrder = () => {
     }
   }, [selectedGstType]);
 
-  // Calculate totals
-  const totals = itemDetails.reduce((acc, item) => {
+  // Calculate item totals
+  const itemTotals = itemDetails.reduce((acc, item) => {
     return {
       amount: acc.amount + (parseFloat(item.amount) || 0),
       taxableAmount: acc.taxableAmount + (parseFloat(item.taxableAmount) || 0),
@@ -242,6 +281,20 @@ const CreatePurchaseOrder = () => {
       totalAmount: acc.totalAmount + (parseFloat(item.totalAmount) || 0)
     };
   }, { amount: 0, taxableAmount: 0, gstAmount: 0, totalAmount: 0 });
+
+  // Calculate other charges total
+  const otherChargesTotal = otherCharges.reduce((total, charge) => {
+    return total + (parseFloat(charge.amount) || 0);
+  }, 0);
+
+  // Calculate final totals including other charges
+  const finalTotals = {
+    amount: itemTotals.amount,
+    taxableAmount: itemTotals.taxableAmount,
+    gstAmount: itemTotals.gstAmount,
+    otherCharges: otherChargesTotal,
+    totalAmount: itemTotals.taxableAmount + itemTotals.gstAmount + otherChargesTotal
+  };
 
   // Handle form submission
   const handleSubmit = async () => {
@@ -266,6 +319,16 @@ const CreatePurchaseOrder = () => {
 
     if (invalidItems.length > 0) {
       alert("Please fill all required fields for all items");
+      return;
+    }
+
+    // Validate other charges
+    const invalidCharges = otherCharges.filter(charge => 
+      !charge.name || !charge.amount
+    );
+
+    if (invalidCharges.length > 0) {
+      alert("Please fill all fields for other charges");
       return;
     }
 
@@ -294,7 +357,11 @@ const CreatePurchaseOrder = () => {
             rate: item.rate.toString(),
             gstRate: isItemWiseGST ? item.gstRate.toString() : ""
           };
-        })
+        }),
+        otherCharges: otherCharges.map(charge => ({
+          name: charge.name,
+          amount: charge.amount.toString()
+        }))
       };
 
       console.log('Purchase Order Data:', purchaseOrderData);
@@ -303,7 +370,7 @@ const CreatePurchaseOrder = () => {
       const response = await Api.post('/purchase/purchase-orders/create', purchaseOrderData);
       
       if (response.data.success) {
-        alert('Purchase Order created successfully!');
+        alert('Purchase Order created successfully!', response?.data?.message);
         handleReset();
       } else {
         alert('Error creating purchase order: ' + response.data.message);
@@ -340,6 +407,11 @@ const CreatePurchaseOrder = () => {
       totalAmount: 0,
       itemGSTType: null,
       itemDetail: ""
+    }]);
+    setOtherCharges([{
+      id: 1,
+      name: "",
+      amount: ""
     }]);
   };
 
@@ -628,7 +700,7 @@ const CreatePurchaseOrder = () => {
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label">Total Amount</label>
+                      <label className="form-label">Total Amount (₹)</label>
                       <input
                         type="text"
                         value={item.totalAmount.toFixed(2)}
@@ -705,25 +777,86 @@ const CreatePurchaseOrder = () => {
           ))}
         </div>
 
+        {/* OTHER CHARGES SECTION */}
+        <div className="form-section">
+          <div className="section-header">
+            <h2 className="section-title">Other Charges</h2>
+            <button 
+              type="button" 
+              className="btn btn-primary"
+              onClick={addOtherCharge}
+            >
+              <span className="icon">+</span> Add Charge
+            </button>
+          </div>
+
+          {otherCharges.map((charge, index) => (
+            <div key={charge.id} className="other-charge-card">
+              <div className="card-header">
+                <h3 className="card-title">Charge {index + 1}</h3>
+                {otherCharges.length > 1 && (
+                  <button 
+                    type="button" 
+                    className="btn btn-danger"
+                    onClick={() => removeOtherCharge(charge.id)}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              
+              <div className="form-row-two">
+                <div className="form-group">
+                  <label className="form-label">Charge Name</label>
+                  <input
+                    type="text"
+                    value={charge.name}
+                    onChange={(e) => updateOtherCharge(charge.id, 'name', e.target.value)}
+                    className="form-input"
+                    placeholder="e.g., Freight, Loading, Packaging, etc."
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={charge.amount}
+                    onChange={(e) => updateOtherCharge(charge.id, 'amount', e.target.value)}
+                    className="form-input"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Total Amount Section */}
         <div className="form-section total-section">
           <div className="total-breakdown">
             <h3 className="total-title">Order Summary</h3>
             <div className="total-row">
               <span>Subtotal (₹):</span>
-              <span>{totals.amount.toFixed(2)}</span>
+              <span>{itemTotals.amount.toFixed(2)}</span>
             </div>
             <div className="total-row">
               <span>Total Taxable Amount (₹):</span>
-              <span>{totals.taxableAmount.toFixed(2)}</span>
+              <span>{itemTotals.taxableAmount.toFixed(2)}</span>
             </div>
             <div className="total-row">
               <span>Total GST Amount (₹):</span>
-              <span>{totals.gstAmount.toFixed(2)}</span>
+              <span>{itemTotals.gstAmount.toFixed(2)}</span>
+            </div>
+            <div className="total-row">
+              <span>Other Charges (₹):</span>
+              <span>{otherChargesTotal.toFixed(2)}</span>
             </div>
             <div className="total-row grand-total">
               <span>Grand Total (₹):</span>
-              <span>{totals.totalAmount.toFixed(2)}</span>
+              <span>{finalTotals.totalAmount.toFixed(2)}</span>
             </div>
           </div>
         </div>
