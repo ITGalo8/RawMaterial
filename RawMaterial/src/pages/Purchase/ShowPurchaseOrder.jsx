@@ -12,6 +12,41 @@ const ShowPurchaseOrder = () => {
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState('');
   const [selectedOrder, setSelectedOrder] = useState('');
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [items, setItems] = useState([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
+  const [showItemsDropdown, setShowItemsDropdown] = useState(null);
+  const [formData, setFormData] = useState({
+    companyId: '',
+    vendorId: '',
+    gstType: '',
+    items: [],
+    otherCharges: [],
+    poNumber: '',
+    poDate: '',
+    paymentTerms: '',
+    deliveryTerms: '',
+    contactPerson: '',
+    cellNo: '',
+    gstRate: '',
+    currency: '',
+    warranty: '',
+    status: '',
+    remarks: ''
+  });
+
+  // Unit types array
+  const unitTypes = [
+    { value: "Nos", label: "Nos" },
+    { value: "Pcs", label: "Pcs" },
+    { value: "Mtr", label: "Mtr" },
+    { value: "Kg", label: "Kg" },
+    { value: "Box", label: "Box" },
+    { value: "Set", label: "Set" },
+    { value: "Roll", label: "Roll" },
+    { value: "Ltr", label: "Ltr" },
+  ];
 
   // Fetch companies
   const fetchCompanies = async () => {
@@ -73,6 +108,231 @@ const ShowPurchaseOrder = () => {
     }
   };
 
+  // Fetch items from API
+  const fetchItems = async () => {
+    setItemsLoading(true);
+    try {
+      const response = await Api.get('/purchase/items');
+      console.log('Items API response:', response.data);
+      setItems(response.data.items || []);
+    } catch (error) {
+      console.error('Error fetching items:', error);
+      alert('Error loading items');
+      setItems([]);
+    } finally {
+      setItemsLoading(false);
+    }
+  };
+
+  // Prepare update form data
+  const prepareUpdateForm = (orderDetails) => {
+    if (!orderDetails) return;
+    
+    setFormData({
+      companyId: orderDetails.companyId || '',
+      vendorId: orderDetails.vendorId || '',
+      gstType: orderDetails.gstType || '',
+      items: orderDetails.items ? orderDetails.items.map(item => ({
+        id: item.id || '',
+        name: item.itemName || '',
+        source: 'mysql',
+        hsnCode: item.hsnCode || '',
+        modelNumber: item.modelNumber || '',
+        itemDetail: item.itemDetail || '',
+        unit: item.unit || '',
+        quantity: item.quantity || '',
+        rate: item.rate || '',
+        gstRate: item.gstRate || '',
+        total: item.total || ''
+      })) : [],
+      otherCharges: orderDetails.otherCharges ? orderDetails.otherCharges.map(charge => ({
+        id: charge.id || '',
+        name: charge.name || '',
+        amount: charge.amount || ''
+      })) : [],
+      poNumber: orderDetails.poNumber || '',
+      poDate: orderDetails.poDate || '',
+      paymentTerms: orderDetails.paymentTerms || '',
+      deliveryTerms: orderDetails.deliveryTerms || '',
+      contactPerson: orderDetails.contactPerson || '',
+      cellNo: orderDetails.cellNo || '',
+      gstRate: orderDetails.gstRate || '',
+      currency: orderDetails.currency || '',
+      warranty: orderDetails.warranty || '',
+      status: orderDetails.status || '',
+      remarks: orderDetails.remarks || ''
+    });
+    
+    setShowUpdateForm(true);
+    // Fetch items when opening update form
+    fetchItems();
+  };
+
+  // Handle update form submission
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedOrder) {
+      alert('No purchase order selected');
+      return;
+    }
+
+    setUpdateLoading(true);
+    try {
+      console.log('Updating purchase order:', selectedOrder);
+      console.log('Update data:', formData);
+
+      const response = await Api.put(
+        `/purchase/purchase-orders/update/${selectedOrder}`,
+        formData
+      );
+
+      console.log('Update response:', response);
+      
+      if (response.data.success) {
+        alert('Purchase order updated successfully!');
+        setShowUpdateForm(false);
+        // Refresh the order details
+        fetchOrderDetails(selectedOrder);
+      } else {
+        alert('Failed to update purchase order: ' + (response.data.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error updating purchase order:', error);
+      
+      if (error.response) {
+        console.error('Error response status:', error.response.status);
+        console.error('Error response data:', error.response.data);
+        alert(`Error updating purchase order: ${error.response.status} ${error.response.data.message || 'Unknown error'}`);
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        alert('Network error. Please check your connection and try again.');
+      } else {
+        alert('Error updating purchase order. Please try again.');
+      }
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle item input changes
+  const handleItemChange = (index, field, value) => {
+    const updatedItems = [...formData.items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      [field]: value
+    };
+    
+    // Calculate total if rate or quantity changes
+    if (field === 'rate' || field === 'quantity') {
+      const rate = parseFloat(updatedItems[index].rate) || 0;
+      const quantity = parseFloat(updatedItems[index].quantity) || 0;
+      updatedItems[index].total = (rate * quantity).toString();
+    }
+    
+    setFormData(prev => ({
+      ...prev,
+      items: updatedItems
+    }));
+  };
+
+  // Handle item selection from dropdown
+  const handleItemSelect = (index, selectedItem) => {
+    const updatedItems = [...formData.items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      name: selectedItem.name,
+      id: selectedItem.id,
+      source: selectedItem.source
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      items: updatedItems
+    }));
+    
+    setShowItemsDropdown(null);
+  };
+
+  // Handle charge input changes
+  const handleChargeChange = (index, field, value) => {
+    const updatedCharges = [...formData.otherCharges];
+    updatedCharges[index] = {
+      ...updatedCharges[index],
+      [field]: value
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      otherCharges: updatedCharges
+    }));
+  };
+
+  // Add new item
+  const addNewItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      items: [
+        ...prev.items,
+        {
+          id: '',
+          name: '',
+          source: 'mysql',
+          hsnCode: '',
+          modelNumber: '',
+          itemDetail: '',
+          unit: '',
+          quantity: '',
+          rate: '',
+          gstRate: '',
+          total: ''
+        }
+      ]
+    }));
+  };
+
+  // Remove item
+  const removeItem = (index) => {
+    const updatedItems = formData.items.filter((_, i) => i !== index);
+    setFormData(prev => ({
+      ...prev,
+      items: updatedItems
+    }));
+  };
+
+  // Add new charge
+  const addNewCharge = () => {
+    setFormData(prev => ({
+      ...prev,
+      otherCharges: [
+        ...prev.otherCharges,
+        {
+          id: '',
+          name: '',
+          amount: ''
+        }
+      ]
+    }));
+  };
+
+  // Remove charge
+  const removeCharge = (index) => {
+    const updatedCharges = formData.otherCharges.filter((_, i) => i !== index);
+    setFormData(prev => ({
+      ...prev,
+      otherCharges: updatedCharges
+    }));
+  };
+
   // Download as PDF - POST request
   const handleDownload = async () => {
     if (!selectedOrderDetails || !selectedOrder) return;
@@ -84,7 +344,6 @@ const ShowPurchaseOrder = () => {
       const response = await Api.post(
         `/purchase/purchase-orders/download/${selectedOrder}`,
         {
-          // Send the complete order details that the PDF generator might need
           orderId: selectedOrder,
           poNumber: selectedOrderDetails.poNumber,
           poDate: selectedOrderDetails.poDate,
@@ -104,31 +363,26 @@ const ShowPurchaseOrder = () => {
           remarks: selectedOrderDetails.remarks
         },
         {
-          responseType: 'blob' // Important for file downloads
+          responseType: 'blob'
         }
       );
 
       console.log('PDF response received:', response);
 
-      // Create a blob from the PDF stream
       const blob = new Blob([response.data], { 
         type: response.headers['content-type'] || 'application/pdf' 
       });
       
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       
-      // Set the filename
       const fileName = `PurchaseOrder_${selectedOrderDetails.poNumber}.pdf`;
       link.setAttribute('download', fileName);
       
-      // Trigger download
       document.body.appendChild(link);
       link.click();
       
-      // Clean up
       link.remove();
       window.URL.revokeObjectURL(url);
       
@@ -137,7 +391,6 @@ const ShowPurchaseOrder = () => {
     } catch (error) {
       console.error('Error downloading PDF:', error);
       
-      // Enhanced error handling
       if (error.response) {
         console.error('Error response status:', error.response.status);
         console.error('Error response data:', error.response.data);
@@ -155,43 +408,6 @@ const ShowPurchaseOrder = () => {
       } else {
         alert('Error downloading PDF. Please try again.');
       }
-    } finally {
-      setDownloadLoading(false);
-    }
-  };
-
-  // Alternative download method - minimal data
-  const handleDownloadMinimal = async () => {
-    if (!selectedOrderDetails || !selectedOrder) return;
-    
-    setDownloadLoading(true);
-    try {
-      const response = await Api.post(
-        `/purchase/purchase-orders/download/${selectedOrder}`,
-        {
-          // Minimal data - just the essential fields
-          orderId: selectedOrder,
-          poNumber: selectedOrderDetails.poNumber
-        },
-        {
-          responseType: 'blob'
-        }
-      );
-
-      // Handle the blob response
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `PO_${selectedOrderDetails.poNumber}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-    } catch (error) {
-      console.error('Download error:', error);
-      alert('Failed to download PDF. Please try again.');
     } finally {
       setDownloadLoading(false);
     }
@@ -251,25 +467,9 @@ const ShowPurchaseOrder = () => {
     });
   };
 
-  // Print form
-  const handlePrint = () => {
-    window.print();
-  };
-
   useEffect(() => {
     fetchCompanies();
   }, []);
-
-  // if (loading) {
-  //   return (
-  //     <div className="container">
-  //       <div className="loading-spinner">
-  //         <div className="spinner"></div>
-  //         <p>Loading companies...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   const totals = selectedOrderDetails ? calculateTotals(selectedOrderDetails) : {};
 
@@ -341,9 +541,12 @@ const ShowPurchaseOrder = () => {
               <div className="header-content">
                 <h2 className="details-title">Purchase Order Details</h2>
                 <div className="header-actions">
-                  <button className="btn btn-outline" onClick={handlePrint}>
-                    <span className="btn-icon">🖨️</span>
-                    Print
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => prepareUpdateForm(selectedOrderDetails)}
+                  >
+                    <span className="btn-icon">✏️</span>
+                    Update Order
                   </button>
                   <button 
                     className="btn btn-primary" 
@@ -537,43 +740,33 @@ const ShowPurchaseOrder = () => {
                   </div>
                 )}
 
-                {/* Summary Section - Items Total, Other Charges, GST, Grand Total */}
+                {/* Summary Section */}
                 <div className="details-section">
                   <h3 className="section-title">Order Summary</h3>
                   
                   <div className="summary-container">
-                    {/* Items Total */}
                     <div className="summary-row">
-                      <div className="summary-label">Items Total:
-                     ₹{formatCurrency(totals.itemsTotal)}
-                     </div>
+                      <div className="summary-label">Items Total:</div>
+                      <div className="summary-value">₹{formatCurrency(totals.itemsTotal)}</div>
                     </div>
 
-                    {/* Other Charges Total */}
                     {totals.otherChargesTotal > 0 && (
                       <div className="summary-row">
-                        <div className="summary-label">Other Charges:
-                        ₹{formatCurrency(totals.otherChargesTotal)}
-                        </div>
+                        <div className="summary-label">Other Charges:</div>
+                        <div className="summary-value">₹{formatCurrency(totals.otherChargesTotal)}</div>
                       </div>
                     )}
 
-                    {/* Subtotal */}
                     <div className="summary-row subtotal">
-                      <div className="summary-label">Subtotal:
-                      ₹{formatCurrency(totals.subtotal)}
-                      </div>
+                      <div className="summary-label">Subtotal:</div>
+                      <div className="summary-value">₹{formatCurrency(totals.subtotal)}</div>
                     </div>
 
-                    {/* GST */}
                     <div className="summary-row">
-                      <div className="summary-label">
-                        GST ({selectedOrderDetails.gstRate || '0'}%): {formatCurrency(totals.gstAmount)}
-                      </div>
-                      
+                      <div className="summary-label">GST ({selectedOrderDetails.gstRate || '0'}%):</div>
+                      <div className="summary-value">₹{formatCurrency(totals.gstAmount)}</div>
                     </div>
 
-                    {/* Grand Total */}
                     <div className="summary-row grand-total">
                       <div className="summary-label">Grand Total:</div>
                       <div className="summary-value">₹{formatCurrency(totals.grandTotal)}</div>
@@ -595,6 +788,422 @@ const ShowPurchaseOrder = () => {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Update Form Modal */}
+        {showUpdateForm && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h2 className="modal-title">Update Purchase Order</h2>
+                <button 
+                  className="modal-close"
+                  onClick={() => setShowUpdateForm(false)}
+                >
+                  ×
+                </button>
+              </div>
+              
+              <form onSubmit={handleUpdateSubmit} className="update-form">
+                <div className="form-section">
+                  <h3 className="section-title">Basic Information</h3>
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label className="form-label">PO Number *</label>
+                      <input
+                        type="text"
+                        name="poNumber"
+                        value={formData.poNumber}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label className="form-label">PO Date *</label>
+                      <input
+                        type="date"
+                        name="poDate"
+                        value={formData.poDate ? formData.poDate.split('T')[0] : ''}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Payment Terms *</label>
+                      <input
+                        type="text"
+                        name="paymentTerms"
+                        value={formData.paymentTerms}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Delivery Terms *</label>
+                      <input
+                        type="text"
+                        name="deliveryTerms"
+                        value={formData.deliveryTerms}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Contact Person *</label>
+                      <input
+                        type="text"
+                        name="contactPerson"
+                        value={formData.contactPerson}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Contact Number *</label>
+                      <input
+                        type="text"
+                        name="cellNo"
+                        value={formData.cellNo}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">GST Type *</label>
+                      <select
+                        name="gstType"
+                        value={formData.gstType}
+                        onChange={handleInputChange}
+                        className="form-select"
+                        required
+                      >
+                        <option value="">Select GST Type</option>
+                        <option value="LGST_5">LGST 5%</option>
+                        <option value="LGST_12">LGST 12%</option>
+                        <option value="LGST_18">LGST 18%</option>
+                        <option value="LGST_28">LGST 28%</option>
+                        <option value="IGST_5">IGST 5%</option>
+                        <option value="IGST_12">IGST 12%</option>
+                        <option value="IGST_18">IGST 18%</option>
+                        <option value="IGST_28">IGST 28%</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">GST Rate *</label>
+                      <input
+                        type="number"
+                        name="gstRate"
+                        value={formData.gstRate}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        step="0.01"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Currency *</label>
+                      <input
+                        type="text"
+                        name="currency"
+                        value={formData.currency}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Warranty *</label>
+                      <input
+                        type="text"
+                        name="warranty"
+                        value={formData.warranty}
+                        onChange={handleInputChange}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Status *</label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleInputChange}
+                        className="form-select"
+                        required
+                      >
+                        <option value="">Select Status</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Sent">Sent</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group full-width">
+                      <label className="form-label">Remarks</label>
+                      <textarea
+                        name="remarks"
+                        value={formData.remarks}
+                        onChange={handleInputChange}
+                        className="form-textarea"
+                        rows="3"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Items Section */}
+                <div className="form-section">
+                  <div className="section-header">
+                    <h3 className="section-title">Items</h3>
+                    <button type="button" className="btn btn-outline" onClick={addNewItem}>
+                      + Add Item
+                    </button>
+                  </div>
+                  
+                  {formData.items.map((item, index) => (
+                    <div key={index} className="item-card">
+                      <div className="item-header">
+                        <h4>Item {index + 1}</h4>
+                        <button 
+                          type="button" 
+                          className="btn btn-danger"
+                          onClick={() => removeItem(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      
+                      <div className="form-grid">
+                        <div className="form-group">
+                          <label className="form-label">Item Name *</label>
+                          <div className="dropdown-container">
+                            <input
+                              type="text"
+                              value={item.name}
+                              onChange={(e) => handleItemChange(index, 'name', e.target.value)}
+                              className="form-input"
+                              required
+                              onFocus={() => setShowItemsDropdown(index)}
+                              placeholder="Click to select item"
+                            />
+                            {showItemsDropdown === index && (
+                              <div className="dropdown-menu">
+                                <div className="dropdown-header">
+                                  <span>Select Item</span>
+                                  <button 
+                                    type="button"
+                                    className="dropdown-close"
+                                    onClick={() => setShowItemsDropdown(null)}
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                                <div className="dropdown-search">
+                                  <input
+                                    type="text"
+                                    placeholder="Search items..."
+                                    className="search-input"
+                                    onChange={(e) => {
+                                      // You can implement search functionality here
+                                    }}
+                                  />
+                                </div>
+                                <div className="dropdown-list">
+                                  {itemsLoading ? (
+                                    <div className="dropdown-loading">Loading items...</div>
+                                  ) : items.length > 0 ? (
+                                    items.map((apiItem) => (
+                                      <div
+                                        key={apiItem.id}
+                                        className="dropdown-item"
+                                        onClick={() => handleItemSelect(index, apiItem)}
+                                      >
+                                        <div className="item-name">{apiItem.name}</div>
+                                        <div className="item-source">{apiItem.source}</div>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="dropdown-empty">No items found</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="form-group">
+                          <label className="form-label">HSN Code *</label>
+                          <input
+                            type="text"
+                            value={item.hsnCode}
+                            onChange={(e) => handleItemChange(index, 'hsnCode', e.target.value)}
+                            className="form-input"
+                            required
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">Model Number *</label>
+                          <input
+                            type="text"
+                            value={item.modelNumber}
+                            onChange={(e) => handleItemChange(index, 'modelNumber', e.target.value)}
+                            className="form-input"
+                            required
+                          />
+                        </div>
+
+                        {/* Unit Dropdown */}
+                        <div className="form-group">
+                          <label className="form-label">Unit *</label>
+                          <select
+                            value={item.unit}
+                            onChange={(e) => handleItemChange(index, 'unit', e.target.value)}
+                            className="form-select"
+                            required
+                          >
+                            <option value="">Select Unit</option>
+                            {unitTypes.map(unit => (
+                              <option key={unit.value} value={unit.value}>
+                                {unit.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">Quantity *</label>
+                          <input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                            className="form-input"
+                            required
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">Rate *</label>
+                          <input
+                            type="number"
+                            value={item.rate}
+                            onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
+                            className="form-input"
+                            step="0.01"
+                            required
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label className="form-label">Total</label>
+                          <input
+                            type="text"
+                            value={formatCurrency(item.total || (parseFloat(item.rate || 0) * parseFloat(item.quantity || 0)))}
+                            className="form-input"
+                            disabled
+                          />
+                        </div>
+
+                        <div className="form-group full-width">
+                          <label className="form-label">Item Description *</label>
+                          <textarea
+                            value={item.itemDetail}
+                            onChange={(e) => handleItemChange(index, 'itemDetail', e.target.value)}
+                            className="form-textarea"
+                            rows="3"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Other Charges Section */}
+                <div className="form-section">
+                  <div className="section-header">
+                    <h3 className="section-title">Other Charges</h3>
+                    <button type="button" className="btn btn-outline" onClick={addNewCharge}>
+                      + Add Charge
+                    </button>
+                  </div>
+                  
+                  {formData.otherCharges.map((charge, index) => (
+                    <div key={index} className="charge-card">
+                      <div className="charge-header">
+                        <h4>Charge {index + 1}</h4>
+                        <button 
+                          type="button" 
+                          className="btn btn-danger"
+                          onClick={() => removeCharge(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      
+                      <div className="form-grid">
+                        <div className="form-group">
+                          <label className="form-label">Charge Name</label>
+                          <input
+                            type="text"
+                            value={charge.name}
+                            onChange={(e) => handleChargeChange(index, 'name', e.target.value)}
+                            className="form-input"
+                          />
+                        </div>
+                        
+                        <div className="form-group">
+                          <label className="form-label">Amount</label>
+                          <input
+                            type="number"
+                            value={charge.amount}
+                            onChange={(e) => handleChargeChange(index, 'amount', e.target.value)}
+                            className="form-input"
+                            step="0.01"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowUpdateForm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={updateLoading}
+                  >
+                    {updateLoading ? 'Updating...' : 'Update Order'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
