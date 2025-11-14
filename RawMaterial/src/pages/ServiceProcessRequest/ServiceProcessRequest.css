@@ -1,0 +1,154 @@
+:root{
+  --bg: #ffffff;
+  --card: #f7f8fb;
+  --primary: #0b6efd;
+  --muted: #6b7280;
+  --border: #e6e9ef;
+  --shadow: 0 6px 18px rgba(11,110,253,0.06);
+  --radius: 10px;
+  --gap: 12px;
+  --transition: 180ms ease;
+  --danger: #ef4444;
+}
+
+/* Container */
+.request-form{
+  width: 100%;
+  max-width: 420px;
+  margin: 12px auto;
+  padding: 16px;
+  background: linear-gradient(180deg,var(--card),var(--bg));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+               Roboto, "Helvetica Neue", Arial;
+}
+
+/* Label (optional if you add a label element) */
+.request-form label{
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: inline-block;
+}
+
+/* Select element */
+.request-form select{
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  padding: 0 44px 0 14px; /* leave space for a custom chevron if needed */
+  font-size: 0.95rem;
+  color: #111827;
+  background: linear-gradient(180deg, #fff, #fbfdff);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(16,24,40,0.02) inset;
+  transition: box-shadow var(--transition), border-color var(--transition),
+              transform var(--transition);
+  cursor: pointer;
+  outline: none;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Hover & focus */
+.request-form select:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(11,110,253,0.06);
+}
+
+.request-form select:focus{
+  border-color: rgba(11,110,253,0.9);
+  box-shadow: 0 6px 20px rgba(11,110,253,0.12);
+}
+
+/* Disabled / empty */
+.request-form select:disabled{
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Option styling (note: limited browser support for styling <option>) */
+.request-form option{
+  padding: 8px;
+}
+
+/* Custom chevron using a pseudo-element on container to avoid styling <option> */
+.request-form {
+  position: relative;
+}
+
+.request-form::after{
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translateY(-50%);
+  background-image: linear-gradient(135deg, transparent 50%, var(--muted) 50%),
+                    linear-gradient(225deg, transparent 50%, var(--muted) 50%);
+  background-size: 50% 50%;
+  background-repeat: no-repeat;
+  opacity: 0.85;
+}
+
+/* Small helper / message row */
+.request-form .helper{
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Error state */
+.request-form .error{
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+/* Loading state (simple) */
+.request-form .loading{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* Spinner (tiny) */
+.request-form .spinner{
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.08);
+  border-top-color: rgba(0,0,0,0.35);
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin{
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive tweaks */
+@media (max-width: 420px){
+  .request-form{
+    padding: 12px;
+    border-radius: 8px;
+  }
+
+  .request-form select{
+    height: 42px;
+    font-size: 0.92rem;
+  }
+}

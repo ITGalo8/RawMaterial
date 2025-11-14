@@ -1,33 +1,36 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { UserProvider, useUser } from './Context/UserContext'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { UserProvider, useUser } from "./Context/UserContext";
+
 import Layout from "./pages/Layout/Layout";
 import AdminDashboard from "./pages/Admin/AdminDashboard/AdminDashboard";
 import Login from "./pages/Login/Login";
-import LineWorkerDashboard from "./pages/LineWorker/LineWokerDashboard/LineWorkerDashboard";
+import ItemRequest from "./pages/ItemRequest/ItemRequest";
 import StoreKeeper from "./pages/LineWorker/StoreKeeper/StoreKeeper";
 import UserStockData from "./pages/LineWorker/StoreKeeper/UserStockData/UserStockData";
 import StockUpdate from "./pages/LineWorker/StoreKeeper/StockUpdate/StockUpdate";
 import StockUpdateHistory from "./pages/LineWorker/StoreKeeper/StockUpdateHistory/StockUpdateHistory";
 import PurchaseDashboard from "./pages/Purchase/PurchaseDashboard";
-import AddCompany from "./pages/Purchase/AddCompany"; // Add this import
+import AddCompany from "./pages/Purchase/AddCompany";
 import UpdateCompany from "./pages/Purchase/UpdateCompany";
 import AddVendor from "./pages/Purchase/AddVendor";
 import UpdateVendor from "./pages/Purchase/UpdateVendor";
 import CreatePurchaseOrder from "./pages/Purchase/CreatePurchaseOrder";
 import ShowPurchaseOrder from "./pages/Purchase/ShowPurchaseOrder";
+import ServiceProcessRequest from "./pages/ServiceProcessRequest/ServiceProcessRequest";
 
-// Protected Route Component
+// ========== Protected Route ==========
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
+  if (loading) return <div className="loading">Loading...</div>;
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     return (
@@ -41,167 +44,214 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
+// ========== Role Based Redirect ==========
+const getRedirectPath = (role) => {
+  if (["Admin", "SuperAdmin", "Superadmin"].includes(role)) {
+    return "/admin-dashboard";
+  }
+
+  if (role === "Store") return "/store-keeper";
+
+  if (role === "Purchase") return "/purchase-dashboard";
+
+   if (
+    [
+      "MPC Work",
+      "Disassemble",
+    ].includes(role)
+  ) {
+    return "/service-process-request";
+  }
+
+  if (
+    [
+      "MPC Work",
+      "Assemble",
+      "Disassemble",
+      "Stamping",
+      "Testing",
+      "Winding",
+      "Winding Connection",
+    ].includes(role)
+  ) {
+    return "/Item-Request";
+  }
+
+  return "/login";
+};
+
+// ========== All Routes ==========
 const AppRoutes = () => {
   const { user, loading } = useUser();
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
+  if (loading) return <div className="loading">Loading...</div>;
 
   return (
     <Routes>
-      <Route 
-        path="/login" 
-        element={!user ? <Login /> : <Navigate to="/" replace />} 
+      {/* Login Route */}
+      <Route
+        path="/login"
+        element={!user ? <Login /> : <Navigate to={getRedirectPath(user.role)} replace />}
       />
-      
+
       <Route path="/" element={<Layout />}>
-        {/* Redirect to appropriate dashboard based on role */}
-        <Route 
-          index 
+        {/* Root Redirect */}
+        <Route
+          index
           element={
             user ? (
-              user.role === "Admin" || user.role === "SuperAdmin" || user.role === "Superadmin" ? 
-                <Navigate to="/admin-dashboard" replace /> :
-              user.role === "Store" ?
-                <Navigate to="/store-keeper" replace /> :
-              user.role === "Purchase" ?
-                <Navigate to="/purchase-dashboard" replace /> :
-                <Navigate to="/lineworker-dashboard" replace />
+              <Navigate to={getRedirectPath(user.role)} replace />
             ) : (
               <Navigate to="/login" replace />
             )
-          } 
+          }
         />
-        
+
         {/* Admin Routes */}
-        <Route 
-          path="admin-dashboard" 
+        <Route
+          path="admin-dashboard"
           element={
-            <ProtectedRoute allowedRoles={["Admin", "SuperAdmin", "Superadmin", "Testing"]}>
+            <ProtectedRoute
+              allowedRoles={["Admin", "SuperAdmin", "Superadmin", "Testing"]}
+            >
               <AdminDashboard />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        {/* StoreKeeper Routes */}
-        <Route 
-          path="store-keeper" 
+
+        {/* Store Keeper */}
+        <Route
+          path="store-keeper"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <StoreKeeper />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        <Route 
-          path="user-stock-data" 
+
+        <Route
+          path="user-stock-data"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <UserStockData />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        <Route 
-          path="stock-update" 
+
+        <Route
+          path="stock-update"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <StockUpdate />
             </ProtectedRoute>
-          } 
+          }
         />
-        
-        <Route 
-          path="stock-update-history" 
+
+        <Route
+          path="stock-update-history"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <StockUpdateHistory />
             </ProtectedRoute>
-          } 
-        />
-        
-        {/* Line Worker Routes */}
-        <Route 
-          path="lineworker-dashboard" 
-          element={
-            <ProtectedRoute allowedRoles={[
-              "MPC Work", 
-              "Assemble", 
-              "Diassemble", 
-              "Stamping", 
-              "Testing", 
-              "Winding", 
-              "Winding Connection"
-            ]}>
-              <LineWorkerDashboard />
-            </ProtectedRoute>
-          } 
+          }
         />
 
-        {/* Purchase Routes */}
-        <Route 
-          path="purchase-dashboard" 
+        {/* Line Worker Routes */}
+        <Route
+          path="Item-Request"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "MPC Work",
+                "Assemble",
+                "Disassemble",
+                "Stamping",
+                "Testing",
+                "Winding",
+                "Winding Connection",
+              ]}
+            >
+              <ItemRequest />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Purchase Section */}
+        <Route
+          path="purchase-dashboard"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <PurchaseDashboard />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        {/* Add Company Route */}
-        <Route 
-          path="add-company" 
+        <Route
+          path="add-company"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <AddCompany />
             </ProtectedRoute>
-          } 
+          }
         />
 
-         <Route 
-          path="update-company" 
+        <Route
+          path="update-company"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <UpdateCompany />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="add-vendor" 
+        <Route
+          path="add-vendor"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <AddVendor />
             </ProtectedRoute>
-          } 
+          }
         />
 
-        <Route 
-          path="update-vendor" 
+        <Route
+          path="update-vendor"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <UpdateVendor />
             </ProtectedRoute>
-          } 
+          }
         />
 
-         <Route 
-          path="create-purchase-order" 
+        <Route
+          path="create-purchase-order"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <CreatePurchaseOrder />
             </ProtectedRoute>
-          } 
+          }
         />
 
-         <Route 
-          path="show-purchase-orders" 
+        <Route
+          path="show-purchase-orders"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <ShowPurchaseOrder />
             </ProtectedRoute>
-          } 
+          }
+        />
+
+         <Route
+          path="service-process-request"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "MPC Work",
+                "Disassemble",
+              ]}
+            >
+              <ServiceProcessRequest />
+            </ProtectedRoute>
+          }
         />
       </Route>
     </Routes>
@@ -209,7 +259,7 @@ const AppRoutes = () => {
 };
 
 const App = () => {
-  return ( 
+  return (
     <UserProvider>
       <Router>
         <AppRoutes />

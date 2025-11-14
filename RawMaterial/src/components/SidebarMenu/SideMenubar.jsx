@@ -7,60 +7,44 @@ import {
   FaBox,
   FaCogs,
   FaClipboardList,
-  FaTools,
-  FaTimesCircle,
-  FaIndustry,
-  FaSignOutAlt,
   FaUser,
   FaChevronDown,
   FaChevronUp,
-  FaShoppingCart,
-  FaBuilding
+  FaBuilding,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import "./SidebarMenu.css";
 
 const SideMenubar = () => {
   const [openMenus, setOpenMenus] = useState({
-    repair: false,
-    reject: false,
-    production: false,
-    bom: false,
-    company: false, // Added company menu state
-    vendor: false,  // Added vendor menu state
-    purchase: false,  // Added purchase menu state
+    company: false,
+    vendor: false,
+    purchase: false,
   });
 
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, logout } = useUser();
 
   const toggleMenu = (menu) => {
     setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
   };
 
-  const toggleProfile = () => {
-    setIsProfileOpen(!isProfileOpen);
-  };
-
-  // Allowed roles for Line Worker menu (excluding Store, Admin, and Purchase)
   const lineWorkerRoles = [
     "MPC Work",
     "Assemble",
-    "Diassemble",
+    "Disassemble",
     "Stamping",
     "Testing",
     "Winding",
     "Winding Connection",
   ];
 
-  if (!user) {
-    return <div className="sidebar">Loading...</div>;
-  }
+  if (!user) return <div className="sidebar">Loading...</div>;
 
   return (
     <div className="sidebar">
-      {/* User Profile Section */}
+      {/* User Profile */}
       <div className="user-profile-section">
-        <div className="profile-header" onClick={toggleProfile}>
+        <div className="profile-header">
           <div className="profile-avatar">
             <FaUser className="avatar-icon" />
           </div>
@@ -71,47 +55,39 @@ const SideMenubar = () => {
         </div>
       </div>
 
-      {/* Navigation Menu */}
+      {/* Menu List */}
       <ul className="sidebar-list">
-        {/* Line Worker Dashboard - NOT shown for Store, Admin, and Purchase roles */}
+
+        {/* Line Worker Item Request */}
         {lineWorkerRoles.includes(user.role) && (
           <li>
-            <NavLink
-              to="lineworker-dashboard"
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              <FaWarehouse /> Line Worker Dashboard
+            <NavLink to="Item-Request" className={({ isActive }) => (isActive ? "active" : "")}>
+              <FaWarehouse /> Item Request
             </NavLink>
           </li>
         )}
 
-        {/* StoreKeeper pages only visible for Store role */}
+        {/* Store Menu */}
         {user.role === "Store" && (
           <>
             <li>
-              <NavLink
-                to="store-keeper"
-                className={({ isActive }) => (isActive ? "active" : "")}
-              >
+              <NavLink to="store-keeper" className={({ isActive }) => (isActive ? "active" : "")}>
                 <FaClipboardList /> Approval Request
               </NavLink>
             </li>
+
             <li>
-              <NavLink
-                to="user-stock-data"
-                className={({ isActive }) => (isActive ? "active" : "")}
-              >
+              <NavLink to="user-stock-data" className={({ isActive }) => (isActive ? "active" : "")}>
                 <FaBox /> User Stock Data
               </NavLink>
             </li>
+
             <li>
-              <NavLink
-                to="stock-update"
-                className={({ isActive }) => (isActive ? "active" : "")}
-              >
+              <NavLink to="stock-update" className={({ isActive }) => (isActive ? "active" : "")}>
                 <FaPlus /> Stock Update
               </NavLink>
             </li>
+
             <li>
               <NavLink
                 to="stock-update-history"
@@ -123,26 +99,23 @@ const SideMenubar = () => {
           </>
         )}
 
-        {/* Admin Dashboard for Superadmin and Testing roles */}
-        {(user.role === "Superadmin" || user.role === "Testing" || user.role === "Admin") && (
+        {/* Admin Dashboard */}
+        {(user.role === "Superadmin" ||
+          user.role === "Testing" ||
+          user.role === "Admin") && (
           <li>
-            <NavLink
-              to="admin-dashboard"
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
+            <NavLink to="admin-dashboard" className={({ isActive }) => (isActive ? "active" : "")}>
               <FaCogs /> Admin Dashboard
             </NavLink>
           </li>
         )}
 
-        {/* Purchase Role Menu */}
+        {/* Purchase Panel */}
         {user.role === "Purchase" && (
           <>
+            {/* Company */}
             <li className="menu-item-with-dropdown">
-              <div 
-                className="menu-header" 
-                onClick={() => toggleMenu('company')}
-              >
+              <div className="menu-header" onClick={() => toggleMenu("company")}>
                 <span className="menu-title">
                   <FaBuilding /> Company
                 </span>
@@ -150,33 +123,22 @@ const SideMenubar = () => {
                   {openMenus.company ? <FaChevronUp /> : <FaChevronDown />}
                 </span>
               </div>
+
               {openMenus.company && (
                 <ul className="submenu">
                   <li>
-                    <NavLink
-                      to="add-company"
-                      className={({ isActive }) => (isActive ? "active" : "")}
-                    >
-                      Add Company
-                    </NavLink>
+                    <NavLink to="add-company">Add Company</NavLink>
                   </li>
                   <li>
-                    <NavLink
-                      to="update-company"
-                      className={({ isActive }) => (isActive ? "active" : "")}
-                    >
-                      Update Company
-                    </NavLink>
+                    <NavLink to="update-company">Update Company</NavLink>
                   </li>
                 </ul>
               )}
             </li>
 
+            {/* Vendor */}
             <li className="menu-item-with-dropdown">
-              <div 
-                className="menu-header" 
-                onClick={() => toggleMenu('vendor')}
-              >
+              <div className="menu-header" onClick={() => toggleMenu("vendor")}>
                 <span className="menu-title">
                   <FaBuilding /> Vendor
                 </span>
@@ -184,34 +146,22 @@ const SideMenubar = () => {
                   {openMenus.vendor ? <FaChevronUp /> : <FaChevronDown />}
                 </span>
               </div>
+
               {openMenus.vendor && (
                 <ul className="submenu">
                   <li>
-                    <NavLink
-                      to="add-vendor"
-                      className={({ isActive }) => (isActive ? "active" : "")}
-                    >
-                      Add Vendor
-                    </NavLink>
+                    <NavLink to="add-vendor">Add Vendor</NavLink>
                   </li>
-
                   <li>
-                    <NavLink
-                      to="update-vendor"
-                      className={({ isActive }) => (isActive ? "active" : "")}
-                    >
-                      Update Vendor
-                    </NavLink>
+                    <NavLink to="update-vendor">Update Vendor</NavLink>
                   </li>
                 </ul>
               )}
             </li>
 
+            {/* Purchase */}
             <li className="menu-item-with-dropdown">
-              <div 
-                className="menu-header" 
-                onClick={() => toggleMenu('purchase')}
-              >
+              <div className="menu-header" onClick={() => toggleMenu("purchase")}>
                 <span className="menu-title">
                   <FaBuilding /> Purchase
                 </span>
@@ -219,31 +169,40 @@ const SideMenubar = () => {
                   {openMenus.purchase ? <FaChevronUp /> : <FaChevronDown />}
                 </span>
               </div>
+
               {openMenus.purchase && (
                 <ul className="submenu">
                   <li>
-                    <NavLink
-                      to="create-purchase-order"
-                      className={({ isActive }) => (isActive ? "active" : "")}
-                    >
-                      Create Purchase Order
-                    </NavLink>
+                    <NavLink to="create-purchase-order">Create Purchase Order</NavLink>
                   </li>
-
                   <li>
-                    <NavLink
-                      to="show-purchase-orders"
-                      className={({ isActive }) => (isActive ? "active" : "")}
-                    >
-                      Show Purchase Orders
-                    </NavLink>
+                    <NavLink to="show-purchase-orders">Show Purchase Orders</NavLink>
                   </li>
                 </ul>
               )}
             </li>
           </>
         )}
+
+        {/* Service Process Request (MOVED OUTSIDE purchase block & FIXED) */}
+        {(user.role === "MPC Work" || user.role === "Disassemble") && (
+          <li>
+            <NavLink
+              to="service-process-request"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <FaCogs /> Service Process Request
+            </NavLink>
+          </li>
+        )}
       </ul>
+
+      {/* Logout Button */}
+      <div className="logout-section">
+        <button className="logout-btn" onClick={logout}>
+          <FaSignOutAlt className="logout-icon" /> Logout
+        </button>
+      </div>
     </div>
   );
 };
