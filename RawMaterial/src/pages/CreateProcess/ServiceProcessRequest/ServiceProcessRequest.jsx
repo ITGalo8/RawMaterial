@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import './ServiceProcessRequest.css'
-import Api from '../../auth/Api'
+import Api from '../../../auth/Api'
 
 const ServiceProcessRequest = () => {
   const [products, setProducts] = useState([])
@@ -9,7 +9,8 @@ const ServiceProcessRequest = () => {
   const [loading, setLoading] = useState({
     products: true,
     items: false,
-    defectiveItems: false
+    defectiveItems: false,
+    submit: false
   })
   const [error, setError] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState('')
@@ -151,49 +152,68 @@ const ServiceProcessRequest = () => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Validation
-    if (!selectedDefectiveItem) {
-      alert('Please select a defective item')
-      return
-    }
-    
-    if (!serialNumber.trim()) {
-      alert('Please enter a serial number')
-      return
-    }
-    
-    if (!quantity || parseInt(quantity) <= 0) {
-      alert('Please enter a valid quantity')
-      return
-    }
+    try {
+      // Validation
+      if (!selectedDefectiveItem) {
+        throw new Error('Please select a defective item')
+      }
+      
+      if (!serialNumber.trim()) {
+        throw new Error('Please enter a serial number')
+      }
+      
+      if (!quantity || parseInt(quantity) <= 0) {
+        throw new Error('Please enter a valid quantity')
+      }
 
-    // Check if quantity exceeds available defective count
-    if (parseInt(quantity) > selectedDefectiveItem.defective) {
-      alert(`Quantity cannot exceed available defective count (${selectedDefectiveItem.defective})`)
-      return
-    }
+      // Check if quantity exceeds available defective count
+      if (parseInt(quantity) > selectedDefectiveItem.defective) {
+        throw new Error(`Quantity cannot exceed available defective count (${selectedDefectiveItem.defective})`)
+      }
 
-    // Prepare data for submission
-    const formData = {
-      product: selectedProduct.productName,
-      item: selectedItem.name,
-      defectiveItem: selectedDefectiveItem.itemName,
-      defectiveItemId: selectedDefectiveItem._id,
-      serialNumber: serialNumber.trim(),
-      quantity: parseInt(quantity),
-      timestamp: new Date().toISOString()
-    }
+      // Prepare data for submission according to API requirements
+      const requestData = {
+        productName: selectedProduct.productName,
+        itemName: selectedItem.name,
+        subItemName: selectedDefectiveItem.itemName,
+        serialNumber: serialNumber.trim(),
+        quantity: parseInt(quantity)
+      }
 
-    console.log('Form Data:', formData)
-    // Here you would typically send the data to your API
-    alert('Service request submitted successfully!')
-    
-    // Reset form
-    setSerialNumber('')
-    setQuantity('')
+      console.log('Submitting service process request:', requestData)
+
+      // Show loading state
+      setLoading(prev => ({ ...prev, submit: true }))
+
+      // Send data to API
+      const response = await Api.post('/line-worker/createServiceProcess', requestData)
+      
+      if (response.data.success) {
+        alert('Service request submitted successfully!')
+        
+        // Reset form
+        setSerialNumber('')
+        setQuantity('')
+        setSelectedDefectiveItem('')
+        
+        // Refresh defective items to update available counts
+        if (selectedItem?.name) {
+          await fetchDefectiveItems(selectedItem.name)
+        }
+      } else {
+        throw new Error(response.data.message || 'Failed to submit service request')
+      }
+      
+    } catch (err) {
+      console.error('Submission error:', err)
+      const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred'
+      alert(`Error: ${errorMessage}`)
+    } finally {
+      setLoading(prev => ({ ...prev, submit: false }))
+    }
   }
 
   const getSelectedProductName = () => {
@@ -382,13 +402,14 @@ const ServiceProcessRequest = () => {
               type="button" 
               onClick={handleSubmit}
               className="submit-button"
-              disabled={!serialNumber.trim() || !quantity || parseInt(quantity) <= 0}
+              disabled={!serialNumber.trim() || !quantity || parseInt(quantity) <= 0 || loading.submit}
             >
-              Submit Request
+              {loading.submit ? 'Submitting...' : 'Submit Request'}
             </button>
           </div>
         </div>
       )}
+
       {/* Loading and Error States */}
       {loading.items && (
         <div className="loading-indicator">Loading items...</div>

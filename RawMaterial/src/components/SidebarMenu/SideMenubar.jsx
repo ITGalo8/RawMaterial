@@ -67,6 +67,14 @@ const SideMenubar = () => {
           </li>
         )}
 
+        {lineWorkerRoles.includes(user.role) && (
+          <li>
+            <NavLink to="pending-process" className={({ isActive }) => (isActive ? "active" : "")}>
+              <FaWarehouse /> Pending Process
+            </NavLink>
+          </li>
+        )}
+
         {/* Store Menu */}
         {user.role === "Store" && (
           <>

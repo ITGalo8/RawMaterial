@@ -79,7 +79,23 @@ const getRedirectPath = (role) => {
 
   return "/login";
 };
+const getRedirectPathForPending = (role) => {
+  if (
+    [
+      "MPC Work",
+      "Assemble",
+      "Disassemble",
+      "Stamping",
+      "Testing",
+      "Winding",
+      "Winding Connection",
+    ].includes(role)
+  ) {
+    return "/pending-process";
+  }
 
+  return "/login";
+}
 // ========== All Routes ==========
 const AppRoutes = () => {
   const { user, loading } = useUser();
@@ -250,6 +266,25 @@ const AppRoutes = () => {
               ]}
             >
               <ServiceProcessRequest />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="Item-Request"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "MPC Work",
+                "Assemble",
+                "Disassemble",
+                "Stamping",
+                "Testing",
+                "Winding",
+                "Winding Connection",
+              ]}
+            >
+              <ItemRequest />
             </ProtectedRoute>
           }
         />
