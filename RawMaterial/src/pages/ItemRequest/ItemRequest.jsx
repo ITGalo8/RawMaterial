@@ -44,7 +44,7 @@ const ItemRequest = () => {
   const customStyles = {
     option: (provided, state) => ({
       ...provided,
-      color: state.data.isDisabled ? '#d32f2f' : '#388e3c', // Red for out of stock, green for in stock
+      color: state.data.isDisabled ? '#d32f2f' : '#388e3c',
       backgroundColor: state.isFocused ? '#f5f5f5' : 'white',
       cursor: state.data.isDisabled ? 'not-allowed' : 'pointer',
       opacity: state.data.isDisabled ? 0.7 : 1,
@@ -64,6 +64,30 @@ const ItemRequest = () => {
         color: material?.outOfStock ? '#d32f2f' : '#388e3c',
       };
     },
+    control: (provided) => ({
+      ...provided,
+      border: '2px solid #e0e0e0',
+      borderRadius: '8px',
+      minHeight: '52px',
+      fontSize: '16px',
+      backgroundColor: 'white',
+      color: '#000',
+      '&:hover': {
+        borderColor: '#007bff',
+      },
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: '#000',
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: '#000',
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: '#666',
+    }),
   };
 
   const handleMaterialSelect = (selectedOptions) => {
@@ -126,7 +150,6 @@ const ItemRequest = () => {
   };
 
   const handleSubmitRequest = async () => {
-    // Validation (keep your existing validation code)
     if (!selectedStorePerson) {
       setSubmitMessage('Please select a store person');
       return;
@@ -151,27 +174,21 @@ const ItemRequest = () => {
       setSubmitting(true);
       setSubmitMessage('');
 
-      // Prepare request data in the exact required format
       const requestData = {
-        type: PRE, // Move type to top level
+        type: PRE,
         rawMaterialRequested: selectedMaterials.map(material => ({
           rawMaterialId: material.id,
-          quantity: quantities[material.id].toString(), // Ensure it's a string
+          quantity: quantities[material.id].toString(),
           unit: material.unit
         })),
         requestedTo: selectedStorePerson.id
       };
 
-      console.log('Submitting request:', JSON.stringify(requestData, null, 2));
-
-      // Send request to API
       const response = await Api.post('/line-worker/createItemRequest', requestData);
 
-      // Handle success
       if (response.data.success) {
         setSubmitMessage('Request submitted successfully!');
         
-        console.log('Request successful:', response.data);
         // Reset form
         setSelectedMaterials([]);
         setSelectedStorePerson(null);
@@ -198,71 +215,74 @@ const ItemRequest = () => {
   if (error) return <div className="error">Error: {error}</div>;
 
   return (
-    <div className="line-worker-dashboard">
-      <div className="dashboard-header">
-        <h1>Item Request</h1>
-        <p>Request raw materials</p>
+    <div className="item-request-container">
+      <div className="request-header">
+        <h1 className="request-title">Item Request</h1>
+        <p className="request-subtitle">Request raw materials</p>
       </div>
 
-      <div className="dashboard-content">
+      <div className="request-content">
         
-        {/* Store Person Selection */}
-        <div className="form-card">
-          <div className="card-header">
-            <h2 className="card-title">Select Store Person</h2>
-            <span className="required">*</span>
+        {/* Two Column Layout for Store Person and Materials Selection */}
+        <div className="form-row">
+          {/* Store Person Selection */}
+          <div className="form-section store-person-section">
+            <div className="section-header">
+              <h2 className="section-title">Select Store Person</h2>
+              <span className="required-asterisk">*</span>
+            </div>
+            <div className="form-field">
+              <label className="field-label">Choose a store person:</label>
+              <select
+                onChange={(e) => handleStorePersonSelect(e.target.value)}
+                value={selectedStorePerson?.id || ''}
+                className="form-select"
+              >
+                <option value="">Select a store person...</option>
+                {storePersons.map(person => (
+                  <option key={person.id} value={person.id}>
+                    {person.name} ({person.role?.name || 'No role'})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label">Choose a store person:</label>
-            <select
-              onChange={(e) => handleStorePersonSelect(e.target.value)}
-              value={selectedStorePerson?.id || ''}
-              className="form-select"
-            >
-              <option value="">Select a store person...</option>
-              {storePersons.map(person => (
-                <option key={person.id} value={person.id}>
-                  {person.name} ({person.role?.name || 'No role'})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
 
-        {/* Raw Materials Selection */}
-        <div className="form-card">
-          <div className="card-header">
-            <h2 className="card-title">Select Raw Materials</h2>
-            <span className="required">*</span>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Choose raw materials (select multiple):</label>
-            <Select
-              isMulti
-              options={rawMaterials.map(mat => ({
-                value: mat.id,
-                label: `${mat.name} (${mat.stock} ${mat.unit})${mat.outOfStock ? ' - OUT OF STOCK' : ''}`,
-                isDisabled: mat.outOfStock // Disable out of stock items
-              }))}
-              onChange={handleMaterialSelect}
-              value={selectedMaterials.map(m => ({
-                value: m.id,
-                label: `${m.name} (${m.stock} ${m.unit})${m.outOfStock ? ' - OUT OF STOCK' : ''}`
-              }))}
-              className="multi-select"
-              classNamePrefix="react-select"
-              placeholder="Search and select materials..."
-              noOptionsMessage={() => "No materials found"}
-              styles={customStyles} // Apply custom styles
-            />
-            <div className="stock-status-legend">
-              <div className="legend-item">
-                <span className="legend-color in-stock"></span>
-                <span>In Stock</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-color out-of-stock"></span>
-                <span>Out of Stock</span>
+          {/* Raw Materials Selection */}
+          <div className="form-section materials-section">
+            <div className="section-header">
+              <h2 className="section-title">Select Raw Materials</h2>
+              <span className="required-asterisk">*</span>
+            </div>
+            <div className="form-field">
+              <label className="field-label">Choose raw materials (select multiple):</label>
+              <Select
+                isMulti
+                options={rawMaterials.map(mat => ({
+                  value: mat.id,
+                  label: `${mat.name} (${mat.stock} ${mat.unit})${mat.outOfStock ? ' - OUT OF STOCK' : ''}`,
+                  isDisabled: mat.outOfStock
+                }))}
+                onChange={handleMaterialSelect}
+                value={selectedMaterials.map(m => ({
+                  value: m.id,
+                  label: `${m.name} (${m.stock} ${m.unit})${m.outOfStock ? ' - OUT OF STOCK' : ''}`
+                }))}
+                className="multi-select"
+                classNamePrefix="react-select"
+                placeholder="Search and select materials..."
+                noOptionsMessage={() => "No materials found"}
+                styles={customStyles}
+              />
+              <div className="legend-container">
+                <div className="legend-item">
+                  <span className="legend-dot in-stock-dot"></span>
+                  <span className="legend-text">In Stock</span>
+                </div>
+                <div className="legend-item">
+                  <span className="legend-dot out-of-stock-dot"></span>
+                  <span className="legend-text">Out of Stock</span>
+                </div>
               </div>
             </div>
           </div>
@@ -270,52 +290,64 @@ const ItemRequest = () => {
 
         {/* Selected Materials List */}
         {selectedMaterials.length > 0 && (
-          <div className="form-card selected-materials-section">
-            <div className="card-header">
-              <h2 className="card-title">
+          <div className="form-section selected-materials">
+            <div className="section-header">
+              <h2 className="section-title">
                 Selected Materials 
-                <span className="material-count">({selectedMaterials.length})</span>
+                <span className="materials-count">({selectedMaterials.length})</span>
               </h2>
             </div>
             
-            <div className="materials-list">
+            <div className="materials-grid">
               {selectedMaterials.map((material) => (
-                <div key={material.id} className={`material-item ${material.outOfStock ? 'out-of-stock' : ''}`}>
-                  <div className="material-info">
-                    <span className="material-name">{material.name}</span>
-                    <div className="material-details">
-                      <span className={`available-stock ${material.outOfStock ? 'out-of-stock' : 'in-stock'}`}>
-                        Available: {material.stock} {material.unit}
-                        {material.outOfStock && <span className="out-of-stock-badge">OUT OF STOCK</span>}
-                      </span>
-                      {!material.outOfStock && material.stock <= 10 && (
-                        <span className="low-stock-warning">Low stock!</span>
-                      )}
+                <div key={material.id} className={`material-card ${material.outOfStock ? 'out-of-stock' : ''}`}>
+                  <div className="material-main-info">
+                    <div className="material-header">
+                      <h3 className="material-name">{material.name}</h3>
+                      <div className="material-status">
+                        {material.outOfStock ? (
+                          <span className="status-badge out-of-stock-badge">OUT OF STOCK</span>
+                        ) : material.stock <= 10 ? (
+                          <span className="status-badge low-stock-badge">LOW STOCK</span>
+                        ) : (
+                          <span className="status-badge in-stock-badge">IN STOCK</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="stock-info">
+                      <span className="stock-label">Available:</span>
+                      <span className="stock-quantity">{material.stock} {material.unit}</span>
                     </div>
                   </div>
 
-                  <div className="quantity-controls">
-                    <label className="quantity-label">Quantity:</label>
-                    <div className="quantity-input-group">
-                      <input
-                        type="number"
-                        min="1"
-                        max={material.stock}
-                        value={quantities[material.id] || ''}
-                        onChange={(e) => handleQuantityChange(material.id, e.target.value)}
-                        className="quantity-input"
-                        placeholder="0"
-                        disabled={material.outOfStock}
-                      />
-                      <span className="quantity-unit">{material.unit}</span>
+                  <div className="material-controls">
+                    <div className="quantity-section">
+                      <label className="quantity-label">Quantity:</label>
+                      <div className="quantity-input-container">
+                        <input
+                          type="number"
+                          min="1"
+                          max={material.stock}
+                          value={quantities[material.id] || ''}
+                          onChange={(e) => handleQuantityChange(material.id, e.target.value)}
+                          className="quantity-input"
+                          placeholder="0"
+                          disabled={material.outOfStock}
+                        />
+                        <span className="quantity-unit">{material.unit}</span>
+                      </div>
                     </div>
+                    
                     <button
-                      className="remove-material-btn"
+                      className="remove-button"
                       onClick={() => removeSelectedMaterial(material.id)}
                       title="Remove material"
                       aria-label="Remove material"
                     >
-                      ×
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -325,21 +357,17 @@ const ItemRequest = () => {
         )}
 
         {/* Submit Section */}
-        <div className="form-card submit-section">
-          <div className="card-header">
-            {/* <h2 className="card-title">Submit Request</h2> */}
-          </div>
-          
+        <div className="submit-section">
           <div className="submit-content">
             <button 
-              className={`submit-btn ${isSubmitDisabled ? 'disabled' : ''}`}
+              className={`submit-button ${isSubmitDisabled ? 'button-disabled' : 'button-primary'}`}
               onClick={handleSubmitRequest}
               disabled={isSubmitDisabled}
             >
               {submitting ? (
                 <>
-                  <span className="spinner"></span>
-                  Submitting...
+                  <div className="button-spinner"></div>
+                  Submitting Request...
                 </>
               ) : (
                 'Submit Request'
@@ -347,7 +375,7 @@ const ItemRequest = () => {
             </button>
             
             {submitMessage && (
-              <div className={`submit-message ${submitMessage.includes('success') ? 'success' : 'error'}`}>
+              <div className={`message-alert ${submitMessage.includes('success') ? 'alert-success' : 'alert-error'}`}>
                 {submitMessage}
               </div>
             )}
