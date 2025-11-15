@@ -22,7 +22,8 @@ import AddVendor from "./pages/Purchase/AddVendor";
 import UpdateVendor from "./pages/Purchase/UpdateVendor";
 import CreatePurchaseOrder from "./pages/Purchase/CreatePurchaseOrder";
 import ShowPurchaseOrder from "./pages/Purchase/ShowPurchaseOrder";
-import ServiceProcessRequest from "./pages/ServiceProcessRequest/ServiceProcessRequest";
+import ServiceProcessRequest from "./pages/CreateProcess/ServiceProcessRequest/ServiceProcessRequest";
+import PendingProcess from "./pages/CreateProcess/PendingProcess/PendingProcess";
 
 // ========== Protected Route ==========
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -271,7 +272,7 @@ const AppRoutes = () => {
         />
 
         <Route
-          path="Item-Request"
+          path="pending-process"
           element={
             <ProtectedRoute
               allowedRoles={[
