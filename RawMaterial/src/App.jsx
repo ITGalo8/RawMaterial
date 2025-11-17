@@ -24,6 +24,7 @@ import CreatePurchaseOrder from "./pages/Purchase/CreatePurchaseOrder";
 import ShowPurchaseOrder from "./pages/Purchase/ShowPurchaseOrder";
 import ServiceProcessRequest from "./pages/CreateProcess/ServiceProcessRequest/ServiceProcessRequest";
 import PendingProcess from "./pages/CreateProcess/PendingProcess/PendingProcess";
+import UserItemStock from "./pages/CreateProcess/UserItemStock/UserItemStock";
 
 // ========== Protected Route ==========
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -55,12 +56,7 @@ const getRedirectPath = (role) => {
 
   if (role === "Purchase") return "/purchase-dashboard";
 
-   if (
-    [
-      "MPC Work",
-      "Disassemble",
-    ].includes(role)
-  ) {
+  if (["MPC Work", "Disassemble"].includes(role)) {
     return "/service-process-request";
   }
 
@@ -80,23 +76,7 @@ const getRedirectPath = (role) => {
 
   return "/login";
 };
-const getRedirectPathForPending = (role) => {
-  if (
-    [
-      "MPC Work",
-      "Assemble",
-      "Disassemble",
-      "Stamping",
-      "Testing",
-      "Winding",
-      "Winding Connection",
-    ].includes(role)
-  ) {
-    return "/pending-process";
-  }
 
-  return "/login";
-}
 // ========== All Routes ==========
 const AppRoutes = () => {
   const { user, loading } = useUser();
@@ -257,20 +237,17 @@ const AppRoutes = () => {
           }
         />
 
-         <Route
+        {/* Service Process */}
+        <Route
           path="service-process-request"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "MPC Work",
-                "Disassemble",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["MPC Work", "Disassemble"]}>
               <ServiceProcessRequest />
             </ProtectedRoute>
           }
         />
 
+        {/* Pending Process - FIXED */}
         <Route
           path="pending-process"
           element={
@@ -285,7 +262,26 @@ const AppRoutes = () => {
                 "Winding Connection",
               ]}
             >
-              <ItemRequest />
+              <PendingProcess />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="user-Item-stock"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "MPC Work",
+                "Assemble",
+                "Disassemble",
+                "Stamping",
+                "Testing",
+                "Winding",
+                "Winding Connection",
+              ]}
+            >
+              <UserItemStock />
             </ProtectedRoute>
           }
         />

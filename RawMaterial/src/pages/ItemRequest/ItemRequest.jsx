@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import './ItemRequest.css';
-import Api from '../../auth/Api'
+import Api from '../../auth/Api';
+ import { useLocation } from "react-router-dom";
 
 const ItemRequest = () => {
+  const location = useLocation();
+  const {serviceProcessId, Type} = location?.state || {};
+
   const [rawMaterials, setRawMaterials] = useState([]);
   const [storePersons, setStorePersons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,8 +17,8 @@ const ItemRequest = () => {
   const [quantities, setQuantities] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
-  const [PRE] = useState("PRE");
 
+  
   useEffect(() => {
     fetchData();
   }, []);
@@ -175,13 +179,15 @@ const ItemRequest = () => {
       setSubmitMessage('');
 
       const requestData = {
-        type: PRE,
+        type: Type || "PRE",
+
         rawMaterialRequested: selectedMaterials.map(material => ({
           rawMaterialId: material.id,
           quantity: quantities[material.id].toString(),
           unit: material.unit
         })),
-        requestedTo: selectedStorePerson.id
+        requestedTo: selectedStorePerson.id,
+        serviceProcessId: serviceProcessId || null,
       };
 
       const response = await Api.post('/line-worker/createItemRequest', requestData);
