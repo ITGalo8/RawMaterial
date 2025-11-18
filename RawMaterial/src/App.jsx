@@ -25,11 +25,11 @@ import ShowPurchaseOrder from "./pages/Purchase/ShowPurchaseOrder";
 import ServiceProcessRequest from "./pages/CreateProcess/ServiceProcessRequest/ServiceProcessRequest";
 import PendingProcess from "./pages/CreateProcess/PendingProcess/PendingProcess";
 import UserItemStock from "./pages/CreateProcess/UserItemStock/UserItemStock";
+import ReusableItems from "./pages/CreateProcess/ReusableItems/ReusableItems";
 
 // ========== Protected Route ==========
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
-
   if (loading) return <div className="loading">Loading...</div>;
 
   if (!user) return <Navigate to="/login" replace />;
@@ -51,29 +51,26 @@ const getRedirectPath = (role) => {
   if (["Admin", "SuperAdmin", "Superadmin"].includes(role)) {
     return "/admin-dashboard";
   }
-
   if (role === "Store") return "/store-keeper";
-
   if (role === "Purchase") return "/purchase-dashboard";
+
+  if (
+      [
+        "MPC Work",
+        "Assemble",
+        "Disassemble",
+        "Stamping",
+        "Winding",
+        "Winding Connection",
+      ].includes(role)
+    ) {
+    return "/Item-Request";
+  }
 
   if (["MPC Work", "Disassemble"].includes(role)) {
     return "/service-process-request";
   }
-
-  if (
-    [
-      "MPC Work",
-      "Assemble",
-      "Disassemble",
-      "Stamping",
-      "Testing",
-      "Winding",
-      "Winding Connection",
-    ].includes(role)
-  ) {
-    return "/Item-Request";
-  }
-
+  if(role==="Testing") return "/pending-process";
   return "/login";
 };
 
@@ -163,12 +160,20 @@ const AppRoutes = () => {
                 "Assemble",
                 "Disassemble",
                 "Stamping",
-                "Testing",
                 "Winding",
                 "Winding Connection",
               ]}
             >
               <ItemRequest />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="reusable-Items"
+          element={
+            <ProtectedRoute allowedRoles={["Disassemble"]}>
+              <ReusableItems />
             </ProtectedRoute>
           }
         />

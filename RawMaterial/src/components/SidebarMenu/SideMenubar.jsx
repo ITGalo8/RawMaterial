@@ -33,6 +33,15 @@ const SideMenubar = () => {
     "Assemble",
     "Disassemble",
     "Stamping",
+    "Winding",
+    "Winding Connection",
+  ];
+
+    const PendinglineWorkerRoles = [
+    "MPC Work",
+    "Assemble",
+    "Disassemble",
+    "Stamping",
     "Testing",
     "Winding",
     "Winding Connection",
@@ -67,10 +76,21 @@ const SideMenubar = () => {
           </li>
         )}
 
-        {lineWorkerRoles.includes(user.role) && (
+        {PendinglineWorkerRoles.includes(user.role) && (
           <li>
             <NavLink to="pending-process" className={({ isActive }) => (isActive ? "active" : "")}>
-              <FaWarehouse /> Pending Process
+              <FaWarehouse /> Pending Process   
+            </NavLink>
+          </li>
+        )}
+
+         {(user.role === "MPC Work" || user.role === "Disassemble") && (
+          <li>
+            <NavLink
+              to="service-process-request"
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <FaCogs /> Service Process Request
             </NavLink>
           </li>
         )}
@@ -109,7 +129,6 @@ const SideMenubar = () => {
 
         {/* Admin Dashboard */}
         {(user.role === "Superadmin" ||
-          user.role === "Testing" ||
           user.role === "Admin") && (
           <li>
             <NavLink to="admin-dashboard" className={({ isActive }) => (isActive ? "active" : "")}>
@@ -190,18 +209,6 @@ const SideMenubar = () => {
               )}
             </li>
           </>
-        )}
-
-        {/* Service Process Request (MOVED OUTSIDE purchase block & FIXED) */}
-        {(user.role === "MPC Work" || user.role === "Disassemble") && (
-          <li>
-            <NavLink
-              to="service-process-request"
-              className={({ isActive }) => (isActive ? "active" : "")}
-            >
-              <FaCogs /> Service Process Request
-            </NavLink>
-          </li>
         )}
       </ul>
 
