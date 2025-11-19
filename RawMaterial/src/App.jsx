@@ -26,6 +26,7 @@ import ServiceProcessRequest from "./pages/CreateProcess/ServiceProcessRequest/S
 import PendingProcess from "./pages/CreateProcess/PendingProcess/PendingProcess";
 import UserItemStock from "./pages/CreateProcess/UserItemStock/UserItemStock";
 import ReusableItems from "./pages/CreateProcess/ReusableItems/ReusableItems";
+import StoreTracking from "./pages/LineWorker/StoreKeeper/StoreTracking/StoreTracking";
 
 // ========== Protected Route ==========
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -56,7 +57,7 @@ const getRedirectPath = (role) => {
 
   if (
       [
-        "MPC Work",
+        "SFG Work",
         "Assemble",
         "Disassemble",
         "Stamping",
@@ -67,7 +68,7 @@ const getRedirectPath = (role) => {
     return "/Item-Request";
   }
 
-  if (["MPC Work", "Disassemble"].includes(role)) {
+  if (["SFG Work", "Disassemble"].includes(role)) {
     return "/service-process-request";
   }
   if(role==="Testing") return "/pending-process";
@@ -142,6 +143,15 @@ const AppRoutes = () => {
         />
 
         <Route
+          path="store-tracking"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <StoreTracking />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="stock-update-history"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
@@ -156,7 +166,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute
               allowedRoles={[
-                "MPC Work",
+                "SFG Work",
                 "Assemble",
                 "Disassemble",
                 "Stamping",
@@ -246,7 +256,7 @@ const AppRoutes = () => {
         <Route
           path="service-process-request"
           element={
-            <ProtectedRoute allowedRoles={["MPC Work", "Disassemble"]}>
+            <ProtectedRoute allowedRoles={["SFG Work", "Disassemble"]}>
               <ServiceProcessRequest />
             </ProtectedRoute>
           }
@@ -258,7 +268,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute
               allowedRoles={[
-                "MPC Work",
+                "SFG Work",
                 "Assemble",
                 "Disassemble",
                 "Stamping",
@@ -277,7 +287,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute
               allowedRoles={[
-                "MPC Work",
+                "SFG Work",
                 "Assemble",
                 "Disassemble",
                 "Stamping",

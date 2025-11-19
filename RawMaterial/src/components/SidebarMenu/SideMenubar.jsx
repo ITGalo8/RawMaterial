@@ -29,7 +29,7 @@ const SideMenubar = () => {
   };
 
   const lineWorkerRoles = [
-    "MPC Work",
+    "SFG Work",
     "Assemble",
     "Disassemble",
     "Stamping",
@@ -38,7 +38,7 @@ const SideMenubar = () => {
   ];
 
     const PendinglineWorkerRoles = [
-    "MPC Work",
+    "SFG Work",
     "Assemble",
     "Disassemble",
     "Stamping",
@@ -84,7 +84,7 @@ const SideMenubar = () => {
           </li>
         )}
 
-         {(user.role === "MPC Work" || user.role === "Disassemble") && (
+         {(user.role === "SFG Work" || user.role === "Disassemble") && (
           <li>
             <NavLink
               to="service-process-request"
@@ -101,6 +101,10 @@ const SideMenubar = () => {
             <li>
               <NavLink to="store-keeper" className={({ isActive }) => (isActive ? "active" : "")}>
                 <FaClipboardList /> Approval Request
+              </NavLink>
+
+               <NavLink to="store-tracking" className={({ isActive }) => (isActive ? "active" : "")}>
+                <FaClipboardList /> Process Tracking
               </NavLink>
             </li>
 

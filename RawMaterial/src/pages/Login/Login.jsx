@@ -84,7 +84,7 @@ const Login = () => {
       if (roleName === "Admin" || roleName === "SuperAdmin" || roleName === "Superadmin") {
         navigate("/admin-dashboard");
       } else if (
-        roleName === "MPC Work" ||
+        roleName === "SFG Work" ||
         roleName === "Assemble" ||
         roleName === "Disassemble" ||
         roleName === "Stamping" ||
@@ -96,6 +96,10 @@ const Login = () => {
       }else if(roleName === "Testing"){
         
         navigate("/pending-process");
+      } 
+      else if(roleName === "Purchase"){
+        
+        navigate("/purchase-dashboard");
       } 
       else if (roleName === "Store") {
         console.log("store")
