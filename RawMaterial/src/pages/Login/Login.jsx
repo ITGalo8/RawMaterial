@@ -3,8 +3,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Api from "../../auth/Api";
 import { useUser } from "../../Context/UserContext";
-import "./Login.css";
 import GaloEnergy from "../../assets/GaloEnergy.JPG";
+import SingleSelect from "../../components/dropdown/SingleSelect";
+import InputField from "../../components/InputField/InputField";
+import Button from "../../components/button/Button";
 
 axios.defaults.withCredentials = true;
 
@@ -64,6 +66,7 @@ const Login = () => {
         refreshToken: userData.refreshToken,
       };
 
+      // Save to localStorage
       localStorage.setItem("accessToken", userData.accessToken);
       localStorage.setItem("refreshToken", userData.refreshToken);
       localStorage.setItem("userId", userData.id);
@@ -72,10 +75,13 @@ const Login = () => {
       localStorage.setItem("roleId", roleId);
       localStorage.setItem("roleName", roleName);
 
-      axios.defaults.headers.common["Authorization"] = `Bearer ${userData.accessToken}`;
+      axios.defaults.headers.common[
+        "Authorization"
+      ] = `Bearer ${userData.accessToken}`;
 
       login(user, userData.accessToken);
 
+      // Navigation based on role
       if (
         roleName === "Admin" ||
         roleName === "SuperAdmin" ||
@@ -101,7 +107,9 @@ const Login = () => {
         navigate("/");
       }
     } catch (error) {
-      setError(error?.response?.data?.message || "Login failed. Please try again.");
+      setError(
+        error?.response?.data?.message || "Login failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -118,108 +126,71 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-yellow-200 to-white p-4">
-
       <div className="w-full max-w-md md:max-w-lg lg:max-w-xl bg-white rounded-2xl shadow-2xl p-6 md:p-8 animate-fadeIn">
-
-        {/* Logo + Brand Name */}
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2">
-            <img
-              src={GaloEnergy}
-              alt="Galo Energy Logo"
-              className="h-8 w-8 md:h-10 md:w-10 object-contain"
-            />
-            {/* <h1 className="text-3xl md:text-4xl font-bold text-yellow-400 tracking-wide">
-              Galo Energy
-            </h1> */}
-          </div>
-
-          <p className="text-gray-600 mt-1 text-sm md:text-base">
+          <img
+            src={GaloEnergy}
+            alt="Galo Energy Logo"
+            className="h-14 w-auto mx-auto object-contain drop-shadow-sm"
+          />
+          <p className="text-gray-600 mt-2 text-sm md:text-base">
             Powering Tomorrow With Smart Energy Solutions
           </p>
         </div>
 
         {/* Welcome */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">Welcome Back</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
+            Welcome Back
+          </h2>
           <p className="text-gray-500 text-sm md:text-base mt-1">
             Login to continue to your dashboard
           </p>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="text-red-500 bg-red-50 border border-red-200 p-2 rounded-lg text-center text-sm md:text-base mb-3">
-            {error}
-          </div>
-        )}
-
-        {/* Form */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <SingleSelect
+            lists={roles}
+            selectedValue={roleId}
+            setSelectedValue={setRoleId}
+            label="Select Role"
+          />
 
-          {/* Role */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">Select Role</label>
-            <select
-              value={roleId}
-              onChange={(e) => { setError(""); setRoleId(e.target.value); }}
-              disabled={roleLoading}
-              className="w-full px-3 py-2 md:py-3 border border-gray-300 rounded-xl text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            >
-              <option value="">
-                {roleLoading ? "Loading roles..." : "Choose your role"}
-              </option>
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>{role.name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">Email Address</label>
-            <input
-              type="email"
-              value={email}
+          <InputField
+            label="Email Address"
+            type="email"
+            value={email}
+            disabled={loading}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            required
+          />
+          <div className="relative">
+            <InputField
+              label="Enter Password"
+              type={showPassword ? "text" : "password"} // ← Fix
+              value={password}
               disabled={loading}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 md:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Enter your email"
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
+
+            <Button
+              title={showPassword ? "👁️" : "👁️‍🗨️"}
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9 -translate-y-1/2 bg-transparent text-gray-500 hover:text-gray-700 px-2 py-1 shadow-none"
             />
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">Password</label>
-
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                disabled={loading}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 md:py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none pr-12"
-                placeholder="Enter your password"
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xl text-gray-500 hover:text-gray-700"
-              >
-                {showPassword ? "👁️" : "👁️‍🗨️"}
-              </button>
-            </div>
-          </div>
-
-          {/* Login Btn */}
-          <button
+          <Button
+            title={loading ? "Logging in..." : "Login"}
             type="submit"
             disabled={loading || roleLoading}
-            className="w-full py-2 md:py-3 bg-yellow-500 text-white font-semibold rounded-xl text-sm md:text-lg hover:scale-[1.03] transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
+            className="w-full py-3 text-base md:text-lg"
+          />
         </form>
 
         {/* Footer */}

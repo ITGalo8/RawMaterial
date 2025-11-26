@@ -92,7 +92,13 @@ const SideMenubar = () => {
             >
               <FaCogs /> Service Process Request
             </NavLink>
+
+            <NavLink to="single-select" className={({ isActive }) => (isActive ? "active" : "")}>
+              <FaWarehouse /> Single Select
+            </NavLink>
           </li>
+
+
         )}
 
         {/* Store Menu */}
