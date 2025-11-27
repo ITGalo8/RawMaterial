@@ -27,7 +27,7 @@ import PendingProcess from "./pages/CreateProcess/PendingProcess/PendingProcess"
 import UserItemStock from "./pages/CreateProcess/UserItemStock/UserItemStock";
 import ReusableItems from "./pages/CreateProcess/ReusableItems/ReusableItems";
 import StoreTracking from "./pages/LineWorker/StoreKeeper/StoreTracking/StoreTracking";
-import SingleSelect from "./components/dropdown/SingleSelect";
+
 
 // ========== Protected Route ==========
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -185,15 +185,6 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Disassemble"]}>
               <ReusableItems />
-            </ProtectedRoute>
-          }
-        />
-
-         <Route
-          path="single-select"
-          element={
-            <ProtectedRoute allowedRoles={["Disassemble"]}>
-              <SingleSelect />
             </ProtectedRoute>
           }
         />

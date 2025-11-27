@@ -3,8 +3,8 @@ import Api from "../../auth/Api";
 import { useLocation } from "react-router-dom";
 import SingleSelect from "../../components/dropdown/SingleSelect";
 import MultiSelect from "../../components/dropdown/MultiSelect";
-import Button from "../../components/button/Button";
-import InputField from "../../components/InputField/InputField";
+import Button from '../../components/Button/Button';
+import InputField from "../../components/inputField/InputField";
 
 const ItemRequest = () => {
   const location = useLocation();

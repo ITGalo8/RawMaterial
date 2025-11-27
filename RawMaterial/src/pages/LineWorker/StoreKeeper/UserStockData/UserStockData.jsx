@@ -100,16 +100,6 @@ const UserStockData = () => {
             ))}
           </select>
         </div>
-
-        {selectedWorker && (
-          <button 
-            className="refresh-btn"
-            onClick={() => fetchUserStock(selectedWorker, selectedWorkerName)}
-            disabled={tableLoading}
-          >
-            🔄 Refresh
-          </button>
-        )}
       </div>
 
       {(loading || tableLoading) && (

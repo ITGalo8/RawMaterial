@@ -38,7 +38,7 @@ const MultiSelect = ({
     <div className="relative">
       <label className="block mb-1 text-sm font-medium text-gray-700">{label}</label>
       <div 
-        className="w-full px-2 py-2 border border-gray-300 rounded-xl text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer bg-white flex justify-between items-center"
+        className="w-full px-1 py-1 border border-gray-300 rounded-xl text-sm md:text-base focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer bg-white flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className={`${selectedNames.length === 0 ? 'text-gray-400' : 'text-gray-900'}`}>

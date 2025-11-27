@@ -28,8 +28,8 @@ const InputField = ({
         onChange={onChange}
         placeholder={placeholder}
         className={`
-          border border-gray-300 rounded-md p-3
-          focus:outline-none focus:ring-2 focus:ring-blue-500
+          border border-gray-300 rounded-md p-1
+          focus:outline-none focus:ring-1 focus:ring-blue-500
           ${className}
         `}
       />

@@ -1,323 +1,133 @@
-import React, { useState, useEffect } from 'react'
-import './ServiceProcessRequest.css'
-import Api from '../../../auth/Api'
+import React, { useState, useEffect } from "react";
+import Api from "../../../auth/Api";
+import InputField from "../../../components/inputField/InputField";
+import Button from "../../../components/Button/Button";
+import SingleSelect from "../../../components/dropdown/SingleSelect";
 
 const ServiceProcessRequest = () => {
-  const [products, setProducts] = useState([])
-  const [items, setItems] = useState([])
-  const [defectiveItems, setDefectiveItems] = useState([])
+  const [products, setProducts] = useState([]);
+  const [items, setItems] = useState([]);
+  const [defectiveItems, setDefectiveItems] = useState([]);
   const [loading, setLoading] = useState({
     products: true,
     items: false,
     defectiveItems: false,
-    submit: false
-  })
-  const [error, setError] = useState(null)
-  const [selectedProduct, setSelectedProduct] = useState('')
-  const [selectedItem, setSelectedItem] = useState('')
-  const [selectedDefectiveItem, setSelectedDefectiveItem] = useState('')
-  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false)
-  const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false)
-  const [isDefectiveDropdownOpen, setIsDefectiveDropdownOpen] = useState(false)
-  
-  // Input fields state
-  const [serialNumber, setSerialNumber] = useState('')
-  const [quantity, setQuantity] = useState('')
+    submit: false,
+  });
+  const [error, setError] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState("");
+  const [selectedItem, setSelectedItem] = useState("");
+  const [selectedDefectiveItem, setSelectedDefectiveItem] = useState("");
+  const [isProductDropdownOpen, setIsProductDropdownOpen] = useState(false);
+  const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false);
+  const [isDefectiveDropdownOpen, setIsDefectiveDropdownOpen] = useState(false);
 
-  // Fetch products on component mount
+  const [serialNumber, setSerialNumber] = useState("");
+  const [quantity, setQuantity] = useState("");
+
+  // Fetch products
   const fetchProducts = async () => {
     try {
-      setLoading(prev => ({ ...prev, products: true }))
-      setError(null)
-      
-      const response = await Api.get('/common/getProduct')
-      setProducts(response?.data?.data || [])
+      setLoading((prev) => ({ ...prev, products: true }));
+      const response = await Api.get("/common/getProduct");
+      setProducts(response?.data?.data || []);
     } catch (err) {
-      setError(err.message || 'Failed to fetch products')
+      setError("Failed to fetch products");
     } finally {
-      setLoading(prev => ({ ...prev, products: false }))
+      setLoading((prev) => ({ ...prev, products: false }));
     }
-  }
+  };
 
-  // Fetch items based on selected product
+  // Fetch items by product
   const fetchItemsByProductId = async (productId) => {
     try {
-      setLoading(prev => ({ ...prev, items: true }))
-      setError(null)
-      setItems([])
-      setSelectedItem('')
-      setDefectiveItems([])
-      setSelectedDefectiveItem('')
-      
-      const response = await Api.get(`/common/getItemsByProductId?productId=${productId}`)
-      setItems(response?.data?.data || [])
+      setLoading((prev) => ({ ...prev, items: true }));
+      const response = await Api.get(
+        `/common/getItemsByProductId?productId=${productId}`
+      );
+      setItems(response?.data?.data || []);
     } catch (err) {
-      setError(err.message || 'Failed to fetch items')
-      setItems([])
+      setError("Failed to fetch items");
     } finally {
-      setLoading(prev => ({ ...prev, items: false }))
+      setLoading((prev) => ({ ...prev, items: false }));
     }
-  }
+  };
 
-  // Fetch defective items based on selected item
+  // Fetch defective items
   const fetchDefectiveItems = async (itemName) => {
     try {
-      setLoading(prev => ({ ...prev, defectiveItems: true }))
-      setError(null)
-      setDefectiveItems([])
-      setSelectedDefectiveItem('')
-      
-      const response = await Api.get(`/common/showDefectiveItemsList?itemName=${encodeURIComponent(itemName)}`)
-      setDefectiveItems(response?.data?.data || [])
+      setLoading((prev) => ({ ...prev, defectiveItems: true }));
+      const response = await Api.get(
+        `/common/showDefectiveItemsList?itemName=${itemName}`
+      );
+      setDefectiveItems(response?.data?.data || []);
     } catch (err) {
-      setError(err.message || 'Failed to fetch defective items')
-      setDefectiveItems([])
+      setError("Failed to fetch defective items");
     } finally {
-      setLoading(prev => ({ ...prev, defectiveItems: false }))
+      setLoading((prev) => ({ ...prev, defectiveItems: false }));
     }
-  }
+  };
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
-
-  const handleProductSelect = (product) => {
-    setSelectedProduct(product)
-    setIsProductDropdownOpen(false)
-    setSelectedItem('')
-    setItems([])
-    setDefectiveItems([])
-    setSelectedDefectiveItem('')
-    setSerialNumber('')
-    setQuantity('')
-    
-    // Fetch items for the selected product
-    if (product?.id) {
-      fetchItemsByProductId(product.id)
-    }
-  }
-
-  const handleItemSelect = (item) => {
-    setSelectedItem(item)
-    setIsItemDropdownOpen(false)
-    setDefectiveItems([])
-    setSelectedDefectiveItem('')
-    setSerialNumber('')
-    setQuantity('')
-    
-    // Fetch defective items for the selected item
-    if (item?.name) {
-      fetchDefectiveItems(item.name)
-    }
-  }
-
-  const handleDefectiveItemSelect = (defectiveItem) => {
-    setSelectedDefectiveItem(defectiveItem)
-    setIsDefectiveDropdownOpen(false)
-    // Reset quantity when defective item changes
-    setQuantity('')
-  }
-
-  const toggleProductDropdown = () => {
-    setIsProductDropdownOpen(!isProductDropdownOpen)
-    setIsItemDropdownOpen(false)
-    setIsDefectiveDropdownOpen(false)
-  }
-
-  const toggleItemDropdown = () => {
-    if (items.length > 0) {
-      setIsItemDropdownOpen(!isItemDropdownOpen)
-      setIsProductDropdownOpen(false)
-      setIsDefectiveDropdownOpen(false)
-    }
-  }
-
-  const toggleDefectiveDropdown = () => {
-    if (defectiveItems.length > 0) {
-      setIsDefectiveDropdownOpen(!isDefectiveDropdownOpen)
-      setIsProductDropdownOpen(false)
-      setIsItemDropdownOpen(false)
-    }
-  }
-
-  const handleSerialNumberChange = (e) => {
-    setSerialNumber(e.target.value)
-  }
-
-  const handleQuantityChange = (e) => {
-    const value = e.target.value
-    // Allow only numbers
-    if (value === '' || /^\d+$/.test(value)) {
-      setQuantity(value)
-    }
-  }
+    fetchProducts();
+  }, []);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    try {
-      // Validation
-      if (!selectedDefectiveItem) {
-        throw new Error('Please select a defective item')
-      }
-      
-      if (!serialNumber.trim()) {
-        throw new Error('Please enter a serial number')
-      }
-      
-      if (!quantity || parseInt(quantity) <= 0) {
-        throw new Error('Please enter a valid quantity')
-      }
-
-      // Check if quantity exceeds available defective count
-      if (parseInt(quantity) > selectedDefectiveItem.defective) {
-        throw new Error(`Quantity cannot exceed available defective count (${selectedDefectiveItem.defective})`)
-      }
-
-      // Prepare data for submission according to API requirements
-      const requestData = {
-        productName: selectedProduct.productName,
-        itemName: selectedItem.name,
-        subItemName: selectedDefectiveItem.itemName,
-        serialNumber: serialNumber.trim(),
-        quantity: parseInt(quantity)
-      }
-
-      console.log('Submitting service process request:', requestData)
-
-      // Show loading state
-      setLoading(prev => ({ ...prev, submit: true }))
-
-      // Send data to API
-      const response = await Api.post('/line-worker/createServiceProcess', requestData)
-      
-      if (response.data.success) {
-        alert('Service request submitted successfully!')
-        
-        // Reset form
-        setSerialNumber('')
-        setQuantity('')
-        setSelectedDefectiveItem('')
-        
-        // Refresh defective items to update available counts
-        if (selectedItem?.name) {
-          await fetchDefectiveItems(selectedItem.name)
-        }
-      } else {
-        throw new Error(response.data.message || 'Failed to submit service request')
-      }
-      
-    } catch (err) {
-      console.error('Submission error:', err)
-      const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred'
-      alert(`Error: ${errorMessage}`)
-    } finally {
-      setLoading(prev => ({ ...prev, submit: false }))
-    }
-  }
-
-  const getSelectedProductName = () => {
-    if (!selectedProduct) return 'Select Product'
-    return selectedProduct.productName
-  }
-
-  const getSelectedItemName = () => {
-    if (!selectedItem) return 'Select Item'
-    return selectedItem.name
-  }
-
-  const getSelectedDefectiveItemName = () => {
-    if (!selectedDefectiveItem) return 'Select Defective Item'
-    return `${selectedDefectiveItem.itemName}`
-  }
-
-  if (loading.products) {
-    return (
-      <div className="loading-container">
-        <div className="loading-text">Loading products...</div>
-      </div>
-    )
-  }
-
-  if (error && !selectedProduct) {
-    return (
-      <div className="error-container">
-        <div className="error-message">
-          <strong>Error: </strong> {error}
-        </div>
-      </div>
-    )
-  }
+    e.preventDefault();
+  };
 
   return (
-    <div className="service-process-container">
-      <div className="header-section">
-        <h1 className="page-title">Service Process Request</h1>
-      </div>
+    <div className="max-w-6xl mx-auto p-6">
+      <h1 className="text-3xl font-semibold text-center text-gray-800 mb-8">
+        Service Process Request
+      </h1>
 
-      {/* All three dropdowns in one line */}
-      <div className="dropdowns-row">
-        {/* Product Dropdown */}
-        <div className="dropdown-column">
-          <label className="dropdown-label">Product</label>
-          <div className="dropdown-container">
-            <div 
-              className="dropdown-header"
-              onClick={toggleProductDropdown}
-            >
-              <span className="dropdown-selected-text">
-                {getSelectedProductName()}
-              </span>
-              <span className="dropdown-arrow">
-                {isProductDropdownOpen ? '▲' : '▼'}
-              </span>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+        <SingleSelect
+          lists={products}
+          selectedValue={selectedProduct?.id || ""}
+          setSelectedValue={(value) => {
+            const product = products.find((p) => p.id === value);
+            setSelectedProduct(product || "");
+            fetchItemsByProductId(value);
+          }}
+          label="Select Product"
+          placeholder={loading.products ? "Loading..." : "Select Product"}
+        />
 
-            {isProductDropdownOpen && (
-              <div className="dropdown-list">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className={`dropdown-item ${
-                      selectedProduct && selectedProduct.id === product.id ? 'dropdown-item-selected' : ''
-                    }`}
-                    onClick={() => handleProductSelect(product)}
-                  >
-                    <span className="dropdown-item-name">{product.productName}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <div>
+          <label className="text-gray-700 font-semibold mb-1 block">Item</label>
 
-        {/* Item Dropdown */}
-        <div className="dropdown-column">
-          <label className="dropdown-label">Item</label>
-          <div className="dropdown-container">
-            <div 
-              className={`dropdown-header ${items.length === 0 ? 'dropdown-disabled' : ''}`}
-              onClick={toggleItemDropdown}
-            >
-              <span className="dropdown-selected-text">
-                {loading.items ? 'Loading...' : getSelectedItemName()}
-              </span>
-              <span className="dropdown-arrow">
-                {isItemDropdownOpen ? '▲' : '▼'}
-              </span>
-            </div>
+          <div className="relative">
+            <SingleSelect
+              lists={items}
+              selectedValue={selectedItem?.id || ""}
+              setSelectedValue={(value) => {
+                const item = items.find((i) => i.id === value);
+                setSelectedItem(item || "");
+                fetchDefectiveItems(item.name);
+              }}
+              label=""
+              placeholder={loading.items ? "Loading..." : "Select Item"}
+            />
 
-            {isItemDropdownOpen && items.length > 0 && (
-              <div className="dropdown-list">
+            {isItemDropdownOpen && (
+              <div className="absolute left-0 right-0 bg-white shadow-lg rounded-lg mt-1 border max-h-60 overflow-y-auto">
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className={`dropdown-item ${
-                      selectedItem && selectedItem.id === item.id ? 'dropdown-item-selected' : ''
+                    className={`px-4 py-3 hover:bg-gray-100 cursor-pointer ${
+                      selectedItem?.id === item.id
+                        ? "bg-blue-50 text-blue-600"
+                        : ""
                     }`}
-                    onClick={() => handleItemSelect(item)}
+                    onClick={() => {
+                      setSelectedItem(item);
+                      setIsItemDropdownOpen(false);
+                      fetchDefectiveItems(item.name);
+                    }}
                   >
-                    <span className="dropdown-item-name">{item.name}</span>
+                    {item.name}
                   </div>
                 ))}
               </div>
@@ -325,35 +135,45 @@ const ServiceProcessRequest = () => {
           </div>
         </div>
 
-        {/* Defective Items Dropdown */}
-        <div className="dropdown-column">
-          <label className="dropdown-label">Defective Item</label>
-          <div className="dropdown-container">
-            <div 
-              className={`dropdown-header ${defectiveItems.length === 0 ? 'dropdown-disabled' : ''}`}
-              onClick={toggleDefectiveDropdown}
-            >
-              <span className="dropdown-selected-text">
-                {loading.defectiveItems ? 'Loading...' : getSelectedDefectiveItemName()}
-              </span>
-              <span className="dropdown-arrow">
-                {isDefectiveDropdownOpen ? '▲' : '▼'}
-              </span>
-            </div>
+        <div>
+          <label className="text-gray-700 font-semibold mb-1 block">
+            Defective Item
+          </label>
 
-            {isDefectiveDropdownOpen && defectiveItems.length > 0 && (
-              <div className="dropdown-list">
-                {defectiveItems.map((defectiveItem, index) => (
+          <div className="relative">
+            <SingleSelect
+              lists={defectiveItems}
+              selectedValue={selectedDefectiveItem?.id || ""}
+              setSelectedValue={(value) => {
+                const defItem = defectiveItems.find((d) => d.id === value);
+                setSelectedDefectiveItem(defItem || "");
+              }}
+              label=""
+              placeholder={
+                loading.defectiveItems ? "Loading..." : "Select Defective Item"
+              }
+            />
+
+            {isDefectiveDropdownOpen && (
+              <div className="absolute left-0 right-0 bg-white shadow-lg rounded-lg mt-1 border max-h-60 overflow-y-auto">
+                {defectiveItems.map((def, idx) => (
                   <div
-                    key={`${defectiveItem._id}-${index}`}
-                    className={`dropdown-item ${
-                      selectedDefectiveItem && selectedDefectiveItem._id === defectiveItem._id && selectedDefectiveItem.itemName === defectiveItem.itemName ? 'dropdown-item-selected' : ''
-                    }`}
-                    onClick={() => handleDefectiveItemSelect(defectiveItem)}
+                    key={idx}
+                    className="flex justify-between items-center px-4 py-3 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSelectedDefectiveItem(def);
+                      setIsDefectiveDropdownOpen(false);
+                    }}
                   >
-                    <span className="dropdown-item-name">{defectiveItem.itemName}</span>
-                    <span className={`defective-count ${defectiveItem.defective > 0 ? 'defective-count-high' : 'defective-count-zero'}`}>
-                      {defectiveItem.defective}
+                    <span>{def.itemName}</span>
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        def.defective > 0
+                          ? "bg-red-100 text-red-600"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {def.defective}
                     </span>
                   </div>
                 ))}
@@ -362,78 +182,39 @@ const ServiceProcessRequest = () => {
           </div>
         </div>
       </div>
-
-      {/* Input Fields Row */}
       {selectedDefectiveItem && (
-        <div className="input-fields-row">
-          <div className="input-column">
-            <label className="input-label">Serial Number *</label>
-            <input
-              type="text"
-              value={serialNumber}
-              onChange={handleSerialNumberChange}
-              placeholder="Enter serial number"
-              className="input-field"
-              required
-            />
-          </div>
-
-          <div className="input-column">
-            <div className="quantity-container">
-              <label className="input-label">Quantity *</label>
-              <div className="quantity-input-wrapper">
-                <input
-                  type="text"
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                  placeholder="Enter quantity"
-                  className="input-field"
-                  required
-                />
-                <div className="available-defective-info">
-                  Available defective: <span className="available-count">{selectedDefectiveItem.defective}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="submit-column">
-            <button 
-              type="button" 
-              onClick={handleSubmit}
-              className="submit-button"
-              disabled={!serialNumber.trim() || !quantity || parseInt(quantity) <= 0 || loading.submit}
-            >
-              {loading.submit ? 'Submitting...' : 'Submit Request'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Loading and Error States */}
-      {loading.items && (
-        <div className="loading-indicator">Loading items...</div>
-      )}
-
-      {loading.defectiveItems && (
-        <div className="loading-indicator">Loading defective items...</div>
-      )}
-
-      {!loading.defectiveItems && selectedItem && defectiveItems.length === 0 && (
-        <div className="no-data-message">
-          No defective items found for {selectedItem.name}
-        </div>
-      )}
-
-      {error && selectedProduct && (
-        <div className="error-container">
-          <div className="error-message">
-            <strong>Error: </strong> {error}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-end mt-6">
+          <InputField
+            label="Serial Number *"
+            value={serialNumber}
+            onChange={(e) => setSerialNumber(e.target.value)}
+            placeholder="Enter Serial Number"
+          />
+          <InputField
+            label="Quantity *"
+            value={quantity}
+            onChange={(e) => {
+              if (/^\d*$/.test(e.target.value)) setQuantity(e.target.value);
+            }}
+            placeholder="Enter Quantity"
+            infoText={
+              <>
+                Available defective:{" "}
+                <span className="font-semibold text-red-600">
+                  {selectedDefectiveItem.defective}
+                </span>
+              </>
+            }
+          />
+          <Button
+            title={loading.submit ? "Submitting..." : "Submit Request"}
+            onClick={handleSubmit}
+            disabled={loading.submit}
+          />
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ServiceProcessRequest
+export default ServiceProcessRequest;
