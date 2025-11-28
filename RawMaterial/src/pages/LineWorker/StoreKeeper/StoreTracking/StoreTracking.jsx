@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './StoreTracking.css';
 import Api from '../../../../auth/Api';
 
 const StoreTracking = () => {
@@ -164,23 +163,25 @@ const StoreTracking = () => {
   };
 
   const getStatusBadgeClass = (status) => {
+    const baseClasses = "px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide border";
+    
     switch (status) {
       case 'COMPLETED':
-        return 'status-badge completed';
+        return `${baseClasses} bg-green-100 text-green-800 border-green-200`;
       case 'IN_PROGRESS':
-        return 'status-badge in-progress';
+        return `${baseClasses} bg-blue-100 text-blue-800 border-blue-200`;
       case 'PENDING':
-        return 'status-badge pending';
+        return `${baseClasses} bg-yellow-100 text-yellow-800 border-yellow-200`;
       case 'FAILED':
-        return 'status-badge failed';
+        return `${baseClasses} bg-red-100 text-red-800 border-red-200`;
       case 'REJECTED':
-        return 'status-badge rejected';
+        return `${baseClasses} bg-red-100 text-red-800 border-red-200`;
       case 'SKIPPED':
-        return 'status-badge skipped';
+        return `${baseClasses} bg-gray-100 text-gray-800 border-gray-200`;
       case 'REDIRECTED':
-        return 'status-badge redirected';
+        return `${baseClasses} bg-purple-100 text-purple-800 border-purple-200`;
       default:
-        return 'status-badge';
+        return `${baseClasses} bg-gray-100 text-gray-800 border-gray-200`;
     }
   };
 
@@ -200,20 +201,47 @@ const StoreTracking = () => {
     return isNaN(progress) ? 0 : progress;
   };
 
+  const getTimelineMarkerClass = (status) => {
+    const baseClasses = "w-4 h-4 rounded-full border-2 border-white shadow-sm";
+    
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return `${baseClasses} bg-green-500 shadow-green-500/50`;
+      case 'in_progress':
+        return `${baseClasses} bg-blue-500 shadow-blue-500/50`;
+      case 'pending':
+        return `${baseClasses} bg-yellow-500 shadow-yellow-500/50`;
+      case 'failed':
+      case 'rejected':
+        return `${baseClasses} bg-red-500 shadow-red-500/50`;
+      case 'skipped':
+        return `${baseClasses} bg-gray-500 shadow-gray-500/50`;
+      case 'redirected':
+        return `${baseClasses} bg-purple-500 shadow-purple-500/50`;
+      default:
+        return `${baseClasses} bg-gray-400 shadow-gray-400/50`;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="store-tracking">
-        <div className="loading">Loading process data...</div>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Loading process data...</div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="store-tracking">
-        <div className="error">
-          <p>Error: {error}</p>
-          <button onClick={fetchProcessData} className="retry-btn">
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+          <p className="text-red-600 mb-4">Error: {error}</p>
+          <button 
+            onClick={fetchProcessData} 
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+          >
             Retry
           </button>
         </div>
@@ -222,244 +250,288 @@ const StoreTracking = () => {
   }
 
   return (
-    <div className="store-tracking">
-      <div className="header">
-        <h1>Process Tracking</h1>
-        <button onClick={fetchProcessData} className="refresh-btn">
-          Refresh Data
-        </button>
-      </div>
-
-      {/* Filters Section */}
-      <div className="filters-section">
-        <h3>Filters</h3>
-        <div className="filters-grid">
-          <div className="filter-group">
-            <label htmlFor="filterType">Filter Type</label>
-            <select 
-              id="filterType"
-              value={filters.filterType}
-              onChange={(e) => handleFilterChange('filterType', e.target.value)}
-              className="filter-input"
-            >
-              <option value="Custom">Custom Date Range</option>
-              <option value="Today">Today</option>
-              <option value="Week">This Week</option>
-              <option value="Month">This Month</option>
-              <option value="Year">This Year</option>
-              <option value="Status">Status</option>
-              <option value="ItemType">Item Type</option>
-            </select>
-          </div>
-
-          {/* Show date filters only when Custom is selected */}
-          {filters.filterType === 'Custom' && (
-            <>
-              <div className="filter-group">
-                <label htmlFor="startDate">Start Date</label>
-                <input
-                  id="startDate"
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                  className="filter-input"
-                />
-              </div>
-
-              <div className="filter-group">
-                <label htmlFor="endDate">End Date</label>
-                <input
-                  id="endDate"
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                  className="filter-input"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Show status filter only when Status is selected */}
-          {filters.filterType === 'Status' && (
-            <div className="filter-group">
-              <label htmlFor="status">Status</label>
-              <select
-                id="status"
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="filter-input"
-              >
-                <option value="">All Status</option>
-                <option value="COMPLETED">COMPLETED</option>
-                <option value="IN_PROGRESS">IN_PROGRESS</option>
-                <option value="PENDING">PENDING</option>
-                <option value="REDIRECTED">REDIRECTED</option>
-                <option value="FAILED">FAILED</option>
-                <option value="REJECTED">REJECTED</option>
-              </select>
-            </div>
-          )}
-
-          {/* Show item type filter only when ItemType is selected */}
-          {filters.filterType === 'ItemType' && (
-            <div className="filter-group">
-              <label htmlFor="itemType">Item Type</label>
-              <select
-                id="itemType"
-                value={filters.itemType}
-                onChange={(e) => handleFilterChange('itemType', e.target.value)}
-                className="filter-input"
-              >
-                <option value="">All Item Types</option>
-                {itemTypes.map(type => (
-                  <option key={type.id} value={type.name}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Item Type filter that shows for all filter types except ItemType */}
-          {filters.filterType !== 'ItemType' && (
-            <div className="filter-group">
-              <label htmlFor="itemType">Item Type (Additional)</label>
-              <select
-                id="itemType"
-                value={filters.itemType}
-                onChange={(e) => handleFilterChange('itemType', e.target.value)}
-                className="filter-input"
-              >
-                <option value="">All Item Types</option>
-                {itemTypes.map(type => (
-                  <option key={type.id} value={type.name}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header - Centered */}
+        <div className="text-center mb-8 pb-6 border-b border-gray-200">
+          <h1 className="text-3xl font-bold text-gray-900">Process Tracking</h1>
         </div>
 
-        <div className="filter-actions">
-          <button onClick={resetFilters} className="reset-btn">
-            Reset Filters
-          </button>
-          <span className="results-count">
-            Showing {filteredData.length} of {processData.length} processes
-          </span>
-        </div>
-      </div>
+        {/* Filters Section */}
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Filters</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div>
+              <label htmlFor="filterType" className="block text-sm font-medium text-gray-700 mb-2">
+                Filter Type
+              </label>
+              <select 
+                id="filterType"
+                value={filters.filterType}
+                onChange={(e) => handleFilterChange('filterType', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="Custom">Custom Date Range</option>
+                <option value="Today">Today</option>
+                <option value="Week">This Week</option>
+                <option value="Month">This Month</option>
+                <option value="Year">This Year</option>
+                <option value="Status">Status</option>
+                <option value="ItemType">Item Type</option>
+              </select>
+            </div>
 
-      <div className="process-list">
-        {filteredData.length === 0 ? (
-          <div className="no-data">
-            No process data found matching your filters
-          </div>
-        ) : (
-          filteredData.map((process) => {
-            const progressPercentage = getStageProgress(process.stageActivities);
-            
-            return (
-              <div key={process.serviceProcessId} className="process-card">
-                <div 
-                  className="process-summary"
-                  onClick={() => toggleProcessDetails(process.serviceProcessId)}
-                >
-                  <div className="process-main-info">
-                    <div className="product-info">
-                      <h3>{process.productName} - {process.itemName}</h3>
-                      <p className="serial-number">Serial: {process.serialNumber}</p>
-                      <p className="sub-item">Sub Item: {process.subItemName}</p>
-                      <p className="item-type">Type: {process.itemType}</p>
-                      <p className="quantity">Quantity: {process.quantity}</p>
-                    </div>
-                    <div className="process-status">
-                      <span className={getStatusBadgeClass(process.processStatus)}>
-                        {process.processStatus?.replace('_', ' ') || 'N/A'}
-                      </span>
-                      <p className="current-stage">Current Stage: {process.currentStage}</p>
-                      <p className="created-date">
-                        Created: {formatDate(process.createdAt)}
-                      </p>
-                      {/* <div className="progress-container">
-                        <div className="progress-bar">
-                          <div 
-                            className="progress-fill"
-                            style={{ width: `${progressPercentage}%` }}
-                          ></div>
-                        </div>
-                        <span className="progress-text">
-                          {progressPercentage}% Complete
-                        </span>
-                      </div> */}
-                    </div>
-                  </div>
-                  <div className="expand-icon">
-                    {expandedProcess === process.serviceProcessId ? '▼' : '►'}
-                  </div>
+            {/* Date filters for Custom */}
+            {filters.filterType === 'Custom' && (
+              <>
+                <div>
+                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    id="startDate"
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
                 </div>
 
-                {expandedProcess === process.serviceProcessId && (
-                  <div className="process-details">
-                    <h4>Stage Activities</h4>
-                    <div className="activities-timeline">
-                      {process.stageActivities?.map((activity, index) => (
-                        <div key={activity.activityId || index} className="activity-item">
-                          <div className="activity-timeline">
-                            <div className={`timeline-marker ${activity.activityStatus?.toLowerCase()}`}></div>
-                            {index < (process.stageActivities?.length || 0) - 1 && (
-                              <div className="timeline-connector"></div>
-                            )}
+                <div>
+                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+                    End Date
+                  </label>
+                  <input
+                    id="endDate"
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Status filter */}
+            {filters.filterType === 'Status' && (
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  <option value="">All Status</option>
+                  <option value="COMPLETED">COMPLETED</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="PENDING">PENDING</option>
+                  <option value="REDIRECTED">REDIRECTED</option>
+                  <option value="FAILED">FAILED</option>
+                  <option value="REJECTED">REJECTED</option>
+                </select>
+              </div>
+            )}
+
+            {/* Item Type filter for ItemType mode */}
+            {filters.filterType === 'ItemType' && (
+              <div>
+                <label htmlFor="itemType" className="block text-sm font-medium text-gray-700 mb-2">
+                  Item Type
+                </label>
+                <select
+                  id="itemType"
+                  value={filters.itemType}
+                  onChange={(e) => handleFilterChange('itemType', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  <option value="">All Item Types</option>
+                  {itemTypes.map(type => (
+                    <option key={type.id} value={type.name}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Additional Item Type filter for other modes */}
+            {filters.filterType !== 'ItemType' && (
+              <div>
+                <label htmlFor="itemType" className="block text-sm font-medium text-gray-700 mb-2">
+                  Item Type (Additional)
+                </label>
+                <select
+                  id="itemType"
+                  value={filters.itemType}
+                  onChange={(e) => handleFilterChange('itemType', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  <option value="">All Item Types</option>
+                  {itemTypes.map(type => (
+                    <option key={type.id} value={type.name}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 border-t border-gray-200">
+            <button 
+              onClick={resetFilters} 
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Reset Filters
+            </button>
+            <span className="text-sm text-gray-600 font-medium">
+              Showing {filteredData.length} of {processData.length} processes
+            </span>
+          </div>
+        </div>
+
+        {/* Process List */}
+        <div className="space-y-6">
+          {filteredData.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <div className="text-gray-500 text-lg">No process data found matching your filters</div>
+            </div>
+          ) : (
+            filteredData.map((process) => {
+              const progressPercentage = getStageProgress(process.stageActivities);
+              
+              return (
+                <div key={process.serviceProcessId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md">
+                  {/* Process Summary */}
+                  <div 
+                    className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => toggleProcessDetails(process.serviceProcessId)}
+                  >
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                              {process.productName} - {process.itemName}
+                            </h3>
+                            <div className="space-y-1 text-sm text-gray-600">
+                              <p className="font-medium">Serial: {process.serialNumber}</p>
+                              <p>Sub Item: {process.subItemName}</p>
+                              <p>Type: {process.itemType}</p>
+                              <p>Quantity: {process.quantity}</p>
+                            </div>
                           </div>
-                          <div className="activity-content">
-                            <div className="activity-header">
-                              <h5>{activity.stageName}</h5>
-                              <div className="activity-status-group">
-                                <span className={getStatusBadgeClass(activity.activityStatus)}>
-                                  {activity.activityStatus}
-                                </span>
-                                {activity.isCurrent && (
-                                  <span className="current-badge">Current</span>
+                          
+                          <div className="flex flex-col items-start lg:items-end gap-3 min-w-[200px]">
+                            <span className={getStatusBadgeClass(process.processStatus)}>
+                              {process.processStatus?.replace('_', ' ') || 'N/A'}
+                            </span>
+                            <p className="text-sm text-gray-600">Current Stage: {process.currentStage}</p>
+                            <p className="text-xs text-gray-500">
+                              Created: {formatDate(process.createdAt)}
+                            </p>
+                            {/* Progress bar commented out as in original */}
+                            {/* <div className="w-full max-w-xs">
+                              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                                <span>Progress</span>
+                                <span>{progressPercentage}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${progressPercentage}%` }}
+                                ></div>
+                              </div>
+                            </div> */}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-gray-500 px-2">
+                        {expandedProcess === process.serviceProcessId ? '▼' : '►'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Process Details */}
+                  {expandedProcess === process.serviceProcessId && (
+                    <div className="px-6 pb-6 border-t border-gray-200 bg-gray-50 animate-slideDown">
+                      <h4 className="text-lg font-semibold text-gray-900 my-6">Stage Activities</h4>
+                      
+                      <div className="relative pl-8">
+                        {process.stageActivities?.map((activity, index) => (
+                          <div key={activity.activityId || index} className="flex mb-6 last:mb-0">
+                            {/* Timeline */}
+                            <div className="flex flex-col items-center mr-4">
+                              <div className={getTimelineMarkerClass(activity.activityStatus)}></div>
+                              {index < (process.stageActivities?.length || 0) - 1 && (
+                                <div className="w-0.5 bg-gray-300 flex-1 my-1"></div>
+                              )}
+                            </div>
+                            
+                            {/* Activity Content */}
+                            <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+                                <h5 className="text-md font-semibold text-gray-900 flex-1">
+                                  {activity.stageName}
+                                </h5>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={getStatusBadgeClass(activity.activityStatus)}>
+                                    {activity.activityStatus}
+                                  </span>
+                                  {activity.isCurrent && (
+                                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-semibold">
+                                      Current
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-3">
+                                {/* Activity Times */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                                  <div className="text-gray-600">
+                                    <strong className="text-gray-700">Accepted:</strong> {formatDate(activity.acceptedAt)}
+                                  </div>
+                                  <div className="text-gray-600">
+                                    <strong className="text-gray-700">Started:</strong> {formatDate(activity.startedAt)}
+                                  </div>
+                                  <div className="text-gray-600">
+                                    <strong className="text-gray-700">Completed:</strong> {formatDate(activity.completedAt)}
+                                  </div>
+                                </div>
+                                
+                                {/* Remarks */}
+                                {activity.remarks && (
+                                  <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                                    <strong className="text-gray-700 text-sm">Remarks:</strong>
+                                    <p className="text-sm text-gray-600 mt-1">{activity.remarks}</p>
+                                  </div>
+                                )}
+                                
+                                {/* Failure Reason */}
+                                {activity.failureReason && (
+                                  <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                                    <strong className="text-gray-700 text-sm">Failure Reason:</strong>
+                                    <p className="text-sm text-gray-600 mt-1">{activity.failureReason}</p>
+                                  </div>
                                 )}
                               </div>
                             </div>
-                            
-                            <div className="activity-details">
-                              <div className="activity-times">
-                                <div className="time-item">
-                                  <strong>Accepted:</strong> {formatDate(activity.acceptedAt)}
-                                </div>
-                                <div className="time-item">
-                                  <strong>Started:</strong> {formatDate(activity.startedAt)}
-                                </div>
-                                <div className="time-item">
-                                  <strong>Completed:</strong> {formatDate(activity.completedAt)}
-                                </div>
-                              </div>
-                              
-                              {activity.remarks && (
-                                <div className="activity-remarks">
-                                  <strong>Remarks:</strong> {activity.remarks}
-                                </div>
-                              )}
-                              
-                              {activity.failureReason && (
-                                <div className="activity-failure">
-                                  <strong>Failure Reason:</strong> {activity.failureReason}
-                                </div>
-                              )}
-                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

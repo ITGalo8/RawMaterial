@@ -177,11 +177,19 @@ const Login = () => {
               required
             />
 
-            <Button
+            {/* <Button
               title={showPassword ? "👁️" : "👁️‍🗨️"}
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 -translate-y-1/2 bg-transparent text-gray-500 hover:text-gray-700 px-2 py-1 shadow-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-900 px-2 py-1 bg-transparent hover:bg-transparent shadow-none"
+            /> */}
+
+            <Button
+              title={showPassword ? "👁️" : "👁️‍🗨️"}
+              type="button"
+              variant="icon" // ← fixes padding + bg
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2"
             />
           </div>
 

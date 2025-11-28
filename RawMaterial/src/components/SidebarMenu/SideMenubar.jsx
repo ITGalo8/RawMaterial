@@ -124,21 +124,6 @@ const SideMenubar = () => {
                 Service Process Request
               </NavLink>
             </li>
-
-            <li>
-              <NavLink
-                to="single-select"
-                className={({ isActive }) =>
-                  `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-                   }`
-                }
-              >
-                <FaWarehouse className="text-lg" />
-                Single Select
-              </NavLink>
-            </li>
           </>
         )}
 
