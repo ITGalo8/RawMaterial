@@ -955,28 +955,6 @@ const StoreTracking = () => {
                 </select>
               </div>
             )}
-
-            {/* Additional Product filter for other modes */}
-            {/* {filters.filterType !== 'Product' && (
-              <div>
-                <label htmlFor="product" className="block text-sm font-medium text-gray-700 mb-2">
-                  Product (Additional)
-                </label>
-                <select
-                  id="product"
-                  value={filters.product}
-                  onChange={(e) => handleFilterChange('product', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  <option value="">All Products</option>
-                  {products.map(product => (
-                    <option key={product.id} value={product.name}>
-                      {product.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )} */}
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 border-t border-gray-200">
