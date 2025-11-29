@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Api from "../../../auth/Api";
-import InputField from "../../../components/inputField/InputField";
+import InputField from '../../../components/InputField/InputField'
 import Button from "../../../components/Button/Button";
 
 const ServiceProcessRequest = () => {
