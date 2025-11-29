@@ -3,10 +3,10 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Api from "../../auth/Api";
 import { useUser } from "../../Context/UserContext";
-import GaloEnergy from "../../assets/GaloEnergy.JPG";
+import GaloEnergy from "../../assets/GaloEnergy.jpg";
 import SingleSelect from "../../components/dropdown/SingleSelect";
 import InputField from "../../components/InputField/InputField";
-import Button from "../../components/button/Button";
+import Button from '../../components/Button/Button'
 
 axios.defaults.withCredentials = true;
 
