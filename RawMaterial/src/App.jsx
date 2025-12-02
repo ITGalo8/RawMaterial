@@ -27,6 +27,7 @@ import PendingProcess from "./pages/CreateProcess/PendingProcess/PendingProcess"
 import UserItemStock from "./pages/CreateProcess/UserItemStock/UserItemStock";
 import ReusableItems from "./pages/CreateProcess/ReusableItems/ReusableItems";
 import StoreTracking from "./pages/LineWorker/StoreKeeper/StoreTracking/StoreTracking";
+import RawMaterialStock from "./pages/RawMaterialStock/RawMaterialStock";
 
 
 // ========== Protected Route ==========
@@ -72,6 +73,11 @@ const getRedirectPath = (role) => {
   if (["SFG Work", "Disassemble"].includes(role)) {
     return "/service-process-request";
   }
+ 
+  if (["Store", "Purchase"].includes(role)) {
+    return "/raw-material-stock";
+  }
+
   if(role==="Testing") return "/pending-process";
   return "/login";
 };
@@ -279,6 +285,15 @@ const AppRoutes = () => {
               ]}
             >
               <PendingProcess />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="raw-material-stock"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <RawMaterialStock />
             </ProtectedRoute>
           }
         />
