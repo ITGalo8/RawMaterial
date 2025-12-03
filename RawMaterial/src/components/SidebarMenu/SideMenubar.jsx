@@ -441,6 +441,8 @@ const SideMenubar = () => {
     "Winding Connection",
   ];
 
+  
+
   const PendinglineWorkerRoles = [
     "SFG Work",
     "Assemble",
@@ -518,6 +520,42 @@ const SideMenubar = () => {
               </NavLink>
             </li>
           )}
+          {/* Line Worker Item Request */}
+          {lineWorkerRoles.includes(user.role) && (
+            <li>
+              <NavLink
+                to="Item-Request-history"
+                className={({ isActive }) =>
+                  `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                   border-l-4 border-transparent transition-all gap-3 ${
+                     isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                   }`
+                }
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FaWarehouse className="text-lg" />
+               Item Request History
+              </NavLink>
+            </li>
+          )}
+
+          {lineWorkerRoles.includes(user.role) && (
+            <li>
+              <NavLink
+                to="user-Stock"
+                className={({ isActive }) =>
+                  `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                   border-l-4 border-transparent transition-all gap-3 ${
+                     isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                   }`
+                }
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FaWarehouse className="text-lg" />
+               User Stock Data
+              </NavLink>
+            </li>
+          )}
 
           {PendinglineWorkerRoles.includes(user.role) && (
             <li>
@@ -556,30 +594,6 @@ const SideMenubar = () => {
               </li>
             </>
           )}
-
-
-          {(user.role === "Store" || user.role === "Purchase") && (
-            <>
-              <li>
-                <NavLink
-                  to="raw-material-stock"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FaCogs className="text-lg" />
-                  Raw Material Stock
-                </NavLink>
-              </li>
-            </>
-          )}
-
-
-          
 
           {/* Store Menu */}
           {user.role === "Store" && (
@@ -661,6 +675,26 @@ const SideMenubar = () => {
                 >
                   <FaClipboardList className="text-lg" />
                   Stock Update History
+                </NavLink>
+              </li>
+            </>
+          )}
+
+          {(user.role === "Store" || user.role === "Purchase") && (
+            <>
+              <li>
+                <NavLink
+                  to="raw-material-stock"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FaCogs className="text-lg" />
+                  Raw Material Stock
                 </NavLink>
               </li>
             </>

@@ -28,6 +28,8 @@ import UserItemStock from "./pages/CreateProcess/UserItemStock/UserItemStock";
 import ReusableItems from "./pages/CreateProcess/ReusableItems/ReusableItems";
 import StoreTracking from "./pages/LineWorker/StoreKeeper/StoreTracking/StoreTracking";
 import RawMaterialStock from "./pages/RawMaterialStock/RawMaterialStock";
+import RequestItemHistory from "./pages/LineWorker/getRequestsByUser/RequestItemHistory";
+import UserStock from "./pages/LineWorker/UserStock/UserStock";
 
 
 // ========== Protected Route ==========
@@ -61,7 +63,7 @@ const getRedirectPath = (role) => {
       [
         "SFG Work",
         "Assemble",
-        "Disassemble",
+        // "Disassemble",
         "Stamping",
         "Winding",
         "Winding Connection",
@@ -69,6 +71,7 @@ const getRedirectPath = (role) => {
     ) {
     return "/Item-Request";
   }
+  
 
   if (["SFG Work", "Disassemble"].includes(role)) {
     return "/service-process-request";
@@ -186,6 +189,42 @@ const AppRoutes = () => {
           }
         />
 
+        <Route
+          path="Item-Request-history"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "SFG Work",
+                "Assemble",
+                "Disassemble",
+                "Stamping",
+                "Winding",
+                "Winding Connection",
+              ]}
+            >
+              <RequestItemHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="user-stock"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "SFG Work",
+                "Assemble",
+                "Disassemble",
+                "Stamping",
+                "Winding",
+                "Winding Connection",
+              ]}
+            >
+              <UserStock />
+            </ProtectedRoute>
+          }
+        />
+
          <Route
           path="reusable-Items"
           element={
@@ -289,14 +328,48 @@ const AppRoutes = () => {
           }
         />
 
-         <Route
+        <Route
+          path="Item-Request-history"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "SFG Work",
+                "Assemble",
+                "Disassemble",
+                "Stamping",
+                "Testing",
+                "Winding",
+                "Winding Connection",
+              ]}
+            >
+              <RequestItemHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="raw-material-stock"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                "Store",
+                "Purchase",
+              ]}
+            >
+              <RawMaterialStock />
+            </ProtectedRoute>
+          }
+        />
+
+         {/* <Route
           path="raw-material-stock"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <RawMaterialStock />
             </ProtectedRoute>
           }
-        />
+        /> */}
+        
 
          <Route
           path="user-Item-stock"
