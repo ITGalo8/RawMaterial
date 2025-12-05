@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Api from '../../auth/Api';
-import './CSS/AddCompany.css';
 
 const AddCompany = () => {
   const [companyData, setCompanyData] = useState({
@@ -327,40 +326,42 @@ const AddCompany = () => {
   };
 
   return (
-    <div className="add-company-container">
-      <div className="center-wrapper">
-        <div className="form-content">
-          <div className="page-header">
-            <h1>Add New Company</h1>
-            <p>Register a new supplier or vendor company in the system</p>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Add New Company</h1>
+            <p className="mt-2 text-gray-600">Register a new supplier or vendor company in the system</p>
           </div>
 
           {message && (
-            <div className="alert alert-success">
-              <span className="alert-icon">✓</span>
+            <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 flex items-start">
+              <span className="text-green-600 mr-3">✓</span>
               <div>
-                <strong>Success!</strong> {message}
+                <strong className="font-semibold text-green-800">Success!</strong>
+                <p className="text-green-700 ml-1 inline">{message}</p>
               </div>
             </div>
           )}
 
           {error && (
-            <div className="alert alert-error">
-              <span className="alert-icon">⚠</span>
+            <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 flex items-start">
+              <span className="text-red-600 mr-3">⚠</span>
               <div>
-                <strong>Error!</strong> {error}
+                <strong className="font-semibold text-red-800">Error!</strong>
+                <p className="text-red-700 ml-1 inline">{error}</p>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="company-form">
-            {/* Basic Information - Single Row */}
-            <div className="form-section basic-info-section">
-              <h2 className="section-title">Basic Information</h2>
-              <div className="form-grid single-row">
-                <div className="form-group">
-                  <label htmlFor="name" className="form-label">
-                    Company Name <span className="required">*</span>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Information */}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b">Basic Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Company Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -369,17 +370,17 @@ const AddCompany = () => {
                     value={companyData.name}
                     onChange={handleChange}
                     required
-                    className={`form-input ${fieldErrors.name ? 'error' : ''}`}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.name ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Enter company legal name"
                   />
                   {fieldErrors.name && (
-                    <span className="field-error">{fieldErrors.name}</span>
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="gstNumber" className="form-label">
-                    GST Number <span className="required">*</span>
+                <div>
+                  <label htmlFor="gstNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    GST Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -388,18 +389,18 @@ const AddCompany = () => {
                     value={companyData.gstNumber}
                     onChange={handleChange}
                     required
-                    className={`form-input ${fieldErrors.gstNumber ? 'error' : ''}`}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.gstNumber ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Enter 15-character GST number"
                     maxLength="15"
                   />
                   {fieldErrors.gstNumber && (
-                    <span className="field-error">{fieldErrors.gstNumber}</span>
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.gstNumber}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="companyCode" className="form-label">
-                    Company Code <span className="required">*</span>
+                <div>
+                  <label htmlFor="companyCode" className="block text-sm font-medium text-gray-700 mb-2">
+                    Company Code <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -408,17 +409,17 @@ const AddCompany = () => {
                     value={companyData.companyCode}
                     onChange={handleChange}
                     required
-                    className={`form-input ${fieldErrors.companyCode ? 'error' : ''}`}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.companyCode ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Unique company code"
                   />
                   {fieldErrors.companyCode && (
-                    <span className="field-error">{fieldErrors.companyCode}</span>
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.companyCode}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="currency" className="form-label">
-                    Currency <span className="required">*</span>
+                <div>
+                  <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
+                    Currency <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="currency"
@@ -426,7 +427,7 @@ const AddCompany = () => {
                     value={companyData.currency}
                     onChange={handleChange}
                     required
-                    className="form-select"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                   >
                     <option value="INR">Indian Rupee (INR)</option>
                     <option value="USD">US Dollar (USD)</option>
@@ -441,152 +442,149 @@ const AddCompany = () => {
             </div>
 
             {/* Address Details */}
-            <div className="form-section">
-              <h2 className="section-title">Address Details</h2>
-              <div className="form-group">
-                <label htmlFor="address" className="form-label">
-                  Complete Address <span className="required">*</span>
-                </label>
-                <textarea
-                  id="address"
-                  name="address"
-                  value={companyData.address}
-                  onChange={handleChange}
-                  rows="3"
-                  required
-                  className={`form-textarea ${fieldErrors.address ? 'error' : ''}`}
-                  placeholder="Enter complete street address"
-                />
-                {fieldErrors.address && (
-                  <span className="field-error">{fieldErrors.address}</span>
-                )}
-              </div>
-              
-              <div className="form-grid">
-                <div className="form-group">
-                  <label htmlFor="city" className="form-label">
-                    City <span className="required">*</span>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b">Address Details</h2>
+              <div className="space-y-6">
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+                    Complete Address <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    id="city"
-                    name="city"
-                    value={companyData.city}
+                  <textarea
+                    id="address"
+                    name="address"
+                    value={companyData.address}
                     onChange={handleChange}
+                    rows="3"
                     required
-                    className={`form-input ${fieldErrors.city ? 'error' : ''}`}
-                    placeholder="Enter city"
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.address ? 'border-red-500' : 'border-gray-300'}`}
+                    placeholder="Enter complete street address"
                   />
-                  {fieldErrors.city && (
-                    <span className="field-error">{fieldErrors.city}</span>
+                  {fieldErrors.address && (
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.address}</p>
                   )}
                 </div>
-
-                <div className="form-group">
-                  <label htmlFor="state" className="form-label">
-                    State <span className="required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="state"
-                    name="state"
-                    value={companyData.state}
-                    onChange={handleChange}
-                    required
-                    className={`form-input ${fieldErrors.state ? 'error' : ''}`}
-                    placeholder="Enter state"
-                  />
-                  {fieldErrors.state && (
-                    <span className="field-error">{fieldErrors.state}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="pincode" className="form-label">
-                    Pincode <span className="required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="pincode"
-                    name="pincode"
-                    value={companyData.pincode}
-                    onChange={handleChange}
-                    required
-                    className={`form-input ${fieldErrors.pincode ? 'error' : ''}`}
-                    placeholder="Enter 6-digit postal code"
-                    maxLength="6"
-                  />
-                  {fieldErrors.pincode && (
-                    <span className="field-error">{fieldErrors.pincode}</span>
-                  )}
-                </div>
-
-                <div className="form-group country-group" ref={dropdownRef}>
-                  <label htmlFor="country" className="form-label">
-                    Country <span className="required">*</span>
-                  </label>
-                  <div className="custom-dropdown">
-                    <div 
-                      className="dropdown-header"
-                      onClick={handleCountryDropdownToggle}
-                      tabIndex={0}
-                      role="button"
-                      aria-expanded={showCountryDropdown}
-                      aria-haspopup="listbox"
-                    >
-                      <span className="selected-country">{companyData.country}</span>
-                      <span className="dropdown-arrow">
-                        {showCountryDropdown ? '▲' : '▼'}
-                      </span>
-                    </div>
-                    
-                    {showCountryDropdown && (
-                      <div className="dropdown-list">
-                        <div className="search-container">
-                          <input
-                            ref={searchInputRef}
-                            type="text"
-                            placeholder="Search countries..."
-                            value={countrySearch}
-                            onChange={(e) => setCountrySearch(e.target.value)}
-                            className="search-input"
-                          />
-                        </div>
-                        <div className="dropdown-options">
-                          {filteredCountries.length > 0 ? (
-                            filteredCountries.map((country) => (
-                              <div
-                                key={country}
-                                className={`dropdown-option ${
-                                  companyData.country === country ? 'selected' : ''
-                                }`}
-                                onClick={() => handleCountrySelect(country)}
-                                role="option"
-                                aria-selected={companyData.country === country}
-                              >
-                                {country}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="no-results">
-                              No countries found
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div>
+                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                      City <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value={companyData.city}
+                      onChange={handleChange}
+                      required
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.city ? 'border-red-500' : 'border-gray-300'}`}
+                      placeholder="Enter city"
+                    />
+                    {fieldErrors.city && (
+                      <p className="mt-1 text-sm text-red-600">{fieldErrors.city}</p>
                     )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+                      State <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="state"
+                      name="state"
+                      value={companyData.state}
+                      onChange={handleChange}
+                      required
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.state ? 'border-red-500' : 'border-gray-300'}`}
+                      placeholder="Enter state"
+                    />
+                    {fieldErrors.state && (
+                      <p className="mt-1 text-sm text-red-600">{fieldErrors.state}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-2">
+                      Pincode <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="pincode"
+                      name="pincode"
+                      value={companyData.pincode}
+                      onChange={handleChange}
+                      required
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.pincode ? 'border-red-500' : 'border-gray-300'}`}
+                      placeholder="Enter 6-digit postal code"
+                      maxLength="6"
+                    />
+                    {fieldErrors.pincode && (
+                      <p className="mt-1 text-sm text-red-600">{fieldErrors.pincode}</p>
+                    )}
+                  </div>
+
+                  <div className="relative" ref={dropdownRef}>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Country <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={handleCountryDropdownToggle}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition flex justify-between items-center"
+                        aria-expanded={showCountryDropdown}
+                      >
+                        <span className="truncate">{companyData.country}</span>
+                        <span className="ml-2">
+                          {showCountryDropdown ? '▲' : '▼'}
+                        </span>
+                      </button>
+                      
+                      {showCountryDropdown && (
+                        <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg">
+                          <div className="p-2 border-b">
+                            <input
+                              ref={searchInputRef}
+                              type="text"
+                              placeholder="Search countries..."
+                              value={countrySearch}
+                              onChange={(e) => setCountrySearch(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                            />
+                          </div>
+                          <div className="max-h-60 overflow-y-auto">
+                            {filteredCountries.length > 0 ? (
+                              filteredCountries.map((country) => (
+                                <button
+                                  type="button"
+                                  key={country}
+                                  className={`w-full px-4 py-2 text-left hover:bg-gray-100 ${companyData.country === country ? 'bg-blue-50 text-blue-700' : ''}`}
+                                  onClick={() => handleCountrySelect(country)}
+                                >
+                                  {country}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-2 text-gray-500 text-center">
+                                No countries found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Contact Information */}
-            <div className="form-section">
-              <h2 className="section-title">Contact Information</h2>
-              <div className="form-grid responsive-grid">
-                <div className="form-group">
-                  <label htmlFor="contactNumber" className="form-label">
-                    Contact Number <span className="required">*</span>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 pb-2 border-b">Contact Information</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    Contact Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -595,17 +593,17 @@ const AddCompany = () => {
                     value={companyData.contactNumber}
                     onChange={handleChange}
                     required
-                    className={`form-input ${fieldErrors.contactNumber ? 'error' : ''}`}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.contactNumber ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Enter 10-digit contact number"
                     maxLength="10"
                   />
                   {fieldErrors.contactNumber && (
-                    <span className="field-error">{fieldErrors.contactNumber}</span>
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.contactNumber}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="alternateNumber" className="form-label">
+                <div>
+                  <label htmlFor="alternateNumber" className="block text-sm font-medium text-gray-700 mb-2">
                     Alternate Number
                   </label>
                   <input
@@ -614,18 +612,18 @@ const AddCompany = () => {
                     name="alternateNumber"
                     value={companyData.alternateNumber}
                     onChange={handleChange}
-                    className={`form-input ${fieldErrors.alternateNumber ? 'error' : ''}`}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.alternateNumber ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="Optional 10-digit alternate number"
                     maxLength="10"
                   />
                   {fieldErrors.alternateNumber && (
-                    <span className="field-error">{fieldErrors.alternateNumber}</span>
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.alternateNumber}</p>
                   )}
                 </div>
 
-                <div className="form-group email-field">
-                  <label htmlFor="email" className="form-label">
-                    Email Address <span className="required">*</span>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -634,25 +632,29 @@ const AddCompany = () => {
                     value={companyData.email}
                     onChange={handleChange}
                     required
-                    className={`form-input ${fieldErrors.email ? 'error' : ''}`}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${fieldErrors.email ? 'border-red-500' : 'border-gray-300'}`}
                     placeholder="company@example.com"
                   />
                   {fieldErrors.email && (
-                    <span className="field-error">{fieldErrors.email}</span>
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="form-actions">
+            {/* Form Actions */}
+            <div className="pt-6 border-t">
               <button 
                 type="submit" 
-                className="btn btn-primary"
+                className="w-full md:w-auto px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center"
                 disabled={loading || !isFormValid()}
               >
                 {loading ? (
                   <>
-                    <div className="spinner"></div>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                     Adding Company...
                   </>
                 ) : (

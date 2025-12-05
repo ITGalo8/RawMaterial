@@ -143,7 +143,7 @@ const RawMaterialStock = () => {
         <input
           type="text"
           placeholder="Search raw materials..."
-          className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full md:w-1/2 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
