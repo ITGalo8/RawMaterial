@@ -769,6 +769,21 @@ const SideMenubar = () => {
                         Update Company
                       </NavLink>
                     </li>
+
+                     <li>
+                      <NavLink
+                        to="active-deactivate-company"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        All Company
+                      </NavLink>
+                    </li>
                   </ul>
                 )}
               </li>
@@ -818,6 +833,21 @@ const SideMenubar = () => {
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Update Vendor
+                      </NavLink>
+                    </li>
+
+                     <li>
+                      <NavLink
+                        to="active-deactivate-vendor"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        All Vendor
                       </NavLink>
                     </li>
                   </ul>
@@ -871,6 +901,8 @@ const SideMenubar = () => {
                         Show Purchase Orders
                       </NavLink>
                     </li>
+
+                    
                   </ul>
                 )}
               </li>

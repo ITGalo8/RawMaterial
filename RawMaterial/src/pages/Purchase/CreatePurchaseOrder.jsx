@@ -1226,7 +1226,7 @@ const CreatePurchaseOrder = () => {
 
       console.log('Purchase Order Data:', purchaseOrderData);
       
-      const response = await Api.post('/purchase/purchase-orders/create', purchaseOrderData);
+      const response = await Api.post('/purchase/purchase-orders/create2', purchaseOrderData);
       
       if (response.data.success) {
         alert('Purchase Order created successfully!', response?.data?.message);

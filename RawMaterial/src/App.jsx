@@ -30,9 +30,10 @@ import StoreTracking from "./pages/LineWorker/StoreKeeper/StoreTracking/StoreTra
 import RawMaterialStock from "./pages/RawMaterialStock/RawMaterialStock";
 import RequestItemHistory from "./pages/LineWorker/getRequestsByUser/RequestItemHistory";
 import UserStock from "./pages/LineWorker/UserStock/UserStock";
+import ActiveDeactivateVendor from "./pages/Purchase/ActiveDeactivateVendor";
+import ActiveDeactivateCompany from "./pages/Purchase/ActiveDeactivateCompany";
+import ReceivedPurchaseStock from "./pages/Purchase/ReceivedPurchaseStock";
 
-
-// ========== Protected Route ==========
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
   if (loading) return <div className="loading">Loading...</div>;
@@ -51,7 +52,6 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   return children;
 };
 
-// ========== Role Based Redirect ==========
 const getRedirectPath = (role) => {
   if (["Admin", "SuperAdmin", "Superadmin"].includes(role)) {
     return "/admin-dashboard";
@@ -294,6 +294,33 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <ShowPurchaseOrder />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="active-deactivate-vendor"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <ActiveDeactivateVendor />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="active-deactivate-company"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <ActiveDeactivateCompany />
+            </ProtectedRoute>
+          }
+        />
+
+          <Route
+          path="receive-purchase-stock"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <ReceivedPurchaseStock />
             </ProtectedRoute>
           }
         />

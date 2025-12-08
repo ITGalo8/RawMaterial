@@ -273,26 +273,17 @@ const ItemRequest = () => {
           </div>
         )}
 
-        {/* Submit Button and Messages */}
         <div className="text-center mt-4">
+        
           <Button
-            text={submitting ? "Submitting..." : "Submit Request"}
             onClick={handleSubmitRequest}
+            variant="primary"
+            loading={submitting}
             disabled={disabledSubmit}
-            width="w-64"
+            className="w-32 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-white font-semibold py-2 border border-yellow-500 hover:scale-[1.03] transition-all duration-200"
+            title="Submit" 
           />
-          
-          {submitMessage && (
-            <p
-              className={`mt-3 text-lg font-semibold ${
-                submitMessage.includes("success") || submitMessage.includes("Success")
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
-            >
-              {submitMessage}
-            </p>
-          )}
+           
         </div>
       </div>
     </div>
