@@ -888,11 +888,13 @@
 
 import React, { useState, useEffect } from "react";
 import Api from "../../auth/Api";
+import { useLocation } from "react-router-dom";
 
 const CreatePurchaseOrder = () => {
+  const location = useLocation();
+  
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const [vendorsList, setVendorsList] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState("");
@@ -903,7 +905,8 @@ const CreatePurchaseOrder = () => {
   const [warranty, setWarranty] = useState("");
   const [contactPerson, setContactPerson] = useState("");
   const [cellNo, setCellNo] = useState("");
-  // const [remarks, setRemarks] = useState("");
+  const [currency, setCurrency] = useState("INR");
+  const [gstRate, setGstRate] = useState("");
 
   const [itemList, setItemList] = useState([]);
   const [itemDetails, setItemDetails] = useState([
@@ -932,6 +935,8 @@ const CreatePurchaseOrder = () => {
       amount: ""
     }
   ]);
+
+  const [loading, setLoading] = useState(false);
 
   const gstTypes = [
     { value: "IGST_5", label: "IGST 5%" },
@@ -1008,6 +1013,56 @@ const CreatePurchaseOrder = () => {
       setLoading(false);
     }
   };
+
+  // Handle reorder data from ShowPurchaseOrder
+  useEffect(() => {
+    if (location.state?.reorderData) {
+      const reorderData = location.state.reorderData;
+      
+      // Set basic information
+      setSelectedCompany(reorderData.companyId);
+      setSelectedVendor(reorderData.vendorId);
+      setSelectedGstType(reorderData.gstType);
+      setGstRate(reorderData.gstRate || "");
+      setCurrency(reorderData.currency || "INR");
+      setPaymentTerms(reorderData.paymentTerms || "");
+      setDeliveryTerms(reorderData.deliveryTerms || "");
+      setWarranty(reorderData.warranty || "");
+      setContactPerson(reorderData.contactPerson || "");
+      setCellNo(reorderData.cellNo || "");
+
+      // Set items
+      if (reorderData.items && reorderData.items.length > 0) {
+        const mappedItems = reorderData.items.map((item, index) => ({
+          id: index + 1,
+          selectedItem: item.itemId || item.id || "",
+          hsnCode: item.hsnCode || "",
+          modelNumber: item.modelNumber || "",
+          selectedUnit: item.unit || "Nos",
+          rate: item.rate || "",
+          quantity: item.quantity || "1",
+          gstRate: item.gstRate || reorderData.gstRate || "",
+          amount: parseFloat(item.rate || 0) * parseFloat(item.quantity || 1),
+          taxableAmount: parseFloat(item.rate || 0) * parseFloat(item.quantity || 1),
+          gstAmount: (parseFloat(item.rate || 0) * parseFloat(item.quantity || 1) * parseFloat(item.gstRate || reorderData.gstRate || 0)) / 100,
+          totalAmount: parseFloat(item.rate || 0) * parseFloat(item.quantity || 1),
+          itemGSTType: reorderData.gstType?.startsWith('IGST') ? 'IGST' : reorderData.gstType?.startsWith('LGST') ? 'LGST' : null,
+          itemDetail: item.itemDetail || ""
+        }));
+        setItemDetails(mappedItems);
+      }
+
+      // Set other charges
+      if (reorderData.otherCharges && reorderData.otherCharges.length > 0) {
+        const mappedCharges = reorderData.otherCharges.map((charge, index) => ({
+          id: index + 1,
+          name: charge.name || "",
+          amount: charge.amount || ""
+        }));
+        setOtherCharges(mappedCharges);
+      }
+    }
+  }, [location.state]);
 
   const addItemDetail = () => {
     const newId = itemDetails.length + 1;
@@ -1198,6 +1253,8 @@ const CreatePurchaseOrder = () => {
         companyId: selectedCompany,
         vendorId: selectedVendor,
         gstType: selectedGstType,
+        gstRate: gstRate,
+        currency: currency,
         paymentTerms,
         deliveryTerms,
         warranty,
@@ -1215,7 +1272,7 @@ const CreatePurchaseOrder = () => {
             unit: item.selectedUnit,
             quantity: item.quantity.toString(),
             rate: item.rate.toString(),
-            gstRate: isItemWiseGST ? item.gstRate.toString() : ""
+            gstRate: isItemWiseGST ? item.gstRate.toString() : gstRate.toString()
           };
         }),
         otherCharges: otherCharges.map(charge => ({
@@ -1244,6 +1301,8 @@ const CreatePurchaseOrder = () => {
     setSelectedCompany("");
     setSelectedVendor("");
     setSelectedGstType("");
+    setGstRate("");
+    setCurrency("INR");
     setPaymentTerms("");
     setDeliveryTerms("");
     setWarranty("");
@@ -1284,21 +1343,14 @@ const CreatePurchaseOrder = () => {
         {/* Centered Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
-            Create Purchase Order
+            {location.state?.reorderData ? "ReOrder Purchase Order" : "Create Purchase Order"}
           </h1>
-          <p className="text-gray-600">Fill in the details below to create a new purchase order</p>
+          <p className="text-gray-600">
+            {location.state?.reorderData 
+              ? "Review and modify the reorder details below" 
+              : "Fill in the details below to create a new purchase order"}
+          </p>
         </div>
-
-        {/* Header Actions - Separate section */}
-        {/* <div className="flex justify-end mb-6">
-          <button 
-            type="button" 
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
-            onClick={handleReset}
-          >
-            Reset Form
-          </button>
-        </div> */}
 
         {/* BASIC INFORMATION SECTION */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
@@ -1366,7 +1418,37 @@ const CreatePurchaseOrder = () => {
             </div>
 
             {/* SECOND ROW */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  GST Rate (%)
+                </label>
+                <input
+                  type="number"
+                  value={gstRate}
+                  onChange={(e) => setGstRate(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                  placeholder="0.00"
+                  step="0.01"
+                />
+              </div> */}
+
+              {/* <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Currency
+                </label>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                >
+                  <option value="INR">INR (₹)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div> */}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Payment Terms
@@ -1392,7 +1474,10 @@ const CreatePurchaseOrder = () => {
                   placeholder="e.g., Immediate"
                 />
               </div>
+            </div>
 
+            {/* THIRD ROW */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Warranty
@@ -1405,10 +1490,7 @@ const CreatePurchaseOrder = () => {
                   placeholder="Enter warranty details"
                 />
               </div>
-            </div>
 
-            {/* THIRD ROW */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Contact Person
@@ -1566,7 +1648,7 @@ const CreatePurchaseOrder = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rate (₹) *
+                        Rate ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}) *
                       </label>
                       <input
                         type="number"
@@ -1596,7 +1678,7 @@ const CreatePurchaseOrder = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Total Amount (₹)
+                        Total Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'})
                       </label>
                       <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
                         {item.totalAmount.toFixed(2)}
@@ -1640,7 +1722,7 @@ const CreatePurchaseOrder = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Taxable Amount (₹)
+                            Taxable Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'})
                           </label>
                           <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
                             {item.taxableAmount.toFixed(2)}
@@ -1649,7 +1731,7 @@ const CreatePurchaseOrder = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            GST Amount (₹)
+                            GST Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'})
                           </label>
                           <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
                             {item.gstAmount.toFixed(2)}
@@ -1726,7 +1808,7 @@ const CreatePurchaseOrder = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Amount (₹) *
+                        Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}) *
                       </label>
                       <input
                         type="number"
@@ -1745,32 +1827,41 @@ const CreatePurchaseOrder = () => {
           </div>
         </div>
 
-        {/* Order Summary Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-6">Order Summary</h3>
           <div className="space-y-3">
             <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-600">Subtotal (₹):</span>
-              <span className="font-medium">{itemTotals.amount.toFixed(2)}</span>
+              <span className="text-gray-600">Subtotal:</span>
+              <span className="font-medium">
+                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{itemTotals.amount.toFixed(2)}
+              </span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-600">Total Taxable Amount (₹):</span>
-              <span className="font-medium">{itemTotals.taxableAmount.toFixed(2)}</span>
+              <span className="text-gray-600">Total Taxable Amount:</span>
+              <span className="font-medium">
+                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{itemTotals.taxableAmount.toFixed(2)}
+              </span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-600">Total GST Amount (₹):</span>
-              <span className="font-medium">{itemTotals.gstAmount.toFixed(2)}</span>
+              <span className="text-gray-600">Total GST Amount:</span>
+              <span className="font-medium">
+                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{itemTotals.gstAmount.toFixed(2)}
+              </span>
             </div>
             <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-600">Other Charges (₹):</span>
-              <span className="font-medium">{otherChargesTotal.toFixed(2)}</span>
+              <span className="text-gray-600">Other Charges:</span>
+              <span className="font-medium">
+                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{otherChargesTotal.toFixed(2)}
+              </span>
             </div>
             <div className="flex justify-between py-3 mt-4 bg-gray-50 rounded-lg px-4">
-              <span className="text-lg font-semibold text-gray-800">Grand Total (₹):</span>
-              <span className="text-xl font-bold text-blue-600">{finalTotals.totalAmount.toFixed(2)}</span>
+              <span className="text-lg font-semibold text-gray-800">Grand Total:</span>
+              <span className="text-xl font-bold text-blue-600">
+                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{finalTotals.totalAmount.toFixed(2)}
+              </span>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Submit Buttons */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -1780,7 +1871,7 @@ const CreatePurchaseOrder = () => {
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
               onClick={handleReset}
             >
-              Cancel
+              Reset Form
             </button>
             <button 
               type="button" 
@@ -1788,7 +1879,7 @@ const CreatePurchaseOrder = () => {
               onClick={handleSubmit}
               disabled={!selectedCompany || !selectedVendor || !selectedGstType}
             >
-              Create Purchase Order
+              {location.state?.reorderData ? 'Create ReOrder' : 'Create Purchase Order'}
             </button>
           </div>
         </div>
