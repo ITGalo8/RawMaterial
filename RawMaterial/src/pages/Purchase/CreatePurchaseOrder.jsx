@@ -923,7 +923,6 @@ const CreatePurchaseOrder = () => {
       taxableAmount: 0,
       gstAmount: 0,
       totalAmount: 0,
-      itemGSTType: null,
       itemDetail: ""
     }
   ]);
@@ -937,6 +936,9 @@ const CreatePurchaseOrder = () => {
   ]);
 
   const [loading, setLoading] = useState(false);
+  const [processingReorder, setProcessingReorder] = useState(false);
+  const [pendingReorderItems, setPendingReorderItems] = useState([]);
+  const [isItemListLoaded, setIsItemListLoaded] = useState(false);
 
   const gstTypes = [
     { value: "IGST_5", label: "IGST 5%" },
@@ -966,16 +968,11 @@ const CreatePurchaseOrder = () => {
 
   const isItemWiseGST = selectedGstType === "IGST_ITEMWISE" || selectedGstType === "LGST_ITEMWISE";
 
+  // Extract GST rate from GST type (e.g., IGST_5 -> 5)
   const getFixedGSTRate = () => {
     if (selectedGstType.includes("EXEMPTED")) return 0;
     const rateMatch = selectedGstType.match(/(\d+)/);
     return rateMatch ? parseFloat(rateMatch[1]) : 0;
-  };
-
-  const getGSTTypePrefix = () => {
-    if (selectedGstType.startsWith('IGST')) return 'IGST';
-    if (selectedGstType.startsWith('LGST')) return 'LGST';
-    return null;
   };
 
   const fetchCompanies = async () => {
@@ -1007,6 +1004,7 @@ const CreatePurchaseOrder = () => {
     try {
       const response = await Api.get("/purchase/items");
       setItemList(response?.data?.items || []);
+      setIsItemListLoaded(true);
     } catch (error) {
       alert("Error: " + (error?.response?.data?.message || error?.message));
     } finally {
@@ -1018,12 +1016,12 @@ const CreatePurchaseOrder = () => {
   useEffect(() => {
     if (location.state?.reorderData) {
       const reorderData = location.state.reorderData;
+      console.log('Received reorder data:', reorderData);
       
       // Set basic information
       setSelectedCompany(reorderData.companyId);
       setSelectedVendor(reorderData.vendorId);
       setSelectedGstType(reorderData.gstType);
-      setGstRate(reorderData.gstRate || "");
       setCurrency(reorderData.currency || "INR");
       setPaymentTerms(reorderData.paymentTerms || "");
       setDeliveryTerms(reorderData.deliveryTerms || "");
@@ -1031,25 +1029,9 @@ const CreatePurchaseOrder = () => {
       setContactPerson(reorderData.contactPerson || "");
       setCellNo(reorderData.cellNo || "");
 
-      // Set items
+      // Store items for processing after itemList is loaded
       if (reorderData.items && reorderData.items.length > 0) {
-        const mappedItems = reorderData.items.map((item, index) => ({
-          id: index + 1,
-          selectedItem: item.itemId || item.id || "",
-          hsnCode: item.hsnCode || "",
-          modelNumber: item.modelNumber || "",
-          selectedUnit: item.unit || "Nos",
-          rate: item.rate || "",
-          quantity: item.quantity || "1",
-          gstRate: item.gstRate || reorderData.gstRate || "",
-          amount: parseFloat(item.rate || 0) * parseFloat(item.quantity || 1),
-          taxableAmount: parseFloat(item.rate || 0) * parseFloat(item.quantity || 1),
-          gstAmount: (parseFloat(item.rate || 0) * parseFloat(item.quantity || 1) * parseFloat(item.gstRate || reorderData.gstRate || 0)) / 100,
-          totalAmount: parseFloat(item.rate || 0) * parseFloat(item.quantity || 1),
-          itemGSTType: reorderData.gstType?.startsWith('IGST') ? 'IGST' : reorderData.gstType?.startsWith('LGST') ? 'LGST' : null,
-          itemDetail: item.itemDetail || ""
-        }));
-        setItemDetails(mappedItems);
+        setPendingReorderItems(reorderData.items);
       }
 
       // Set other charges
@@ -1063,6 +1045,73 @@ const CreatePurchaseOrder = () => {
       }
     }
   }, [location.state]);
+
+  // Process reorder items when itemList is loaded
+  useEffect(() => {
+    if (pendingReorderItems.length > 0 && isItemListLoaded) {
+      setProcessingReorder(true);
+      
+      const mappedItems = pendingReorderItems.map((item, index) => {
+        // Try to find the item in itemList
+        let foundItem = null;
+        
+        // First try by ID
+        if (item.itemId || item.id) {
+          foundItem = itemList.find(i => 
+            String(i.id) === String(item.itemId || item.id)
+          );
+        }
+        
+        // If not found by ID, try by name
+        if (!foundItem && item.itemName) {
+          foundItem = itemList.find(i => 
+            i.name.toLowerCase().includes(item.itemName.toLowerCase()) ||
+            (item.itemName && i.name.toLowerCase() === item.itemName.toLowerCase())
+          );
+        }
+        
+        // Calculate amounts
+        const rate = parseFloat(item.rate) || 0;
+        const quantity = parseFloat(item.quantity) || 1;
+        const total = rate * quantity;
+        
+        // For itemwise GST, use item's gstRate, otherwise use fixed rate from GST type
+        let itemGstRate = 0;
+        if (isItemWiseGST) {
+          itemGstRate = parseFloat(item.gstRate) || 0;
+        } else {
+          itemGstRate = getFixedGSTRate();
+        }
+        
+        const gstAmount = (total * itemGstRate) / 100;
+        
+        return {
+          id: index + 1,
+          selectedItem: foundItem?.id || "",
+          hsnCode: foundItem?.hsnCode || item.hsnCode || "",
+          modelNumber: foundItem?.modelNumber || item.modelNumber || "",
+          selectedUnit: foundItem?.unit || item.unit || "Nos",
+          rate: rate.toString(),
+          quantity: quantity.toString(),
+          gstRate: itemGstRate.toString(),
+          amount: total,
+          taxableAmount: total,
+          gstAmount: gstAmount,
+          totalAmount: total + gstAmount,
+          itemDetail: foundItem?.itemDetail || item.itemDetail || ""
+        };
+      });
+      
+      setItemDetails(mappedItems);
+      setPendingReorderItems([]);
+      
+      // Show success message
+      setTimeout(() => {
+        setProcessingReorder(false);
+        console.log('Reorder items processed:', mappedItems);
+      }, 500);
+    }
+  }, [isItemListLoaded, pendingReorderItems, selectedGstType, itemList]);
 
   const addItemDetail = () => {
     const newId = itemDetails.length + 1;
@@ -1081,7 +1130,6 @@ const CreatePurchaseOrder = () => {
         taxableAmount: 0,
         gstAmount: 0,
         totalAmount: 0,
-        itemGSTType: null,
         itemDetail: ""
       }
     ]);
@@ -1126,11 +1174,9 @@ const CreatePurchaseOrder = () => {
     const total = rate * quantity;
     
     let gstRate = 0;
-    let itemGSTType = null;
-
+    
     if (isItemWiseGST) {
       gstRate = parseFloat(item.gstRate) || 0;
-      itemGSTType = getGSTTypePrefix();
     } else {
       gstRate = getFixedGSTRate();
     }
@@ -1144,7 +1190,7 @@ const CreatePurchaseOrder = () => {
       taxableAmount,
       gstAmount,
       totalAmount: total,
-      itemGSTType: isItemWiseGST ? itemGSTType : null
+      gstRate: gstRate.toString()
     };
   };
 
@@ -1186,6 +1232,7 @@ const CreatePurchaseOrder = () => {
     }
   };
 
+  // Recalculate item amounts when GST type changes
   useEffect(() => {
     if (selectedGstType) {
       setItemDetails(itemDetails.map(item => {
@@ -1239,21 +1286,11 @@ const CreatePurchaseOrder = () => {
       return;
     }
 
-    const invalidCharges = otherCharges.filter(charge => 
-      !charge.name || !charge.amount
-    );
-
-    if (invalidCharges.length > 0) {
-      alert("Please fill all fields for other charges");
-      return;
-    }
-
     try {
       const purchaseOrderData = {
         companyId: selectedCompany,
         vendorId: selectedVendor,
         gstType: selectedGstType,
-        gstRate: gstRate,
         currency: currency,
         paymentTerms,
         deliveryTerms,
@@ -1262,7 +1299,7 @@ const CreatePurchaseOrder = () => {
         cellNo,
         items: itemDetails.map(item => {
           const selectedItemData = itemList.find(i => i.id === item.selectedItem);
-          return {
+          const itemData = {
             id: item.selectedItem,
             name: selectedItemData?.name || "",
             source: selectedItemData?.source || "",
@@ -1272,8 +1309,14 @@ const CreatePurchaseOrder = () => {
             unit: item.selectedUnit,
             quantity: item.quantity.toString(),
             rate: item.rate.toString(),
-            gstRate: isItemWiseGST ? item.gstRate.toString() : gstRate.toString()
           };
+          
+          // Only add gstRate for itemwise GST types
+          if (isItemWiseGST) {
+            itemData.gstRate = item.gstRate.toString();
+          }
+          
+          return itemData;
         }),
         otherCharges: otherCharges.map(charge => ({
           name: charge.name,
@@ -1286,13 +1329,14 @@ const CreatePurchaseOrder = () => {
       const response = await Api.post('/purchase/purchase-orders/create2', purchaseOrderData);
       
       if (response.data.success) {
-        alert('Purchase Order created successfully!', response?.data?.message);
+        alert('Purchase Order created successfully!');
         handleReset();
       } else {
         alert('Error creating purchase order: ' + response.data.message);
       }
       
     } catch (error) {
+      console.error('Error creating purchase order:', error);
       alert("Error creating purchase order: " + (error?.response?.data?.message || error?.message));
     }
   };
@@ -1321,7 +1365,6 @@ const CreatePurchaseOrder = () => {
       taxableAmount: 0,
       gstAmount: 0,
       totalAmount: 0,
-      itemGSTType: null,
       itemDetail: ""
     }]);
     setOtherCharges([{
@@ -1329,6 +1372,7 @@ const CreatePurchaseOrder = () => {
       name: "",
       amount: ""
     }]);
+    setPendingReorderItems([]);
   };
 
   useEffect(() => {
@@ -1340,6 +1384,16 @@ const CreatePurchaseOrder = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Loading Overlay for Reorder Processing */}
+        {processingReorder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-lg">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-700">Loading reorder data...</p>
+            </div>
+          </div>
+        )}
+
         {/* Centered Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
@@ -1350,15 +1404,22 @@ const CreatePurchaseOrder = () => {
               ? "Review and modify the reorder details below" 
               : "Fill in the details below to create a new purchase order"}
           </p>
+          
+          {location.state?.reorderData && (
+            <div className="mt-4 inline-flex items-center px-4 py-2 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Reorder Mode - All fields are editable
+            </div>
+          )}
         </div>
 
-        {/* BASIC INFORMATION SECTION */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-3 border-b border-gray-200">
             Basic Information
           </h2>
-          
-          {/* Responsive Form Grid */}
+      
           <div className="space-y-6">
             {/* FIRST ROW */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1421,20 +1482,6 @@ const CreatePurchaseOrder = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  GST Rate (%)
-                </label>
-                <input
-                  type="number"
-                  value={gstRate}
-                  onChange={(e) => setGstRate(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                  placeholder="0.00"
-                  step="0.01"
-                />
-              </div> */}
-
-              {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Currency
                 </label>
                 <select
@@ -1474,6 +1521,17 @@ const CreatePurchaseOrder = () => {
                   placeholder="e.g., Immediate"
                 />
               </div>
+
+              {/* {location.state?.reorderData && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Original PO Number
+                  </label>
+                  <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700">
+                    {location.state.reorderData.poNumber}
+                  </div>
+                </div>
+              )} */}
             </div>
 
             {/* THIRD ROW */}
@@ -1551,6 +1609,9 @@ const CreatePurchaseOrder = () => {
                   {!isItemWiseGST && (
                     <span className="ml-2 font-medium">(Rate: {getFixedGSTRate()}%)</span>
                   )}
+                  {isItemWiseGST && (
+                    <span className="ml-2 font-medium">(Itemwise GST - Enter rate for each item)</span>
+                  )}
                 </span>
               </div>
             </div>
@@ -1590,10 +1651,17 @@ const CreatePurchaseOrder = () => {
                         <option value="">-- Choose Item --</option>
                         {itemList.map((itemOption) => (
                           <option key={itemOption.id} value={itemOption.id}>
-                            {itemOption.name}
+                            {itemOption.name} 
+                            {itemOption.hsnCode && ` (HSN: ${itemOption.hsnCode})`}
+                            {itemOption.rate && ` - ₹${parseFloat(itemOption.rate).toFixed(2)}`}
                           </option>
                         ))}
                       </select>
+                      {!item.selectedItem && location.state?.reorderData?.items?.[index] && (
+                        <p className="mt-1 text-sm text-gray-500">
+                          Original: {location.state.reorderData.items[index].itemName}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -1686,20 +1754,6 @@ const CreatePurchaseOrder = () => {
                     </div>
                   </div>
 
-                  {/* Item Description */}
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Item Description
-                    </label>
-                    <textarea
-                      value={item.itemDetail}
-                      onChange={(e) => updateItemDetail(item.id, 'itemDetail', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                      placeholder="Enter item specifications, description, and other details..."
-                      rows="3"
-                    />
-                  </div>
-
                   {/* GST Rate Section - Only show for itemwise GST */}
                   {isItemWiseGST && (
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -1744,11 +1798,46 @@ const CreatePurchaseOrder = () => {
                           <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
-                          {getGSTTypePrefix()} | Rate: {item.gstRate}%
+                          Item GST Rate: {item.gstRate}%
                         </div>
                       )}
                     </div>
                   )}
+
+                  {/* Show GST info for non-itemwise GST */}
+                  {/* {!isItemWiseGST && selectedGstType && (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-gray-700">GST Information</div>
+                          <div className="text-sm text-gray-600">
+                            GST Type: {selectedGstType} | Rate: {getFixedGSTRate()}%
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-gray-700">GST Amount</div>
+                          <div className="text-lg font-semibold text-blue-600">
+                            {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}
+                            {item.gstAmount.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )} */}
+
+                  {/* Item Description */}
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Item Description
+                    </label>
+                    <textarea
+                      value={item.itemDetail}
+                      onChange={(e) => updateItemDetail(item.id, 'itemDetail', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      placeholder="Enter item specifications, description, and other details..."
+                      rows="3"
+                    />
+                  </div>
                 </div>
               </div>
             ))}
@@ -1826,42 +1915,6 @@ const CreatePurchaseOrder = () => {
             ))}
           </div>
         </div>
-
-        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-6">Order Summary</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-600">Subtotal:</span>
-              <span className="font-medium">
-                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{itemTotals.amount.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-600">Total Taxable Amount:</span>
-              <span className="font-medium">
-                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{itemTotals.taxableAmount.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-600">Total GST Amount:</span>
-              <span className="font-medium">
-                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{itemTotals.gstAmount.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-gray-100">
-              <span className="text-gray-600">Other Charges:</span>
-              <span className="font-medium">
-                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{otherChargesTotal.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between py-3 mt-4 bg-gray-50 rounded-lg px-4">
-              <span className="text-lg font-semibold text-gray-800">Grand Total:</span>
-              <span className="text-xl font-bold text-blue-600">
-                {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{finalTotals.totalAmount.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        </div> */}
 
         {/* Submit Buttons */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

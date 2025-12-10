@@ -665,7 +665,6 @@
 // };
 
 // export default AddVendor;
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Api from '../../auth/Api';
 import {
@@ -703,7 +702,7 @@ const AddVendor = () => {
     alternateNumber: '',
     email: '',
     currency: 'INR',
-    exchangerate: '' // Added exchange rate field
+    exchangerate: '1' // Default to 1 for INR
   });
 
   const [loading, setLoading] = useState(false);
@@ -881,11 +880,13 @@ const AddVendor = () => {
       errors.pincode = 'Invalid pincode format';
     }
 
-    // Exchange rate validation
-    if (!companyData.exchangerate.trim()) {
-      errors.exchangerate = 'Exchange rate is required';
-    } else if (isNaN(companyData.exchangerate) || parseFloat(companyData.exchangerate) <= 0) {
-      errors.exchangerate = 'Exchange rate must be a positive number';
+    // Only validate exchange rate if currency is not INR
+    if (companyData.currency !== 'INR') {
+      if (!companyData.exchangerate.trim()) {
+        errors.exchangerate = 'Exchange rate is required';
+      } else if (isNaN(companyData.exchangerate) || parseFloat(companyData.exchangerate) <= 0) {
+        errors.exchangerate = 'Exchange rate must be a positive number';
+      }
     }
 
     return errors;
@@ -910,6 +911,16 @@ const AddVendor = () => {
       const parts = processedValue.split('.');
       if (parts.length > 2) {
         processedValue = parts[0] + '.' + parts.slice(1).join('');
+      }
+    } else if (name === 'currency') {
+      // If switching to INR, set exchange rate to 1
+      if (value === 'INR') {
+        setCompanyData(prevState => ({
+          ...prevState,
+          currency: value,
+          exchangerate: '1'
+        }));
+        return;
       }
     }
 
@@ -981,7 +992,7 @@ const AddVendor = () => {
           alternateNumber: '',
           email: '',
           currency: 'INR',
-          exchangerate: '' // Reset exchange rate
+          exchangerate: '1'
         });
       }
     } catch (err) {
@@ -997,7 +1008,7 @@ const AddVendor = () => {
   };
 
   const isFormValid = () => {
-    return (
+    const baseValidations = (
       companyData.name.trim() &&
       companyData.gstNumber.trim() &&
       companyData.address.trim() &&
@@ -1005,9 +1016,16 @@ const AddVendor = () => {
       companyData.state.trim() &&
       companyData.pincode.trim() &&
       companyData.contactNumber.trim() &&
-      companyData.email.trim() &&
-      companyData.exchangerate.trim() // Added exchange rate validation
+      companyData.email.trim()
     );
+
+    // If currency is INR, don't require exchange rate validation (it's always 1)
+    if (companyData.currency === 'INR') {
+      return baseValidations;
+    }
+    
+    // For other currencies, require exchange rate
+    return baseValidations && companyData.exchangerate.trim();
   };
 
   const clearForm = () => {
@@ -1023,7 +1041,7 @@ const AddVendor = () => {
       alternateNumber: '',
       email: '',
       currency: 'INR',
-      exchangerate: '' // Added exchange rate
+      exchangerate: '1'
     });
     setFieldErrors({});
     setError('');
@@ -1059,17 +1077,6 @@ const AddVendor = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        {/* <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mb-4 shadow-lg">
-            <BuildingOffice2Solid className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Add New Vendor</h1>
-          <p className="text-gray-600 mt-2 max-w-2xl mx-auto">
-            Register a new vendor by filling in their complete business and contact information
-          </p>
-        </div> */}
-
         {/* Success Message */}
         {message && (
           <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl flex items-start shadow-sm">
@@ -1227,42 +1234,58 @@ const AddVendor = () => {
                     </div>
                   </div>
 
-                  {/* Exchange Rate - INPUT FIELD */}
-                  <div>
-                    <label htmlFor="exchangerate" className="block text-sm font-medium text-gray-700 mb-2">
-                      <span className="flex items-center">
-                        <CurrencyDollarIcon className="h-4 w-4 mr-1 text-gray-400" />
-                        Exchange Rate <span className="text-red-500 ml-1">*</span>
-                      </span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="exchangerate"
-                        name="exchangerate"
-                        value={companyData.exchangerate}
-                        onChange={handleChange}
-                        required
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
-                          fieldErrors.exchangerate ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                        placeholder="Enter exchange rate"
-                      />
-                      <CurrencyDollarIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  {/* Exchange Rate - Only show when currency is NOT INR */}
+                  {companyData.currency !== 'INR' ? (
+                    <div>
+                      <label htmlFor="exchangerate" className="block text-sm font-medium text-gray-700 mb-2">
+                        <span className="flex items-center">
+                          <CurrencyDollarIcon className="h-4 w-4 mr-1 text-gray-400" />
+                          Exchange Rate (to INR) <span className="text-red-500 ml-1">*</span>
+                        </span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="exchangerate"
+                          name="exchangerate"
+                          value={companyData.exchangerate}
+                          onChange={handleChange}
+                          required
+                          className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 ${
+                            fieldErrors.exchangerate ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                          placeholder={`e.g., 1 ${getCurrencySymbol(companyData.currency)} = ? ₹`}
+                        />
+                        <CurrencyDollarIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      </div>
+                      {fieldErrors.exchangerate && (
+                        <span className="text-red-600 text-sm mt-1 flex items-center">
+                          <XCircleIcon className="h-4 w-4 mr-1" />
+                          {fieldErrors.exchangerate}
+                        </span>
+                      )}
+                      {!fieldErrors.exchangerate && companyData.exchangerate && !isNaN(companyData.exchangerate) && (
+                        <p className="text-green-600 text-xs mt-1 flex items-center">
+                          <CheckCircleIcon className="h-3 w-3 mr-1" />
+                          {getCurrencySymbol(companyData.currency)}1 = ₹{companyData.exchangerate}
+                        </p>
+                      )}
                     </div>
-                    {fieldErrors.exchangerate && (
-                      <span className="text-red-600 text-sm mt-1 flex items-center">
-                        <XCircleIcon className="h-4 w-4 mr-1" />
-                        {fieldErrors.exchangerate}
-                      </span>
-                    )}
-                    {!fieldErrors.exchangerate && companyData.exchangerate && !isNaN(companyData.exchangerate) && (
-                      <p className="text-green-600 text-xs mt-1 flex items-center">
-                        <CheckCircleIcon className="h-3 w-3 mr-1" />
-                        Valid exchange rate: {getCurrencySymbol(companyData.currency)}1 = {getCurrencySymbol('INR')}{companyData.exchangerate}
-                      </p>
-                    )}
-                  </div>
+                  ) : (
+                    <div className="col-span-1">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 h-full">
+                        <div className="flex items-start">
+                          <InformationCircleIcon className="h-5 w-5 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm text-blue-700 font-medium">INR Selected</p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Exchange rate is automatically set to 1 for Indian Rupee (base currency).
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1610,28 +1633,6 @@ const AddVendor = () => {
                   </div>
                   
                   <div className="flex space-x-4">
-                    {/* <button 
-                      type="submit" 
-                      className={`px-8 py-3 rounded-lg font-medium transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 ${
-                        loading || !isFormValid()
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-dark'
-                      }`}
-                      disabled={loading || !isFormValid()}
-                    >
-                      {loading ? (
-                        <>
-                          <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" />
-                          Adding Vendor...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircleIcon className="h-5 w-5 mr-2" />
-                          Add Vendor
-                        </>
-                      )}
-                    </button> */}
-
                    <Button
                       type="submit"
                       title={loading ? 'Adding Vendor...' : 'Add Vendor'}
