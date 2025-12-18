@@ -20,27 +20,35 @@ const DebitNot = () => {
   const [station, setStation] = useState("");
   const [gstType, setGstType] = useState("");
   const [otherCharges, setOtherCharges] = useState([
-    { name: "Freight", amount: "" },
-    { name: "Loading", amount: "" }
+    { id: Date.now(), name: "", amount: "" }
   ]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
   const gstTypes = [
-    { value: "IGST_5", label: "IGST 5%" },
-    { value: "IGST_12", label: "IGST 12%" },
-    { value: "IGST_18", label: "IGST 18%" },
-    { value: "IGST_28", label: "IGST 28%" },
-    { value: "IGST_EXEMPTED", label: "IGST Exempted" },
-    { value: "LGST_5", label: "LGST 5%" },
-    { value: "LGST_12", label: "LGST 12%" },
-    { value: "LGST_18", label: "LGST 18%" },
-    { value: "LGST_28", label: "LGST 28%" },
-    { value: "LGST_EXEMPTED", label: "LGST Exempted" },
-    { value: "IGST_ITEMWISE", label: "IGST Itemwise" },
-    { value: "LGST_ITEMWISE", label: "LGST Itemwise" },
+    { value: "IGST_5", label: "IGST 5%", rate: 5 },
+    { value: "IGST_12", label: "IGST 12%", rate: 12 },
+    { value: "IGST_18", label: "IGST 18%", rate: 18 },
+    { value: "IGST_28", label: "IGST 28%", rate: 28 },
+    { value: "IGST_EXEMPTED", label: "IGST Exempted", rate: 0 },
+    { value: "LGST_5", label: "LGST 5%", rate: 5 },
+    { value: "LGST_12", label: "LGST 12%", rate: 12 },
+    { value: "LGST_18", label: "LGST 18%", rate: 18 },
+    { value: "LGST_28", label: "LGST 28%", rate: 28 },
+    { value: "LGST_EXEMPTED", label: "LGST Exempted", rate: 0 },
+    { value: "IGST_ITEMWISE", label: "IGST Itemwise", rate: null },
+    { value: "LGST_ITEMWISE", label: "LGST Itemwise", rate: null },
   ];
+
+  // Check if GST type is itemwise
+  const isItemwiseGST = gstType === "IGST_ITEMWISE" || gstType === "LGST_ITEMWISE";
+
+  // Get default GST rate for non-itemwise GST types
+  const getDefaultGSTRate = () => {
+    const selectedGstType = gstTypes.find(gst => gst.value === gstType);
+    return selectedGstType?.rate || 0;
+  };
 
   // Fetch companies
   useEffect(() => {
@@ -98,6 +106,7 @@ const DebitNot = () => {
         
         // Initialize items with empty fields for the form
         if (res.data.data?.damagedStock) {
+          const defaultGSTRate = getDefaultGSTRate();
           const initializedItems = res.data.data.damagedStock.map(item => ({
             id: item.id,
             itemId: item.itemId,
@@ -108,6 +117,7 @@ const DebitNot = () => {
             modelNumber: "",
             itemDetail: "",
             rate: "",
+            gstRate: defaultGSTRate, // Initialize with default GST rate
           }));
           setItems(initializedItems);
         }
@@ -122,6 +132,18 @@ const DebitNot = () => {
     fetchPODetails();
   }, [selectedPO]);
 
+  // Update item GST rates when GST type changes (only for non-itemwise)
+  useEffect(() => {
+    if (!isItemwiseGST && items.length > 0) {
+      const defaultGSTRate = getDefaultGSTRate();
+      const updatedItems = items.map(item => ({
+        ...item,
+        gstRate: defaultGSTRate
+      }));
+      setItems(updatedItems);
+    }
+  }, [gstType]);
+
   const resetForm = () => {
     setOrgInvoiceNo("");
     setOrgInvoiceDate("");
@@ -131,8 +153,7 @@ const DebitNot = () => {
     setStation("");
     setGstType("");
     setOtherCharges([
-      { name: "Freight", amount: "" },
-      { name: "Loading", amount: "" }
+      { id: Date.now(), name: "", amount: "" }
     ]);
     setItems([]);
     setMessage({ type: "", text: "" });
@@ -144,21 +165,47 @@ const DebitNot = () => {
     setItems(updatedItems);
   };
 
-  const handleOtherChargeChange = (index, value) => {
+  const handleOtherChargeChange = (index, field, value) => {
     const updatedCharges = [...otherCharges];
-    updatedCharges[index].amount = value;
+    updatedCharges[index][field] = value;
+    setOtherCharges(updatedCharges);
+  };
+
+  const addOtherCharge = () => {
+    setOtherCharges([
+      ...otherCharges,
+      { id: Date.now() + Math.random(), name: "", amount: "" }
+    ]);
+  };
+
+  const removeOtherCharge = (index) => {
+    if (otherCharges.length <= 1) {
+      setMessage({ type: "error", text: "At least one charge is required" });
+      return;
+    }
+    const updatedCharges = otherCharges.filter((_, i) => i !== index);
     setOtherCharges(updatedCharges);
   };
 
   const calculateTotals = () => {
     let subtotal = 0;
+    let totalGST = 0;
+    
     const itemTotals = items.map(item => {
       const quantity = parseFloat(item.quantity) || 0;
       const rate = parseFloat(item.rate) || 0;
-      const total = quantity * rate;
-      subtotal += total;
+      const gstRate = parseFloat(item.gstRate) || 0;
+      const taxableValue = quantity * rate;
+      const gstAmount = (taxableValue * gstRate) / 100;
+      const total = taxableValue + gstAmount;
+      
+      subtotal += taxableValue;
+      totalGST += gstAmount;
+      
       return {
         ...item,
+        taxableValue: taxableValue.toFixed(2),
+        gstAmount: gstAmount.toFixed(2),
         total: total.toFixed(2)
       };
     });
@@ -167,9 +214,15 @@ const DebitNot = () => {
       return sum + (parseFloat(charge.amount) || 0);
     }, 0);
 
-    const grandTotal = subtotal + otherChargesTotal;
+    const grandTotal = subtotal + totalGST + otherChargesTotal;
 
-    return { itemTotals, subtotal, otherChargesTotal, grandTotal };
+    return { 
+      itemTotals, 
+      subtotal, 
+      totalGST, 
+      otherChargesTotal, 
+      grandTotal 
+    };
   };
 
   const validateForm = () => {
@@ -196,6 +249,28 @@ const DebitNot = () => {
         setMessage({ type: "error", text: `Invalid rate for ${item.itemName}` });
         return false;
       }
+      if (isItemwiseGST) {
+        if (item.gstRate === undefined || item.gstRate === null || item.gstRate === "") {
+          setMessage({ type: "error", text: `GST Rate is required for ${item.itemName}` });
+          return false;
+        }
+        if (parseFloat(item.gstRate) < 0 || parseFloat(item.gstRate) > 100) {
+          setMessage({ type: "error", text: `GST Rate must be between 0-100% for ${item.itemName}` });
+          return false;
+        }
+      }
+    }
+
+    // Validate other charges
+    for (const charge of otherCharges) {
+      if (!charge.name.trim()) {
+        setMessage({ type: "error", text: "Charge name is required for all other charges" });
+        return false;
+      }
+      if (charge.amount && parseFloat(charge.amount) < 0) {
+        setMessage({ type: "error", text: `Invalid amount for ${charge.name}` });
+        return false;
+      }
     }
 
     return true;
@@ -214,6 +289,14 @@ const DebitNot = () => {
     try {
       const { itemTotals } = calculateTotals();
       
+      // Filter out charges with empty amounts
+      const validOtherCharges = otherCharges
+        .filter(charge => charge.name.trim() !== "")
+        .map(charge => ({
+          name: charge.name,
+          amount: parseFloat(charge.amount) || 0
+        }));
+
       const debitNoteData = {
         companyId: selectedCompany,
         purchaseOrderId: selectedPO,
@@ -224,10 +307,7 @@ const DebitNot = () => {
         vehicleNumber,
         station,
         gstType,
-        otherCharges: otherCharges.map(charge => ({
-          name: charge.name,
-          amount: parseFloat(charge.amount) || 0
-        })),
+        otherCharges: validOtherCharges,
         items: itemTotals.map(item => ({
           itemId: item.itemId,
           quantity: parseFloat(item.quantity),
@@ -235,7 +315,8 @@ const DebitNot = () => {
           modelNumber: item.modelNumber,
           itemDetail: item.itemDetail,
           rate: parseFloat(item.rate),
-          unit: item.unit
+          unit: item.unit,
+          gstRate: parseFloat(item.gstRate) || 0
         }))
       };
 
@@ -272,7 +353,7 @@ const DebitNot = () => {
     }
   };
 
-  const { subtotal, otherChargesTotal, grandTotal } = calculateTotals();
+  const { subtotal, totalGST, otherChargesTotal, grandTotal } = calculateTotals();
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-6">
@@ -288,7 +369,7 @@ const DebitNot = () => {
       )}
 
       {/* Main Card */}
-      <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-6xl">
+      <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-7xl">
         <form onSubmit={handleSubmit}>
           {/* Company */}
           <div className="mb-4">
@@ -351,7 +432,7 @@ const DebitNot = () => {
                   <input
                     value={poDetails.poNumber}
                     disabled
-                    className="w-full border rounded px-3 py-2 bg-black-100"
+                    className="w-full border rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
 
@@ -360,7 +441,7 @@ const DebitNot = () => {
                   <input
                     value={poDetails.companyName}
                     disabled
-                    className="w-full border rounded px-3 py-2 bg-black-100"
+                    className="w-full border rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
 
@@ -369,13 +450,13 @@ const DebitNot = () => {
                   <input
                     value={poDetails.vendorName}
                     disabled
-                    className="w-full border rounded px-3 py-2 bg-black-100"
+                    className="w-full border rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
               </div>
 
               {/* Additional Information Section */}
-              <div className="mb-8 p-4 border rounded-lg bg-black-50">
+              <div className="mb-8 p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -470,30 +551,87 @@ const DebitNot = () => {
                         </option>
                       ))}
                     </select>
+                    {!isItemwiseGST && gstType && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        GST Rate: {getDefaultGSTRate()}%
+                      </p>
+                    )}
+                    {isItemwiseGST && (
+                      <p className="text-sm text-blue-600 mt-1">
+                        You can set GST rate for each item individually below
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                {/* Other Charges */}
+                {/* Other Charges - Dynamic Form */}
                 <div className="mt-6">
-                  <h4 className="text-md font-medium mb-3">Other Charges</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-md font-medium">Other Charges</h4>
+                    <button
+                      type="button"
+                      onClick={addOtherCharge}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      + Add Charge
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-3">
                     {otherCharges.map((charge, index) => (
-                      <div key={charge.name}>
-                        <label className="block text-sm font-medium mb-1">
-                          {charge.name} (₹)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={charge.amount}
-                          onChange={(e) => handleOtherChargeChange(index, e.target.value)}
-                          className="w-full border rounded px-3 py-2"
-                          placeholder="Enter amount"
-                        />
+                      <div key={charge.id} className="flex items-center gap-3 p-3 border rounded bg-white">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium mb-1">
+                            Charge Name *
+                          </label>
+                          <input
+                            type="text"
+                            value={charge.name}
+                            onChange={(e) => handleOtherChargeChange(index, 'name', e.target.value)}
+                            className="w-full border rounded px-3 py-2"
+                            placeholder="e.g., Freight, Loading, Insurance, etc."
+                            required
+                          />
+                        </div>
+                        
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium mb-1">
+                            Amount (₹)
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={charge.amount}
+                            onChange={(e) => handleOtherChargeChange(index, 'amount', e.target.value)}
+                            className="w-full border rounded px-3 py-2"
+                            placeholder="Enter amount"
+                          />
+                        </div>
+                        
+                        <div className="pt-6">
+                          <button
+                            type="button"
+                            onClick={() => removeOtherCharge(index)}
+                            className="px-3 py-1 bg-red-100 text-red-600 text-sm rounded hover:bg-red-200"
+                            disabled={otherCharges.length <= 1}
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
+
+                  {/* Summary of Other Charges */}
+                  {otherChargesTotal > 0 && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Total Other Charges:</span>
+                        <span className="font-bold text-lg">₹{otherChargesTotal.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -503,7 +641,7 @@ const DebitNot = () => {
               </h2>
 
               <div className="overflow-x-auto mb-6">
-                <table className="w-full border border-black-200 rounded-lg">
+                <table className="w-full border border-gray-200 rounded-lg">
                   <thead className="bg-gray-100">
                     <tr>
                       <th className="border px-3 py-2 text-left">Item Name</th>
@@ -513,69 +651,106 @@ const DebitNot = () => {
                       <th className="border px-3 py-2 text-left">Quantity</th>
                       <th className="border px-3 py-2 text-left">Unit</th>
                       <th className="border px-3 py-2 text-left">Rate (₹)</th>
+                      <th className="border px-3 py-2 text-left">Taxable Value (₹)</th>
+                      {isItemwiseGST && (
+                        <th className="border px-3 py-2 text-left">GST Rate (%)</th>
+                      )}
+                      <th className="border px-3 py-2 text-left">GST Amount (₹)</th>
                       <th className="border px-3 py-2 text-left">Total (₹)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {items.map((item, index) => (
-                      <tr key={item.id}>
-                        <td className="border px-3 py-2">
-                          {item.itemName}
-                        </td>
-                        <td className="border px-3 py-2">
-                          <input
-                            type="text"
-                            value={item.hsnCode}
-                            onChange={(e) => handleItemChange(index, 'hsnCode', e.target.value)}
-                            className="w-full border rounded px-2 py-1"
-                          />
-                        </td>
-                        <td className="border px-3 py-2">
-                          <input
-                            type="text"
-                            value={item.modelNumber}
-                            onChange={(e) => handleItemChange(index, 'modelNumber', e.target.value)}
-                            className="w-full border rounded px-2 py-1"
-                          />
-                        </td>
-                        <td className="border px-3 py-2">
-                          <input
-                            type="text"
-                            value={item.itemDetail}
-                            onChange={(e) => handleItemChange(index, 'itemDetail', e.target.value)}
-                            className="w-full border rounded px-2 py-1"
-                          />
-                        </td>
-                        <td className="border px-3 py-2">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={item.quantity}
-                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                            className="w-full border rounded px-2 py-1"
-                            required
-                          />
-                        </td>
-                        <td className="border px-3 py-2">
-                          {item.unit}
-                        </td>
-                        <td className="border px-3 py-2">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={item.rate}
-                            onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
-                            className="w-full border rounded px-2 py-1"
-                            required
-                          />
-                        </td>
-                        <td className="border px-3 py-2">
-                          {(parseFloat(item.quantity || 0) * parseFloat(item.rate || 0)).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
+                    {items.map((item, index) => {
+                      const quantity = parseFloat(item.quantity) || 0;
+                      const rate = parseFloat(item.rate) || 0;
+                      const gstRate = parseFloat(item.gstRate) || 0;
+                      const taxableValue = quantity * rate;
+                      const gstAmount = (taxableValue * gstRate) / 100;
+                      const total = taxableValue + gstAmount;
+                      
+                      return (
+                        <tr key={item.id}>
+                          <td className="border px-3 py-2">
+                            {item.itemName}
+                          </td>
+                          <td className="border px-3 py-2">
+                            <input
+                              type="text"
+                              value={item.hsnCode}
+                              onChange={(e) => handleItemChange(index, 'hsnCode', e.target.value)}
+                              className="w-full border rounded px-2 py-1"
+                            />
+                          </td>
+                          <td className="border px-3 py-2">
+                            <input
+                              type="text"
+                              value={item.modelNumber}
+                              onChange={(e) => handleItemChange(index, 'modelNumber', e.target.value)}
+                              className="w-full border rounded px-2 py-1"
+                            />
+                          </td>
+                          <td className="border px-3 py-2">
+                            <input
+                              type="text"
+                              value={item.itemDetail}
+                              onChange={(e) => handleItemChange(index, 'itemDetail', e.target.value)}
+                              className="w-full border rounded px-2 py-1"
+                            />
+                          </td>
+                          <td className="border px-3 py-2">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={item.quantity}
+                              onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                              className="w-full border rounded px-2 py-1"
+                              required
+                            />
+                          </td>
+                          <td className="border px-3 py-2">
+                            {item.unit}
+                          </td>
+                          <td className="border px-3 py-2">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={item.rate}
+                              onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
+                              className="w-full border rounded px-2 py-1"
+                              required
+                            />
+                          </td>
+                          <td className="border px-3 py-2 text-right">
+                            {taxableValue.toFixed(2)}
+                          </td>
+                          {isItemwiseGST && (
+                            <td className="border px-3 py-2">
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  max="100"
+                                  value={item.gstRate}
+                                  onChange={(e) => handleItemChange(index, 'gstRate', e.target.value)}
+                                  className="w-20 border rounded px-2 py-1"
+                                  required={isItemwiseGST}
+                                />
+                                <span className="text-sm">%</span>
+                              </div>
+                            </td>
+                          )}
+                          <td className="border px-3 py-2 text-right">
+                            {gstAmount.toFixed(2)}
+                          </td>
+                          <td className="border px-3 py-2 text-right font-medium">
+                            {total.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -585,21 +760,32 @@ const DebitNot = () => {
                 <div className="flex justify-end">
                   <div className="w-full md:w-1/3">
                     <div className="flex justify-between mb-2">
-                      <span className="font-medium">Subtotal:</span>
+                      <span className="font-medium">Subtotal (Taxable Value):</span>
                       <span>₹{subtotal.toFixed(2)}</span>
                     </div>
+                    
+                    <div className="flex justify-between mb-2">
+                      <span className="font-medium">Total GST:</span>
+                      <span>₹{totalGST.toFixed(2)}</span>
+                    </div>
+                    
+                    {/* List individual other charges */}
                     {otherCharges.map((charge, index) => (
                       parseFloat(charge.amount) > 0 && (
-                        <div key={index} className="flex justify-between mb-2">
-                          <span>{charge.name}:</span>
+                        <div key={index} className="flex justify-between mb-2 text-sm">
+                          <span className="text-gray-600">{charge.name}:</span>
                           <span>₹{parseFloat(charge.amount).toFixed(2)}</span>
                         </div>
                       )
                     ))}
-                    <div className="flex justify-between mb-2">
-                      <span>Other Charges Total:</span>
-                      <span>₹{otherChargesTotal.toFixed(2)}</span>
-                    </div>
+                    
+                    {otherChargesTotal > 0 && (
+                      <div className="flex justify-between mb-2 pt-2 border-t">
+                        <span className="font-medium">Other Charges Total:</span>
+                        <span className="font-medium">₹{otherChargesTotal.toFixed(2)}</span>
+                      </div>
+                    )}
+                    
                     <hr className="my-2" />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Grand Total:</span>
@@ -609,6 +795,19 @@ const DebitNot = () => {
                 </div>
               </div>
 
+              {/* GST Type Information */}
+              {isItemwiseGST && (
+                <div className="mb-6 p-4 border border-blue-200 rounded-lg bg-blue-50">
+                  <h3 className="text-md font-semibold text-blue-800 mb-2">
+                    GST Itemwise Information
+                  </h3>
+                  <p className="text-sm text-blue-600">
+                    You have selected {gstType.replace("_", " ")}. Please enter GST rate for each item individually.
+                    The GST rate can be 0%, 5%, 12%, 18%, 28%, or any other valid percentage.
+                  </p>
+                </div>
+              )}
+
               {/* Submit Button */}
               <div className="flex justify-end">
                 <button
@@ -616,7 +815,12 @@ const DebitNot = () => {
                   disabled={loading}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Creating..." : "Create Debit Note"}
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                      Creating...
+                    </span>
+                  ) : "Create Debit Note"}
                 </button>
               </div>
             </>
