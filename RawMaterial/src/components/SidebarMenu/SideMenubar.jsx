@@ -700,6 +700,26 @@ const SideMenubar = () => {
             </>
           )}
 
+          {(user.role === "Purchase") && (
+            <>
+              <li>
+                <NavLink
+                  to="add-raw-material"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FaCogs className="text-lg" />
+                  Add Raw Material
+                </NavLink>
+              </li>
+            </>
+          )}
+
           {/* Admin Dashboard */}
           {(user.role === "Superadmin" || user.role === "Admin") && (
             <li>
@@ -899,6 +919,21 @@ const SideMenubar = () => {
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Show Purchase Orders
+                      </NavLink>
+                    </li>
+
+                     <li>
+                      <NavLink
+                        to="debit-not"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Debit Not
                       </NavLink>
                     </li>
 

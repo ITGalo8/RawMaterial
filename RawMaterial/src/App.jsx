@@ -33,6 +33,8 @@ import UserStock from "./pages/LineWorker/UserStock/UserStock";
 import ActiveDeactivateVendor from "./pages/Purchase/ActiveDeactivateVendor";
 import ActiveDeactivateCompany from "./pages/Purchase/ActiveDeactivateCompany";
 import ReceivedPurchaseStock from "./pages/Purchase/ReceivedPurchaseStock";
+import DebitNot from "./pages/Purchase/DebitNot";
+import AddRawMaterial from "./pages/Purchase/AddRawMaterial";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -294,6 +296,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <ShowPurchaseOrder />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="debit-not"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <DebitNot />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="add-raw-material"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <AddRawMaterial />
             </ProtectedRoute>
           }
         />
