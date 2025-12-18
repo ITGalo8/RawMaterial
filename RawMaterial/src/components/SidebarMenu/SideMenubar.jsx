@@ -937,6 +937,21 @@ const SideMenubar = () => {
                       </NavLink>
                     </li>
 
+                    <li>
+                      <NavLink
+                        to="show-debit-not"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Show Debit Not History
+                      </NavLink>
+                    </li>
+
                     
                   </ul>
                 )}

@@ -19,9 +19,7 @@ const DebitNot = () => {
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [station, setStation] = useState("");
   const [gstType, setGstType] = useState("");
-  const [otherCharges, setOtherCharges] = useState([
-    { id: Date.now(), name: "", amount: "" }
-  ]);
+  const [otherCharges, setOtherCharges] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -102,6 +100,7 @@ const DebitNot = () => {
           `/purchase/purchase-orders/damaged-stock/details/${selectedPO}`
         );
 
+        console.log("PO Details Response:", res.data.data);
         setPoDetails(res.data.data);
         
         // Initialize items with empty fields for the form
@@ -111,13 +110,14 @@ const DebitNot = () => {
             id: item.id,
             itemId: item.itemId,
             itemName: item.itemName,
-            unit: item.unit || "-",
+            unit: item.unit || "Pcs",
             quantity: item.quantity || "",
             hsnCode: "",
             modelNumber: "",
             itemDetail: "",
             rate: "",
-            gstRate: defaultGSTRate, // Initialize with default GST rate
+            gstRate: isItemwiseGST ? "" : defaultGSTRate.toString(),
+            itemSource: item.itemSource
           }));
           setItems(initializedItems);
         }
@@ -132,13 +132,13 @@ const DebitNot = () => {
     fetchPODetails();
   }, [selectedPO]);
 
-  // Update item GST rates when GST type changes (only for non-itemwise)
+  // Update item GST rates when GST type changes
   useEffect(() => {
     if (!isItemwiseGST && items.length > 0) {
       const defaultGSTRate = getDefaultGSTRate();
       const updatedItems = items.map(item => ({
         ...item,
-        gstRate: defaultGSTRate
+        gstRate: defaultGSTRate.toString()
       }));
       setItems(updatedItems);
     }
@@ -152,9 +152,7 @@ const DebitNot = () => {
     setVehicleNumber("");
     setStation("");
     setGstType("");
-    setOtherCharges([
-      { id: Date.now(), name: "", amount: "" }
-    ]);
+    setOtherCharges([]);
     setItems([]);
     setMessage({ type: "", text: "" });
   };
@@ -179,10 +177,6 @@ const DebitNot = () => {
   };
 
   const removeOtherCharge = (index) => {
-    if (otherCharges.length <= 1) {
-      setMessage({ type: "error", text: "At least one charge is required" });
-      return;
-    }
     const updatedCharges = otherCharges.filter((_, i) => i !== index);
     setOtherCharges(updatedCharges);
   };
@@ -211,7 +205,8 @@ const DebitNot = () => {
     });
 
     const otherChargesTotal = otherCharges.reduce((sum, charge) => {
-      return sum + (parseFloat(charge.amount) || 0);
+      const amount = parseFloat(charge.amount);
+      return sum + (isNaN(amount) ? 0 : amount);
     }, 0);
 
     const grandTotal = subtotal + totalGST + otherChargesTotal;
@@ -254,20 +249,26 @@ const DebitNot = () => {
           setMessage({ type: "error", text: `GST Rate is required for ${item.itemName}` });
           return false;
         }
-        if (parseFloat(item.gstRate) < 0 || parseFloat(item.gstRate) > 100) {
+        const gstRate = parseFloat(item.gstRate);
+        if (isNaN(gstRate) || gstRate < 0 || gstRate > 100) {
           setMessage({ type: "error", text: `GST Rate must be between 0-100% for ${item.itemName}` });
           return false;
         }
       }
     }
 
-    // Validate other charges
+    // Validate other charges - only validate if they have values
     for (const charge of otherCharges) {
-      if (!charge.name.trim()) {
-        setMessage({ type: "error", text: "Charge name is required for all other charges" });
+      if (charge.name.trim() === "" && charge.amount !== "") {
+        setMessage({ type: "error", text: "Charge name is required if amount is entered" });
         return false;
       }
-      if (charge.amount && parseFloat(charge.amount) < 0) {
+      if (charge.name.trim() !== "" && charge.amount === "") {
+        setMessage({ type: "error", text: `Amount is required for ${charge.name}` });
+        return false;
+      }
+      const amount = parseFloat(charge.amount);
+      if (charge.amount !== "" && (isNaN(amount) || amount < 0)) {
         setMessage({ type: "error", text: `Invalid amount for ${charge.name}` });
         return false;
       }
@@ -287,40 +288,58 @@ const DebitNot = () => {
     setMessage({ type: "", text: "" });
 
     try {
-      const { itemTotals } = calculateTotals();
-      
-      // Filter out charges with empty amounts
-      const validOtherCharges = otherCharges
-        .filter(charge => charge.name.trim() !== "")
+      // Format date to ISO string
+      const formattedDate = orgInvoiceDate ? new Date(orgInvoiceDate).toISOString() : null;
+
+      // Prepare damagedItems array - conditionally include gstRate
+      const damagedItems = items.map(item => {
+        // Create base item object
+        const itemData = {
+          damagedStockId: item.id,
+          itemId: item.itemId,
+          source: item.itemSource,
+          name: item.itemName,
+          hsnCode: item.hsnCode || "",
+          modelNumber: item.modelNumber || "",
+          itemDetail: item.itemDetail || "",
+          quantity: item.quantity.toString(),
+          unit: item.unit,
+          rate: item.rate.toString(),
+        };
+
+        // Only add gstRate if GST type is ITEMWISE
+        if (isItemwiseGST) {
+          itemData.gstRate = item.gstRate ? item.gstRate.toString() : "";
+        }
+
+        return itemData;
+      });
+
+      // Filter and format otherCharges - only include charges with both name and amount
+      const formattedOtherCharges = otherCharges
+        .filter(charge => charge.name.trim() !== "" && charge.amount !== "")
         .map(charge => ({
           name: charge.name,
-          amount: parseFloat(charge.amount) || 0
+          amount: parseFloat(charge.amount).toString()
         }));
 
       const debitNoteData = {
-        companyId: selectedCompany,
         purchaseOrderId: selectedPO,
-        orgInvoiceNo,
-        orgInvoiceDate,
-        grRrNo,
-        transport,
-        vehicleNumber,
-        station,
-        gstType,
-        otherCharges: validOtherCharges,
-        items: itemTotals.map(item => ({
-          itemId: item.itemId,
-          quantity: parseFloat(item.quantity),
-          hsnCode: item.hsnCode,
-          modelNumber: item.modelNumber,
-          itemDetail: item.itemDetail,
-          rate: parseFloat(item.rate),
-          unit: item.unit,
-          gstRate: parseFloat(item.gstRate) || 0
-        }))
+        companyId: selectedCompany,
+        vendorId: poDetails?.vendorId || "",
+        gstType: gstType,
+        damagedItems: damagedItems,
+        remarks: "", // Empty as per requirement
+        orgInvoiceNo: orgInvoiceNo,
+        orgInvoiceDate: formattedDate,
+        gr_rr_no: grRrNo, // Note: underscore in field name
+        transport: transport,
+        vehicleNumber: vehicleNumber,
+        station: station,
+        otherCharges: formattedOtherCharges
       };
 
-      console.log("Submitting debit note:", debitNoteData);
+      console.log("Submitting debit note:", JSON.stringify(debitNoteData, null, 2));
 
       const response = await Api.post(
         "/purchase/debit-note/create",
@@ -332,7 +351,6 @@ const DebitNot = () => {
           type: "success", 
           text: "Debit Note created successfully!" 
         });
-        // Reset form after successful submission
         resetForm();
         setSelectedPO("");
         setPoDetails(null);
@@ -344,9 +362,19 @@ const DebitNot = () => {
       }
     } catch (error) {
       console.error("Error creating debit note:", error);
+      let errorMessage = "Error creating debit note. Please try again.";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setMessage({ 
         type: "error", 
-        text: error.response?.data?.message || "Error creating debit note. Please try again." 
+        text: errorMessage 
       });
     } finally {
       setLoading(false);
@@ -369,7 +397,7 @@ const DebitNot = () => {
       )}
 
       {/* Main Card */}
-      <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-7xl">
+      <div className="bg-white rounded-xl shadow-md p-6 w-full max-w-6xl">
         <form onSubmit={handleSubmit}>
           {/* Company */}
           <div className="mb-4">
@@ -379,7 +407,7 @@ const DebitNot = () => {
             <select
               value={selectedCompany}
               onChange={(e) => setSelectedCompany(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full border border-black rounded-lg px-3 py-2"
               required
             >
               <option value="">-- Select Company --</option>
@@ -404,7 +432,7 @@ const DebitNot = () => {
                 <select
                   value={selectedPO}
                   onChange={(e) => setSelectedPO(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2"
+                  className="w-full border border-black rounded-lg px-3 py-2"
                   required
                 >
                   <option value="">-- Select PO Number --</option>
@@ -432,7 +460,7 @@ const DebitNot = () => {
                   <input
                     value={poDetails.poNumber}
                     disabled
-                    className="w-full border rounded px-3 py-2 bg-gray-100"
+                    className="w-full border border-black rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
 
@@ -441,7 +469,7 @@ const DebitNot = () => {
                   <input
                     value={poDetails.companyName}
                     disabled
-                    className="w-full border rounded px-3 py-2 bg-gray-100"
+                    className="w-full border border-black rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
 
@@ -450,13 +478,13 @@ const DebitNot = () => {
                   <input
                     value={poDetails.vendorName}
                     disabled
-                    className="w-full border rounded px-3 py-2 bg-gray-100"
+                    className="w-full border border-black rounded px-3 py-2 bg-gray-100"
                   />
                 </div>
               </div>
 
               {/* Additional Information Section */}
-              <div className="mb-8 p-4 border rounded-lg bg-gray-50">
+              <div className="mb-8 p-4 border border-black rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -468,7 +496,7 @@ const DebitNot = () => {
                       type="text"
                       value={orgInvoiceNo}
                       onChange={(e) => setOrgInvoiceNo(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border border-black rounded px-3 py-2"
                       required
                     />
                   </div>
@@ -481,7 +509,7 @@ const DebitNot = () => {
                       type="date"
                       value={orgInvoiceDate}
                       onChange={(e) => setOrgInvoiceDate(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border border-black rounded px-3 py-2"
                       required
                     />
                   </div>
@@ -494,7 +522,7 @@ const DebitNot = () => {
                       type="text"
                       value={grRrNo}
                       onChange={(e) => setGrRrNo(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border border-black rounded px-3 py-2"
                     />
                   </div>
 
@@ -506,22 +534,9 @@ const DebitNot = () => {
                       type="text"
                       value={transport}
                       onChange={(e) => setTransport(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border border-black rounded px-3 py-2"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Vehicle Number
-                    </label>
-                    <input
-                      type="text"
-                      value={vehicleNumber}
-                      onChange={(e) => setVehicleNumber(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
-                    />
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Station
@@ -530,7 +545,7 @@ const DebitNot = () => {
                       type="text"
                       value={station}
                       onChange={(e) => setStation(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border border-black rounded px-3 py-2"
                     />
                   </div>
 
@@ -541,7 +556,7 @@ const DebitNot = () => {
                     <select
                       value={gstType}
                       onChange={(e) => setGstType(e.target.value)}
-                      className="w-full border rounded px-3 py-2"
+                      className="w-full border border-black rounded px-3 py-2"
                       required
                     >
                       <option value="">-- Select GST Type --</option>
@@ -553,7 +568,7 @@ const DebitNot = () => {
                     </select>
                     {!isItemwiseGST && gstType && (
                       <p className="text-sm text-gray-500 mt-1">
-                        GST Rate: {getDefaultGSTRate()}%
+                        Default GST Rate: {getDefaultGSTRate()}%
                       </p>
                     )}
                     {isItemwiseGST && (
@@ -578,54 +593,58 @@ const DebitNot = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    {otherCharges.map((charge, index) => (
-                      <div key={charge.id} className="flex items-center gap-3 p-3 border rounded bg-white">
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium mb-1">
-                            Charge Name *
-                          </label>
-                          <input
-                            type="text"
-                            value={charge.name}
-                            onChange={(e) => handleOtherChargeChange(index, 'name', e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                            placeholder="e.g., Freight, Loading, Insurance, etc."
-                            required
-                          />
-                        </div>
-                        
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium mb-1">
-                            Amount (₹)
-                          </label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={charge.amount}
-                            onChange={(e) => handleOtherChargeChange(index, 'amount', e.target.value)}
-                            className="w-full border rounded px-3 py-2"
-                            placeholder="Enter amount"
-                          />
-                        </div>
-                        
-                        <div className="pt-6">
-                          <button
-                            type="button"
-                            onClick={() => removeOtherCharge(index)}
-                            className="px-3 py-1 bg-red-100 text-red-600 text-sm rounded hover:bg-red-200"
-                            disabled={otherCharges.length <= 1}
-                          >
-                            Remove
-                          </button>
-                        </div>
+                    {otherCharges.length === 0 ? (
+                      <div className="text-center py-4 text-gray-500">
+                        No charges added yet. Click "Add Charge" to add one.
                       </div>
-                    ))}
+                    ) : (
+                      otherCharges.map((charge, index) => (
+                        <div key={charge.id} className="flex items-center gap-3 p-3 border border-black rounded bg-white">
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium mb-1">
+                              Charge Name
+                            </label>
+                            <input
+                              type="text"
+                              value={charge.name}
+                              onChange={(e) => handleOtherChargeChange(index, 'name', e.target.value)}
+                              className="w-full border border-black rounded px-3 py-2"
+                              placeholder="e.g., Freight, Loading, Insurance, etc."
+                            />
+                          </div>
+                          
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium mb-1">
+                              Amount (₹)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={charge.amount}
+                              onChange={(e) => handleOtherChargeChange(index, 'amount', e.target.value)}
+                              className="w-full border border-black rounded px-3 py-2"
+                              placeholder="Enter amount"
+                            />
+                          </div>
+                          
+                          <div className="pt-6">
+                            <button
+                              type="button"
+                              onClick={() => removeOtherCharge(index)}
+                              className="px-3 py-1 bg-red-100 text-red-600 text-sm rounded hover:bg-red-200 border border-red-300"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
 
                   {/* Summary of Other Charges */}
                   {otherChargesTotal > 0 && (
-                    <div className="mt-4 p-3 bg-blue-50 rounded">
+                    <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
                       <div className="flex justify-between items-center">
                         <span className="font-medium">Total Other Charges:</span>
                         <span className="font-bold text-lg">₹{otherChargesTotal.toFixed(2)}</span>
@@ -635,185 +654,183 @@ const DebitNot = () => {
                 </div>
               </div>
 
-              {/* Damaged Stock Table */}
-              <h2 className="text-lg font-semibold mb-3">
+              {/* Damaged Stock Items - Card Layout */}
+              <h2 className="text-lg font-semibold mb-4">
                 Damaged Stock Details
               </h2>
 
-              <div className="overflow-x-auto mb-6">
-                <table className="w-full border border-gray-200 rounded-lg">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="border px-3 py-2 text-left">Item Name</th>
-                      <th className="border px-3 py-2 text-left">HSN Code</th>
-                      <th className="border px-3 py-2 text-left">Model Number</th>
-                      <th className="border px-3 py-2 text-left">Item Details</th>
-                      <th className="border px-3 py-2 text-left">Quantity</th>
-                      <th className="border px-3 py-2 text-left">Unit</th>
-                      <th className="border px-3 py-2 text-left">Rate (₹)</th>
-                      <th className="border px-3 py-2 text-left">Taxable Value (₹)</th>
-                      {isItemwiseGST && (
-                        <th className="border px-3 py-2 text-left">GST Rate (%)</th>
-                      )}
-                      <th className="border px-3 py-2 text-left">GST Amount (₹)</th>
-                      <th className="border px-3 py-2 text-left">Total (₹)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((item, index) => {
-                      const quantity = parseFloat(item.quantity) || 0;
-                      const rate = parseFloat(item.rate) || 0;
-                      const gstRate = parseFloat(item.gstRate) || 0;
-                      const taxableValue = quantity * rate;
-                      const gstAmount = (taxableValue * gstRate) / 100;
-                      const total = taxableValue + gstAmount;
-                      
-                      return (
-                        <tr key={item.id}>
-                          <td className="border px-3 py-2">
-                            {item.itemName}
-                          </td>
-                          <td className="border px-3 py-2">
-                            <input
-                              type="text"
-                              value={item.hsnCode}
-                              onChange={(e) => handleItemChange(index, 'hsnCode', e.target.value)}
-                              className="w-full border rounded px-2 py-1"
-                            />
-                          </td>
-                          <td className="border px-3 py-2">
-                            <input
-                              type="text"
-                              value={item.modelNumber}
-                              onChange={(e) => handleItemChange(index, 'modelNumber', e.target.value)}
-                              className="w-full border rounded px-2 py-1"
-                            />
-                          </td>
-                          <td className="border px-3 py-2">
-                            <input
-                              type="text"
-                              value={item.itemDetail}
-                              onChange={(e) => handleItemChange(index, 'itemDetail', e.target.value)}
-                              className="w-full border rounded px-2 py-1"
-                            />
-                          </td>
-                          <td className="border px-3 py-2">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={item.quantity}
-                              onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                              className="w-full border rounded px-2 py-1"
-                              required
-                            />
-                          </td>
-                          <td className="border px-3 py-2">
-                            {item.unit}
-                          </td>
-                          <td className="border px-3 py-2">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={item.rate}
-                              onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
-                              className="w-full border rounded px-2 py-1"
-                              required
-                            />
-                          </td>
-                          <td className="border px-3 py-2 text-right">
-                            {taxableValue.toFixed(2)}
-                          </td>
-                          {isItemwiseGST && (
-                            <td className="border px-3 py-2">
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  max="100"
-                                  value={item.gstRate}
-                                  onChange={(e) => handleItemChange(index, 'gstRate', e.target.value)}
-                                  className="w-20 border rounded px-2 py-1"
-                                  required={isItemwiseGST}
-                                />
-                                <span className="text-sm">%</span>
-                              </div>
-                            </td>
-                          )}
-                          <td className="border px-3 py-2 text-right">
-                            {gstAmount.toFixed(2)}
-                          </td>
-                          <td className="border px-3 py-2 text-right font-medium">
-                            {total.toFixed(2)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Totals Section */}
-              <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-                <div className="flex justify-end">
-                  <div className="w-full md:w-1/3">
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">Subtotal (Taxable Value):</span>
-                      <span>₹{subtotal.toFixed(2)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">Total GST:</span>
-                      <span>₹{totalGST.toFixed(2)}</span>
-                    </div>
-                    
-                    {/* List individual other charges */}
-                    {otherCharges.map((charge, index) => (
-                      parseFloat(charge.amount) > 0 && (
-                        <div key={index} className="flex justify-between mb-2 text-sm">
-                          <span className="text-gray-600">{charge.name}:</span>
-                          <span>₹{parseFloat(charge.amount).toFixed(2)}</span>
-                        </div>
-                      )
-                    ))}
-                    
-                    {otherChargesTotal > 0 && (
-                      <div className="flex justify-between mb-2 pt-2 border-t">
-                        <span className="font-medium">Other Charges Total:</span>
-                        <span className="font-medium">₹{otherChargesTotal.toFixed(2)}</span>
+              <div className="space-y-6 mb-6">
+                {items.map((item, index) => {
+                  const quantity = parseFloat(item.quantity) || 0;
+                  const rate = parseFloat(item.rate) || 0;
+                  const gstRate = parseFloat(item.gstRate) || 0;
+                  const taxableValue = quantity * rate;
+                  const gstAmount = (taxableValue * gstRate) / 100;
+                  const total = taxableValue + gstAmount;
+                  
+                  return (
+                    <div key={item.id} className="border-2 border-black rounded-lg p-4 bg-white">
+                      {/* Item Name Header */}
+                      <div className="mb-4 pb-3 border-b-2 border-black">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {item.itemName}
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Source: {item.itemSource || "mysql"} | Item ID: {item.itemId?.substring(0, 8)}...
+                        </p>
                       </div>
-                    )}
-                    
-                    <hr className="my-2" />
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Grand Total:</span>
-                      <span>₹{grandTotal.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* GST Type Information */}
-              {isItemwiseGST && (
-                <div className="mb-6 p-4 border border-blue-200 rounded-lg bg-blue-50">
-                  <h3 className="text-md font-semibold text-blue-800 mb-2">
-                    GST Itemwise Information
-                  </h3>
-                  <p className="text-sm text-blue-600">
-                    You have selected {gstType.replace("_", " ")}. Please enter GST rate for each item individually.
-                    The GST rate can be 0%, 5%, 12%, 18%, 28%, or any other valid percentage.
-                  </p>
-                </div>
-              )}
+                      {/* First Row: 3 fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            HSN Code
+                          </label>
+                          <input
+                            type="text"
+                            value={item.hsnCode}
+                            onChange={(e) => handleItemChange(index, 'hsnCode', e.target.value)}
+                            className="w-full border border-black rounded px-3 py-2"
+                            placeholder="Enter HSN Code"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Model Number
+                          </label>
+                          <input
+                            type="text"
+                            value={item.modelNumber}
+                            onChange={(e) => handleItemChange(index, 'modelNumber', e.target.value)}
+                            className="w-full border border-black rounded px-3 py-2"
+                            placeholder="Enter Model Number"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Quantity *
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={item.quantity}
+                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                            className="w-full border border-black rounded px-3 py-2"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      {/* Second Row: 3 fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Unit
+                          </label>
+                          <div className="w-full border border-black rounded px-3 py-2 bg-gray-50">
+                            {item.unit}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Rate (₹) *
+                          </label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={item.rate}
+                            onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
+                            className="w-full border border-black rounded px-3 py-2"
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Taxable Value (₹)
+                          </label>
+                          <div className="w-full border border-black rounded px-3 py-2 bg-gray-50 text-right font-medium">
+                            ₹{taxableValue.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Third Row: GST Rate and Amount - Conditionally show */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            GST Rate (%)
+                          </label>
+                          {isItemwiseGST ? (
+                            <div className="flex items-center">
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="100"
+                                value={item.gstRate}
+                                onChange={(e) => handleItemChange(index, 'gstRate', e.target.value)}
+                                className="w-full border border-black rounded px-3 py-2"
+                                required={isItemwiseGST}
+                                placeholder="0-100"
+                              />
+                              <span className="ml-2 text-sm">%</span>
+                            </div>
+                          ) : (
+                            <div className="w-full border border-black rounded px-3 py-2 bg-gray-50">
+                              GST Rate is determined by selected GST Type: {getDefaultGSTRate()}%
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            GST Amount (₹)
+                          </label>
+                          <div className="w-full border border-black rounded px-3 py-2 bg-gray-50 text-right font-medium">
+                            ₹{gstAmount.toFixed(2)}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Total (₹)
+                          </label>
+                          <div className="w-full border-2 border-black rounded px-3 py-2 bg-gray-100 text-right font-bold">
+                            ₹{total.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Item Details (Full width) */}
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium mb-1">
+                          Item Details
+                        </label>
+                        <textarea
+                          value={item.itemDetail}
+                          onChange={(e) => handleItemChange(index, 'itemDetail', e.target.value)}
+                          className="w-full border-2 border-black rounded px-3 py-2 min-h-[100px]"
+                          placeholder="Enter detailed product description, specifications, condition, etc."
+                          rows="4"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
               {/* Submit Button */}
               <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed border-2 border-blue-800"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
