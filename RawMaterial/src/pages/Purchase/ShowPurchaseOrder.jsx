@@ -1603,7 +1603,6 @@ import Api from '../../auth/Api';
 import { useNavigate } from 'react-router-dom';
 
 const ShowPurchaseOrder = () => {
-
   const [companies, setCompanies] = useState([]);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
@@ -1611,6 +1610,7 @@ const ShowPurchaseOrder = () => {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState('');
   const [selectedOrder, setSelectedOrder] = useState('');
   const [showUpdateForm, setShowUpdateForm] = useState(false);
@@ -1640,6 +1640,74 @@ const ShowPurchaseOrder = () => {
     status: '',
     remarks: ''
   });
+
+  // Handle Cancel Purchase Order
+  const handleCancelOrder = async () => {
+    if (!selectedOrderDetails || !selectedOrder) {
+      alert('Please select a purchase order first');
+      return;
+    }
+
+    // Show confirmation dialog
+    const isConfirmed = window.confirm(
+      `Are you sure you want to cancel Purchase Order ${selectedOrderDetails.poNumber}?\n\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!isConfirmed) return;
+
+    setCancelLoading(true);
+    try {
+      const response = await Api.put(
+        `/purchase/purchase-orders/cancel/${selectedOrder}`
+      );
+      
+      if (response.data.success) {
+        alert('Purchase order cancelled successfully!');
+        
+        // Update local state to reflect cancellation
+        if (selectedOrderDetails) {
+          setSelectedOrderDetails({
+            ...selectedOrderDetails,
+            status: 'Cancelled'
+          });
+        }
+        
+        // Refresh the orders list
+        if (selectedCompany) {
+          fetchPurchaseOrders(selectedCompany);
+        }
+      } else {
+        alert('Failed to cancel purchase order: ' + (response.data.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error cancelling purchase order:', error);
+      
+      if (error.response) {
+        if (error.response.status === 400) {
+          alert(`Cannot cancel purchase order: ${error.response.data.message || 'Order may be in a state that cannot be cancelled.'}`);
+        } else if (error.response.status === 404) {
+          alert('Purchase order not found');
+        } else {
+          alert(`Error cancelling purchase order: ${error.response.status} ${error.response.data.message || 'Unknown error'}`);
+        }
+      } else if (error.request) {
+        alert('Network error. Please check your connection and try again.');
+      } else {
+        alert('Error cancelling purchase order. Please try again.');
+      }
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  // Check if order can be cancelled (based on status)
+  const canCancelOrder = (orderDetails) => {
+    if (!orderDetails) return false;
+    
+    const cancelableStatuses = ['Draft', 'Sent', 'Approved', 'Update Order'];
+    return cancelableStatuses.includes(orderDetails.status);
+  };
 
   const handleReceivedStock = () => {
     if (!selectedOrderDetails || !selectedOrder) {
@@ -1923,15 +1991,15 @@ const ShowPurchaseOrder = () => {
     if (field === 'quantity') {
       // If quantity changed, calculate total if rate is available
       if (rate > 0 && quantity > 0) {
-        currentItem.total = (rate * quantity).toFixed(2);
+        currentItem.total = (rate * quantity).toFixed(4);
       } else if (total > 0 && quantity > 0) {
         // If total and quantity are available, calculate rate
-        currentItem.rate = (total / quantity).toFixed(2);
+        currentItem.rate = (total / quantity).toFixed(4);
       }
     } else if (field === 'rate') {
       // If rate changed, calculate total if quantity is available
       if (quantity > 0 && rate > 0) {
-        currentItem.total = (rate * quantity).toFixed(2);
+        currentItem.total = (rate * quantity).toFixed(4);
       } else if (total > 0 && rate > 0) {
         // If total and rate are available, calculate quantity
         currentItem.quantity = Math.round(total / rate).toString();
@@ -1939,7 +2007,7 @@ const ShowPurchaseOrder = () => {
     } else if (field === 'total') {
       // If total changed, calculate rate if quantity is available
       if (quantity > 0 && total > 0) {
-        currentItem.rate = (total / quantity).toFixed(2);
+        currentItem.rate = (total / quantity).toFixed(4);
       } else if (rate > 0 && total > 0) {
         // If total and rate are available, calculate quantity
         currentItem.quantity = Math.round(total / rate).toString();
@@ -2020,7 +2088,7 @@ const ShowPurchaseOrder = () => {
     // Calculate total after item selection
     const rate = parseFloat(updatedItems[index].rate) || 0;
     const quantity = parseFloat(updatedItems[index].quantity) || 1;
-    updatedItems[index].total = (rate * quantity).toFixed(2);
+    updatedItems[index].total = (rate * quantity).toFixed(4);
     
     setFormData(prev => ({
       ...prev,
@@ -2396,65 +2464,113 @@ const ShowPurchaseOrder = () => {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-3">
-                    {/* Conditionally show "Receive Stock" button only if status is not "Fully Received" or "Update Order" */}
-                    {selectedOrderDetails.status !== 'Received' && selectedOrderDetails.status !== 'Update Order' && (
+                    {/* Show only Download button when status is Cancelled */}
+                    {selectedOrderDetails.status === 'Cancelled' ? (
                       <button 
-                        className="px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                        onClick={handleReceivedStock}
-                        disabled={detailsLoading}
+                        className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleDownload}
+                        disabled={downloadLoading}
                       >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Receive Stock
+                        {downloadLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Downloading...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Download
+                          </>
+                        )}
                       </button>
-                    )}
-                    
-                    {/* Conditionally show "Update Order" button only if status is not "Update Order" AND not "Received" */}
-                    {selectedOrderDetails.status !== 'Update Order' && selectedOrderDetails.status !== 'Received' && (
-                      <button 
-                        className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium flex items-center justify-center"
-                        onClick={() => prepareUpdateForm(selectedOrderDetails)}
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Update Order
-                      </button>
-                    )}
+                    ) : (
+                      <>
+                        {/* Conditionally show "Receive Stock" button only if status is not "Fully Received" or "Update Order" */}
+                        {selectedOrderDetails.status !== 'Received' && selectedOrderDetails.status !== 'Update Order' && (
+                          <button 
+                            className="px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handleReceivedStock}
+                            disabled={detailsLoading}
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Receive
+                          </button>
+                        )}
+                        
+                        {/* Conditionally show "Update Order" button only if status is not "Update Order" AND not "Received" */}
+                        {selectedOrderDetails.status !== 'Update Order' && selectedOrderDetails.status !== 'Received' && (
+                          <button 
+                            className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium flex items-center justify-center"
+                            onClick={() => prepareUpdateForm(selectedOrderDetails)}
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Update Order
+                          </button>
+                        )}
 
-                    {/* ReOrder Button - Always visible for all statuses except maybe "Update Order" */}
-                    {selectedOrderDetails.status !== 'Update Order' && (
-                      <button 
-                        className="px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all duration-200 font-medium flex items-center justify-center"
-                        onClick={handleReOrder}
-                      >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        ReOrder
-                      </button>
+                        {/* ReOrder Button - Always visible for all statuses except maybe "Update Order" */}
+                        {selectedOrderDetails.status !== 'Update Order' && (
+                          <button 
+                            className="px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all duration-200 font-medium flex items-center justify-center"
+                            onClick={handleReOrder}
+                          >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            ReOrder
+                          </button>
+                        )}
+
+                        {/* Cancel Order Button - Only show if order can be cancelled */}
+                        {canCancelOrder(selectedOrderDetails) && (
+                          <button 
+                            className="px-5 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={handleCancelOrder}
+                            disabled={cancelLoading}
+                          >
+                            {cancelLoading ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Cancelling...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Cancel
+                              </>
+                            )}
+                          </button>
+                        )}
+                        
+                        <button 
+                          className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={handleDownload}
+                          disabled={downloadLoading}
+                        >
+                          {downloadLoading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Downloading...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              Download
+                            </>
+                          )}
+                        </button>
+                      </>
                     )}
-                    
-                    <button 
-                      className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={handleDownload}
-                      disabled={downloadLoading}
-                    >
-                      {downloadLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                          Downloading...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Download PDF
-                        </>
-                      )}
-                    </button>
                   </div>
                 </div>
               </div>

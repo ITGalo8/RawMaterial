@@ -592,22 +592,6 @@
 
 //             {/* SECOND ROW */}
 //             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-//               {/* <div>
-//                 <label className="block text-sm font-medium text-gray-700 mb-2">
-//                   Currency
-//                 </label>
-//                 <select
-//                   value={currency}
-//                   onChange={(e) => setCurrency(e.target.value)}
-//                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-//                 >
-//                   <option value="INR">INR (₹)</option>
-//                   <option value="USD">USD ($)</option>
-//                   <option value="EUR">EUR (€)</option>
-//                   <option value="GBP">GBP (£)</option>
-//                 </select>
-//               </div> */}
-
 //               <div>
 //                 <label className="block text-sm font-medium text-gray-700 mb-2">
 //                   Payment Terms
@@ -765,7 +749,7 @@
 //                           <option key={itemOption.id} value={itemOption.id}>
 //                             {itemOption.name} 
 //                             {itemOption.hsnCode && ` (HSN: ${itemOption.hsnCode})`}
-//                             {itemOption.rate && ` - ₹${parseFloat(itemOption.rate).toFixed(2)}`}
+//                             {itemOption.rate && ` - ₹${parseFloat(itemOption.rate).toFixed(5)}`}
 //                           </option>
 //                         ))}
 //                       </select>
@@ -861,7 +845,7 @@
 //                         Total Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'})
 //                       </label>
 //                       <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
-//                         {item.totalAmount.toFixed(2)}
+//                         {item.totalAmount.toFixed(5)}
 //                       </div>
 //                     </div>
 //                   </div>
@@ -891,7 +875,7 @@
 //                             Taxable Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'})
 //                           </label>
 //                           <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
-//                             {item.taxableAmount.toFixed(2)}
+//                             {item.taxableAmount.toFixed(5)}
 //                           </div>
 //                         </div>
 
@@ -900,7 +884,7 @@
 //                             GST Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'})
 //                           </label>
 //                           <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
-//                             {item.gstAmount.toFixed(2)}
+//                             {item.gstAmount.toFixed(5)}
 //                           </div>
 //                         </div>
 //                       </div>
@@ -915,27 +899,6 @@
 //                       )}
 //                     </div>
 //                   )}
-
-//                   {/* Show GST info for non-itemwise GST */}
-//                   {/* {!isItemWiseGST && selectedGstType && (
-//                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-//                       <div className="flex items-center justify-between">
-//                         <div>
-//                           <div className="font-medium text-gray-700">GST Information</div>
-//                           <div className="text-sm text-gray-600">
-//                             GST Type: {selectedGstType} | Rate: {getFixedGSTRate()}%
-//                           </div>
-//                         </div>
-//                         <div className="text-right">
-//                           <div className="font-medium text-gray-700">GST Amount</div>
-//                           <div className="text-lg font-semibold text-blue-600">
-//                             {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}
-//                             {item.gstAmount.toFixed(2)}
-//                           </div>
-//                         </div>
-//                       </div>
-//                     </div>
-//                   )} */}
 
 //                   {/* Item Description */}
 //                   <div className="mt-6">
@@ -1055,9 +1018,11 @@
 
 // export default CreatePurchaseOrder;
 
+
 import React, { useState, useEffect } from "react";
 import Api from "../../auth/Api";
 import { useLocation } from "react-router-dom";
+import {removeStartingZero} from '../../utils/number/removeStartingZero'
 
 const CreatePurchaseOrder = () => {
   const location = useLocation();
@@ -1075,6 +1040,7 @@ const CreatePurchaseOrder = () => {
   const [contactPerson, setContactPerson] = useState("");
   const [cellNo, setCellNo] = useState("");
   const [currency, setCurrency] = useState("INR");
+  const [exchangeRate, setExchangeRate] = useState("1.00");
   const [gstRate, setGstRate] = useState("");
 
   const [itemList, setItemList] = useState([]);
@@ -1088,7 +1054,7 @@ const CreatePurchaseOrder = () => {
       rate: "",
       quantity: "",
       gstRate: "",
-      amount: 0,
+      amount: "",
       taxableAmount: 0,
       gstAmount: 0,
       totalAmount: 0,
@@ -1104,11 +1070,25 @@ const CreatePurchaseOrder = () => {
     }
   ]);
 
-  const [showOtherCharges, setShowOtherCharges] = useState(false);
   const [loading, setLoading] = useState(false);
   const [processingReorder, setProcessingReorder] = useState(false);
   const [pendingReorderItems, setPendingReorderItems] = useState([]);
   const [isItemListLoaded, setIsItemListLoaded] = useState(false);
+  const [skipCalculation, setSkipCalculation] = useState({});
+  const [showOtherCharges, setShowOtherCharges] = useState(false);
+  
+  // Add state for tracking loading status for individual items
+  const [loadingItems, setLoadingItems] = useState({});
+
+  const currencyOptions = [
+    { value: 'INR', label: 'INR' },
+    { value: 'USD', label: 'USD' },
+    { value: 'CNY', label: 'CNY'},
+    { value: 'EUR', label: 'EUR' },
+    { value: 'GBP', label: 'GBP' },
+    { value: 'AED', label: 'AED' },
+    
+  ];
 
   const gstTypes = [
     { value: "IGST_5", label: "IGST 5%" },
@@ -1138,95 +1118,17 @@ const CreatePurchaseOrder = () => {
 
   const isItemWiseGST = selectedGstType === "IGST_ITEMWISE" || selectedGstType === "LGST_ITEMWISE";
 
+  // Get currency symbol
+  const getCurrencySymbol = (curr) => {
+    const currency = currencyOptions.find(c => c.value === curr);
+    return currency ? currency.label.match(/\((.*?)\)/)?.[1] || '' : '₹';
+  };
+
   // Extract GST rate from GST type (e.g., IGST_5 -> 5)
   const getFixedGSTRate = () => {
     if (selectedGstType.includes("EXEMPTED")) return 0;
     const rateMatch = selectedGstType.match(/(\d+)/);
     return rateMatch ? parseFloat(rateMatch[1]) : 0;
-  };
-
-  // Function to calculate missing field from two known fields
-  const calculateMissingField = (rate, quantity, totalAmount) => {
-    const rateNum = parseFloat(rate) || 0;
-    const quantityNum = parseFloat(quantity) || 0;
-    const totalNum = parseFloat(totalAmount) || 0;
-
-    // Count how many fields have non-zero values
-    const filledFields = [
-      rateNum > 0 ? 1 : 0,
-      quantityNum > 0 ? 1 : 0,
-      totalNum > 0 ? 1 : 0
-    ].reduce((sum, val) => sum + val, 0);
-
-    // If we have exactly 2 fields filled, calculate the third
-    if (filledFields === 2) {
-      // If we have rate and quantity, calculate total
-      if (rateNum > 0 && quantityNum > 0 && totalNum === 0) {
-        const calculatedTotal = (rateNum * quantityNum).toFixed(2);
-        return { totalAmount: calculatedTotal };
-      }
-      // If we have rate and total, calculate quantity
-      else if (rateNum > 0 && totalNum > 0 && quantityNum === 0) {
-        const calculatedQuantity = (totalNum / rateNum).toFixed(2);
-        return { quantity: calculatedQuantity };
-      }
-      // If we have quantity and total, calculate rate
-      else if (quantityNum > 0 && totalNum > 0 && rateNum === 0) {
-        const calculatedRate = (totalNum / quantityNum).toFixed(2);
-        return { rate: calculatedRate };
-      }
-    }
-    
-    // If all three have values, prioritize rate × quantity = total
-    if (filledFields === 3) {
-      const expectedTotal = (rateNum * quantityNum).toFixed(2);
-      const currentTotal = totalNum.toFixed(2);
-      if (expectedTotal !== currentTotal) {
-        return { totalAmount: expectedTotal };
-      }
-    }
-    
-    return null;
-  };
-
-  const calculateItemAmounts = (item) => {
-    const rate = parseFloat(item.rate) || 0;
-    const quantity = parseFloat(item.quantity) || 0;
-    const totalAmountInput = parseFloat(item.totalAmount) || 0;
-    
-    // Determine which value to use for base amount calculation
-    let baseAmount = 0;
-    
-    // If we have both rate and quantity, use them (they should be in sync now)
-    if (rate > 0 && quantity > 0) {
-      baseAmount = rate * quantity;
-    } 
-    // If we only have totalAmount, but need rate or quantity
-    else if (totalAmountInput > 0) {
-      baseAmount = totalAmountInput;
-    }
-    
-    let gstRateValue = 0;
-    
-    if (isItemWiseGST) {
-      gstRateValue = parseFloat(item.gstRate) || 0;
-    } else {
-      gstRateValue = getFixedGSTRate();
-    }
-
-    const taxableAmount = baseAmount;
-    const gstAmount = (taxableAmount * gstRateValue) / 100;
-    const finalTotal = taxableAmount + gstAmount;
-    
-    return {
-      rate: rate.toString(),
-      quantity: quantity.toString(),
-      totalAmount: baseAmount.toFixed(2),
-      amount: baseAmount,
-      taxableAmount,
-      gstAmount,
-      gstRate: gstRateValue.toString()
-    };
   };
 
   const fetchCompanies = async () => {
@@ -1270,12 +1172,14 @@ const CreatePurchaseOrder = () => {
   useEffect(() => {
     if (location.state?.reorderData) {
       const reorderData = location.state.reorderData;
+      console.log('Received reorder data:', reorderData);
       
       // Set basic information
       setSelectedCompany(reorderData.companyId);
       setSelectedVendor(reorderData.vendorId);
       setSelectedGstType(reorderData.gstType);
       setCurrency(reorderData.currency || "INR");
+      setExchangeRate(reorderData.exchangeRate || "1.00");
       setPaymentTerms(reorderData.paymentTerms || "");
       setDeliveryTerms(reorderData.deliveryTerms || "");
       setWarranty(reorderData.warranty || "");
@@ -1287,7 +1191,7 @@ const CreatePurchaseOrder = () => {
         setPendingReorderItems(reorderData.items);
       }
 
-      // Set other charges and show section if there are charges
+      // Set other charges
       if (reorderData.otherCharges && reorderData.otherCharges.length > 0) {
         const mappedCharges = reorderData.otherCharges.map((charge, index) => ({
           id: index + 1,
@@ -1295,7 +1199,6 @@ const CreatePurchaseOrder = () => {
           amount: charge.amount || ""
         }));
         setOtherCharges(mappedCharges);
-        setShowOtherCharges(true);
       }
     }
   }, [location.state]);
@@ -1348,7 +1251,7 @@ const CreatePurchaseOrder = () => {
           rate: rate.toString(),
           quantity: quantity.toString(),
           gstRate: itemGstRate.toString(),
-          amount: total,
+          amount: total.toString(),
           taxableAmount: total,
           gstAmount: gstAmount,
           totalAmount: total + gstAmount,
@@ -1362,9 +1265,19 @@ const CreatePurchaseOrder = () => {
       // Show success message
       setTimeout(() => {
         setProcessingReorder(false);
+        console.log('Reorder items processed:', mappedItems);
       }, 500);
     }
   }, [isItemListLoaded, pendingReorderItems, selectedGstType, itemList]);
+
+  // Reset exchange rate when currency changes
+  useEffect(() => {
+    if (currency === "INR") {
+      setExchangeRate("1.00");
+    } else {
+      setExchangeRate("");
+    }
+  }, [currency]);
 
   const addItemDetail = () => {
     const newId = itemDetails.length + 1;
@@ -1379,7 +1292,7 @@ const CreatePurchaseOrder = () => {
         rate: "",
         quantity: "",
         gstRate: "",
-        amount: 0,
+        amount: "",
         taxableAmount: 0,
         gstAmount: 0,
         totalAmount: 0,
@@ -1391,15 +1304,16 @@ const CreatePurchaseOrder = () => {
   const removeItemDetail = (id) => {
     if (itemDetails.length > 1) {
       setItemDetails(itemDetails.filter(item => item.id !== id));
+      // Remove loading state for removed item
+      setLoadingItems(prev => {
+        const updated = { ...prev };
+        delete updated[id];
+        return updated;
+      });
     }
   };
 
   const addOtherCharge = () => {
-    setShowOtherCharges(true);
-    if (otherCharges.length === 1 && !otherCharges[0].name && !otherCharges[0].amount) {
-      return; // Already have an empty charge row
-    }
-    
     const newId = otherCharges.length + 1;
     setOtherCharges([
       ...otherCharges,
@@ -1413,84 +1327,270 @@ const CreatePurchaseOrder = () => {
 
   const removeOtherCharge = (id) => {
     if (otherCharges.length > 1) {
-      const newCharges = otherCharges.filter(charge => charge.id !== id);
-      setOtherCharges(newCharges);
-      // If no charges left, hide the section
-      if (newCharges.length === 1 && !newCharges[0].name && !newCharges[0].amount) {
-        setShowOtherCharges(false);
-      }
-    } else {
-      // Only one charge left, clear it and hide section
-      setOtherCharges([{
-        id: 1,
-        name: "",
-        amount: ""
-      }]);
-      setShowOtherCharges(false);
+      setOtherCharges(otherCharges.filter(charge => charge.id !== id));
     }
   };
 
   const updateOtherCharge = (id, field, value) => {
-    const updatedCharges = otherCharges.map(charge => {
+    setOtherCharges(otherCharges.map(charge => {
       if (charge.id === id) {
         return { ...charge, [field]: value };
       }
       return charge;
-    });
-    setOtherCharges(updatedCharges);
+    }));
+  };
+
+  // Calculate missing value among rate, quantity, and amount
+  const calculateMissingValue = (rate, quantity, amount) => {
+    const r = rate === '' ? 0 : parseFloat(rate) || 0;
+    const q = quantity === '' ? 0 : parseFloat(quantity) || 0;
+    const a = amount === '' ? 0 : parseFloat(amount) || 0;
+    
+    // Count how many valid (non-empty) values we have
+    const rateValid = rate !== '' && !isNaN(r) && r > 0;
+    const quantityValid = quantity !== '' && !isNaN(q) && q > 0;
+    const amountValid = amount !== '' && !isNaN(a) && a > 0;
+    
+    const validCount = [rateValid, quantityValid, amountValid].filter(Boolean).length;
+    
+    // Only calculate if we have exactly 2 valid values
+    if (validCount === 2) {
+      if (rateValid && quantityValid && !amountValid) {
+        // Calculate amount from rate and quantity
+        return { amount: r * q, rate: r, quantity: q };
+      } else if (rateValid && amountValid && !quantityValid) {
+        // Calculate quantity from rate and amount
+        return { amount: a, rate: r, quantity: a / r };
+      } else if (quantityValid && amountValid && !rateValid) {
+        // Calculate rate from quantity and amount
+        return { amount: a, rate: a / q, quantity: q };
+      }
+    }
+    
+    // If all three are valid, recalculate amount for consistency
+    if (validCount === 3) {
+      return { amount: r * q, rate: r, quantity: q };
+    }
+    
+    // Otherwise, return as-is (allowing partial inputs)
+    return { amount: a, rate: r, quantity: q };
+  };
+
+  const calculateItemAmounts = (item) => {
+    const rate = item.rate || 0;
+    const quantity = item.quantity || 0;
+    const amount = item.amount || 0;
+    
+    // Calculate missing values
+    const calculated = calculateMissingValue(rate, quantity, amount);
+    
+    const total = calculated.amount;
+    
+    let gstRate = 0;
+    
+    if (isItemWiseGST) {
+      gstRate = parseFloat(item.gstRate) || 0;
+    } else {
+      gstRate = getFixedGSTRate();
+    }
+
+    const taxableAmount = total;
+    const gstAmount = (taxableAmount * gstRate) / 100;
+    const finalTotalAmount = taxableAmount + gstAmount;
+    
+    return {
+      amount: total,
+      rate: calculated.rate,
+      quantity: calculated.quantity,
+      taxableAmount,
+      gstAmount,
+      totalAmount: finalTotalAmount,
+      gstRate: gstRate.toString()
+    };
+  };
+
+  // Updated handleItemSelect with API call for detailed item information
+  const handleItemSelect = async (id, itemId) => {
+    if (!itemId) {
+      // If item is cleared, reset the fields
+      setItemDetails(itemDetails.map(item => {
+        if (item.id === id) {
+          return {
+            ...item,
+            selectedItem: "",
+            hsnCode: "",
+            modelNumber: "",
+            selectedUnit: "",
+            rate: "",
+            itemDetail: ""
+          };
+        }
+        return item;
+      }));
+      
+      // Clear loading state
+      setLoadingItems(prev => ({ ...prev, [id]: false }));
+      return;
+    }
+
+    const selectedItemData = itemList.find(item => item.id === itemId);
+    if (selectedItemData) {
+      // Set loading state for this specific item
+      setLoadingItems(prev => ({ ...prev, [id]: true }));
+      
+      try {
+        // First, update with basic information from itemList
+        let updatedItemDetails = itemDetails.map(item => {
+          if (item.id === id) {
+            const updatedItem = {
+              ...item,
+              selectedItem: itemId,
+              hsnCode: selectedItemData.hsnCode || item.hsnCode,
+              modelNumber: selectedItemData.modelNumber || item.modelNumber,
+              selectedUnit: selectedItemData.unit || item.selectedUnit,
+              rate: selectedItemData.rate || item.rate,
+              itemDetail: selectedItemData.itemDetail || item.itemDetail
+            };
+            
+            const calculatedAmounts = calculateItemAmounts(updatedItem);
+            return { 
+              ...updatedItem, 
+              rate: calculatedAmounts.rate.toString(),
+              quantity: calculatedAmounts.quantity.toString(),
+              amount: calculatedAmounts.amount.toString(),
+              taxableAmount: calculatedAmounts.taxableAmount,
+              gstAmount: calculatedAmounts.gstAmount,
+              totalAmount: calculatedAmounts.totalAmount
+            };
+          }
+          return item;
+        });
+        
+        setItemDetails(updatedItemDetails);
+        
+        // Fetch detailed item information from the API
+        try {
+          const response = await Api.get(`/purchase/items/details/${itemId}`);
+          
+          if (response.data.success) {
+            const detailedItem = response.data.item;
+            
+            // Update item with detailed information
+            setItemDetails(prevItemDetails => prevItemDetails.map(item => {
+              if (item.id === id) {
+                // Use API's unit if available, otherwise keep existing
+                const newUnit = detailedItem.unit || item.selectedUnit;
+                // Use API's description if available, otherwise keep existing
+                const newDescription = detailedItem.description || item.itemDetail;
+                
+                const updatedItem = {
+                  ...item,
+                  selectedUnit: newUnit,
+                  itemDetail: newDescription
+                };
+                
+                return updatedItem;
+              }
+              return item;
+            }));
+            
+            // Show notification if data was fetched from API
+            if (detailedItem.unit || detailedItem.description) {
+              console.log(`Item ${id}: Loaded unit="${detailedItem.unit}", description="${detailedItem.description}"`);
+            }
+          }
+        } catch (apiError) {
+          console.error('Error fetching item details:', apiError);
+          // Continue with itemList data if API fails
+        }
+      } catch (error) {
+        console.error('Error in handleItemSelect:', error);
+      } finally {
+        // Clear loading state
+        setLoadingItems(prev => ({ ...prev, [id]: false }));
+      }
+    }
   };
 
   const updateItemDetail = (id, field, value) => {
+    // If clearing a value, mark that we should skip calculation temporarily
+    if (value === '' && (field === 'rate' || field === 'quantity' || field === 'amount')) {
+      setSkipCalculation(prev => ({ ...prev, [id]: true }));
+      
+      // Clear the skip after a short delay
+      setTimeout(() => {
+        setSkipCalculation(prev => ({ ...prev, [id]: false }));
+      }, 100);
+    }
+    
     setItemDetails(itemDetails.map(item => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
         
-        // Create a copy of the updated item for calculation
-        let itemForCalc = { ...updatedItem };
-        
-        // For rate, quantity, or totalAmount changes, we need to calculate missing field
-        if (field === 'rate' || field === 'quantity' || field === 'totalAmount') {
-          const calculated = calculateMissingField(
-            field === 'rate' ? value : item.rate,
-            field === 'quantity' ? value : item.quantity,
-            field === 'totalAmount' ? value : item.totalAmount
-          );
-          
-          if (calculated) {
-            itemForCalc = { ...itemForCalc, ...calculated };
-          }
+        // If we're currently in skip calculation mode for this item, just update the field
+        if (skipCalculation[id] && (field === 'rate' || field === 'quantity' || field === 'amount')) {
+          return updatedItem;
         }
         
-        // Always recalculate all amounts with current values
-        const calculatedAmounts = calculateItemAmounts(itemForCalc);
-        return { ...itemForCalc, ...calculatedAmounts };
+        // If any of the three main fields change, recalculate
+        // console.log("udated Item -- ", updatedItem)
+        if(field === 'rate'){
+          const newAmount = Number(value) * Number(updatedItem.quantity || 0);
+
+          return {
+            ...updatedItem,
+            rate: value,
+            amount: Number(newAmount)
+          }
+        }
+        if(field === "amount"){
+          const newRate = Number(value) / Number(updatedItem.quantity);
+          return {
+            ...updatedItem,
+            rate:Number(newRate),
+            amount: value
+          }
+        }
+        if(field === "quantity"){
+          const newAmount = Number(value) * Number(updatedItem.rate);
+          const newValue = Number(removeStartingZero(value))
+          // console.log("quantity $ -- ", newValue)
+          return {
+            ...updatedItem,
+            quantity: value,
+            amount : Number(newAmount)
+          }
+        }
+        // if (field === 'rate' || field === 'quantity' || field === 'amount') {
+        //   console.log("in if condition")
+        //   const calculatedAmounts = calculateItemAmounts(updatedItem);
+        //   return { 
+        //     ...updatedItem, 
+        //     rate: calculatedAmounts.rate.toString(),
+        //     quantity: calculatedAmounts.quantity.toString(),
+        //     amount: calculatedAmounts.amount.toString(),
+        //     taxableAmount: calculatedAmounts.taxableAmount,
+        //     gstAmount: calculatedAmounts.gstAmount,
+        //     totalAmount: calculatedAmounts.totalAmount
+        //   };
+        // }
+        
+        // For GST rate changes (only for itemwise GST)
+        if (isItemWiseGST && field === 'gstRate') {
+          const calculatedAmounts = calculateItemAmounts(updatedItem);
+          return { 
+            ...updatedItem, 
+            gstRate: value,
+            taxableAmount: calculatedAmounts.taxableAmount,
+            gstAmount: calculatedAmounts.gstAmount,
+            totalAmount: calculatedAmounts.totalAmount
+          };
+        }
+        
+        return updatedItem;
       }
       return item;
     }));
-  };
-
-  const handleItemSelect = (id, itemId) => {
-    const selectedItemData = itemList.find(item => item.id === itemId);
-    if (selectedItemData) {
-      setItemDetails(itemDetails.map(item => {
-        if (item.id === id) {
-          const updatedItem = {
-            ...item,
-            selectedItem: itemId,
-            hsnCode: selectedItemData.hsnCode || item.hsnCode,
-            modelNumber: selectedItemData.modelNumber || item.modelNumber,
-            selectedUnit: selectedItemData.unit || item.selectedUnit,
-            rate: selectedItemData.rate || item.rate,
-            itemDetail: selectedItemData.itemDetail || item.itemDetail
-          };
-          
-          // Trigger calculation after item selection
-          const calculatedAmounts = calculateItemAmounts(updatedItem);
-          return { ...updatedItem, ...calculatedAmounts };
-        }
-        return item;
-      }));
-    }
   };
 
   // Recalculate item amounts when GST type changes
@@ -1498,7 +1598,13 @@ const CreatePurchaseOrder = () => {
     if (selectedGstType) {
       setItemDetails(itemDetails.map(item => {
         const calculatedAmounts = calculateItemAmounts(item);
-        return { ...item, ...calculatedAmounts };
+        return { 
+          ...item, 
+          taxableAmount: calculatedAmounts.taxableAmount,
+          gstAmount: calculatedAmounts.gstAmount,
+          totalAmount: calculatedAmounts.totalAmount,
+          gstRate: calculatedAmounts.gstRate
+        };
       }));
     }
   }, [selectedGstType]);
@@ -1537,6 +1643,10 @@ const CreatePurchaseOrder = () => {
       alert("Please select a GST type");
       return;
     }
+    if (currency !== "INR" && (!exchangeRate || parseFloat(exchangeRate) <= 0)) {
+      alert("Please enter a valid exchange rate for non-INR currency");
+      return;
+    }
 
     const invalidItems = itemDetails.filter(item => 
       !item.selectedItem || !item.hsnCode || !item.rate || !item.quantity
@@ -1553,6 +1663,7 @@ const CreatePurchaseOrder = () => {
         vendorId: selectedVendor,
         gstType: selectedGstType,
         currency: currency,
+        exchangeRate: exchangeRate,
         paymentTerms,
         deliveryTerms,
         warranty,
@@ -1579,12 +1690,10 @@ const CreatePurchaseOrder = () => {
           
           return itemData;
         }),
-        otherCharges: showOtherCharges ? otherCharges
-          .filter(charge => charge.name.trim() !== "" || charge.amount !== "")
-          .map(charge => ({
-            name: charge.name,
-            amount: charge.amount.toString()
-          })) : []
+        otherCharges: otherCharges.map(charge => ({
+          name: charge.name,
+          amount: charge.amount.toString()
+        }))
       };
 
       console.log('Purchase Order Data:', purchaseOrderData);
@@ -1610,6 +1719,7 @@ const CreatePurchaseOrder = () => {
     setSelectedGstType("");
     setGstRate("");
     setCurrency("INR");
+    setExchangeRate("1.00");
     setPaymentTerms("");
     setDeliveryTerms("");
     setWarranty("");
@@ -1624,7 +1734,7 @@ const CreatePurchaseOrder = () => {
       rate: "",
       quantity: "",
       gstRate: "",
-      amount: 0,
+      amount: "",
       taxableAmount: 0,
       gstAmount: 0,
       totalAmount: 0,
@@ -1635,8 +1745,10 @@ const CreatePurchaseOrder = () => {
       name: "",
       amount: ""
     }]);
-    setShowOtherCharges(false);
     setPendingReorderItems([]);
+    setSkipCalculation({});
+    setShowOtherCharges(false);
+    setLoadingItems({});
   };
 
   useEffect(() => {
@@ -1644,7 +1756,6 @@ const CreatePurchaseOrder = () => {
     fetchVendors();
     fetchItemList();
   }, []);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -1686,7 +1797,7 @@ const CreatePurchaseOrder = () => {
       
           <div className="space-y-6">
             {/* FIRST ROW */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select Company *
@@ -1740,10 +1851,46 @@ const CreatePurchaseOrder = () => {
                   ))}
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Currency *
+                </label>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                >
+                  {currencyOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* SECOND ROW */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Exchange Rate {currency !== "INR" && `(1 ${currency} = ? INR)`}
+                </label>
+                <input
+                  type="number"
+                  value={exchangeRate}
+                  onChange={(e) => setExchangeRate(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                  placeholder={currency === "INR" ? "1.00 (Fixed)" : "Enter exchange rate"}
+                  step="0.01"
+                  min="0.01"
+                  disabled={currency === "INR"}
+                />
+                {currency === "INR" && (
+                  <p className="mt-1 text-sm text-gray-500">INR is base currency</p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Payment Terms
@@ -1838,7 +1985,7 @@ const CreatePurchaseOrder = () => {
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0118 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
                 <span className="font-medium text-blue-800">Selected GST Type:</span>
                 <span className="ml-2 text-blue-700">
@@ -1853,6 +2000,24 @@ const CreatePurchaseOrder = () => {
               </div>
             </div>
           )}
+
+          {/* Currency Info */}
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+              <span className="font-medium text-yellow-800">Currency:</span>
+              <span className="ml-2 text-yellow-700">
+                All amounts are in {currency} ({getCurrencySymbol(currency)})
+                {currency !== "INR" && exchangeRate && (
+                  <span className="ml-2">
+                    (Exchange Rate: 1 {currency} = {parseFloat(exchangeRate).toFixed(3)} INR)
+                  </span>
+                )}
+              </span>
+            </div>
+          </div>
 
           {/* Item Details Cards */}
           <div className="space-y-6">
@@ -1879,18 +2044,28 @@ const CreatePurchaseOrder = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Select Item *
+                        {loadingItems[item.id] && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading...
+                          </span>
+                        )}
                       </label>
                       <select
                         value={item.selectedItem}
                         onChange={(e) => handleItemSelect(item.id, e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        disabled={loadingItems[item.id]}
+                        className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${loadingItems[item.id] ? 'opacity-50' : ''}`}
                       >
                         <option value="">-- Choose Item --</option>
                         {itemList.map((itemOption) => (
                           <option key={itemOption.id} value={itemOption.id}>
                             {itemOption.name} 
                             {itemOption.hsnCode && ` (HSN: ${itemOption.hsnCode})`}
-                            {itemOption.rate && ` - ₹${parseFloat(itemOption.rate).toFixed(2)}`}
+                            {itemOption.rate && ` - ${getCurrencySymbol(currency)}${parseFloat(itemOption.rate).toFixed(3)}`}
                           </option>
                         ))}
                       </select>
@@ -1904,11 +2079,21 @@ const CreatePurchaseOrder = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Select Unit
+                        {loadingItems[item.id] && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Loading...
+                          </span>
+                        )}
                       </label>
                       <select
                         value={item.selectedUnit}
                         onChange={(e) => updateItemDetail(item.id, 'selectedUnit', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        disabled={loadingItems[item.id]}
+                        className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${loadingItems[item.id] ? 'opacity-50' : ''}`}
                       >
                         <option value="">-- Choose Unit --</option>
                         {unitTypes.map((u) => (
@@ -1917,6 +2102,11 @@ const CreatePurchaseOrder = () => {
                           </option>
                         ))}
                       </select>
+                      {loadingItems[item.id] && (
+                        <p className="mt-1 text-xs text-blue-600">
+                          Fetching item details from database...
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -1949,102 +2139,88 @@ const CreatePurchaseOrder = () => {
                     </div>
                   </div>
 
-                  {/* Pricing Section with Auto Calculation */}
+                  {/* Pricing Section */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Rate ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}) *
+                        Quantity 
                       </label>
-                      <input
-                        type="number"
-                        value={item.rate}
-                        onChange={(e) => updateItemDetail(item.id, 'rate', e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
-                      />
-                      <div className="mt-1 flex items-center text-xs text-gray-500">
-                        <span className="mr-1">Rate × Quantity = Total</span>
-                        {(!item.rate || item.rate === '0') && (
-                          <span className="text-blue-600">(Auto-calculates if Qty & Total entered)</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Quantity *
-                      </label>
-                      <input
+                      {/* <input
                         type="number"
                         value={item.quantity}
                         onChange={(e) => updateItemDetail(item.id, 'quantity', e.target.value)}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                         placeholder="0"
-                        step="0.01"
-                        min="0"
+
+                      /> */}
+                      <input
+                        type="text"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // allow only digits
+                          if (/^\d*$/.test(value)) {
+                            updateItemDetail(item.id, 'quantity', value);
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="0"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                       />
-                      <div className="mt-1 flex items-center text-xs text-gray-500">
-                        <span className="mr-1">Total ÷ Rate = Quantity</span>
-                        {(!item.quantity || item.quantity === '0') && (
-                          <span className="text-blue-600">(Auto-calculates if Rate & Total entered)</span>
-                        )}
-                      </div>
+
+                      <p className="mt-1 text-xs text-gray-500">Enter quantity in {item.selectedUnit || 'unit'}</p>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Rate
+                      </label>
+                      <input
+                        type="text"
+                        value={item.rate}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // allow only digits
+                          if (/^\d*$/.test(value)) {
+                            updateItemDetail(item.id, 'rate', value);
+                          }
+                        }}
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                        placeholder="0"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">Enter rate per unit</p>
+                    </div>
+
+                    
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Total Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}) *
+                        Total Amount 
                       </label>
                       <input
-                        type="number"
-                        value={item.totalAmount}
-                        onChange={(e) => updateItemDetail(item.id, 'totalAmount', e.target.value)}
+                        type="text"
+                        value={item.amount}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // allow only digits
+                          if (/^\d*$/.test(value)) {
+                            updateItemDetail(item.id, 'amount', value);
+                          }
+                        }}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                        placeholder="0.00"
-                        step="0.01"
-                        min="0"
+                        placeholder="0"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                       />
-                      <div className="mt-1 flex items-center text-xs text-gray-500">
-                        <span className="mr-1">Total ÷ Quantity = Rate</span>
-                        {(!item.totalAmount || item.totalAmount === '0.00') && (
-                          <span className="text-blue-600">(Auto-calculates if Rate & Qty entered)</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Display calculated amounts */}
-                  <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <div className="text-sm text-gray-600">Base Amount</div>
-                        <div className="text-lg font-semibold text-gray-800">
-                          {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}
-                          {item.taxableAmount.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm text-gray-600">GST Amount</div>
-                        <div className="text-lg font-semibold text-red-600">
-                          {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}
-                          {item.gstAmount.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm text-gray-600">Total with GST</div>
-                        <div className="text-lg font-semibold text-green-600">
-                          {currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}
-                          {(parseFloat(item.taxableAmount) + parseFloat(item.gstAmount)).toFixed(2)}
-                        </div>
-                      </div>
+                      <p className="mt-1 text-xs text-gray-500">Total without GST</p>
                     </div>
                   </div>
 
                   {/* GST Rate Section - Only show for itemwise GST */}
                   {isItemWiseGST && (
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2064,19 +2240,19 @@ const CreatePurchaseOrder = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Taxable Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'})
+                            Taxable Amount ({getCurrencySymbol(currency)})
                           </label>
                           <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
-                            {item.taxableAmount.toFixed(2)}
+                            {item.taxableAmount.toFixed(3)}
                           </div>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            GST Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'})
+                            GST Amount ({getCurrencySymbol(currency)})
                           </label>
                           <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-700 font-medium">
-                            {item.gstAmount.toFixed(2)}
+                            {item.gstAmount.toFixed(3)}
                           </div>
                         </div>
                       </div>
@@ -2092,18 +2268,34 @@ const CreatePurchaseOrder = () => {
                     </div>
                   )}
 
+
                   {/* Item Description */}
                   <div className="mt-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Item Description
+                      {loadingItems[item.id] && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                          <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Loading...
+                        </span>
+                      )}
                     </label>
                     <textarea
                       value={item.itemDetail}
                       onChange={(e) => updateItemDetail(item.id, 'itemDetail', e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      disabled={loadingItems[item.id]}
+                      className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${loadingItems[item.id] ? 'opacity-50' : ''}`}
                       placeholder="Enter item specifications, description, and other details..."
                       rows="3"
                     />
+                    {loadingItems[item.id] && (
+                      <p className="mt-1 text-xs text-blue-600">
+                        Item description will be auto-filled from database if available
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2111,50 +2303,45 @@ const CreatePurchaseOrder = () => {
           </div>
         </div>
 
-        {/* Add Other Charges Button - Only show when section is hidden */}
-        {!showOtherCharges && (
-          <div className="mb-6 text-center">
-            <button 
-              type="button" 
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium flex items-center mx-auto"
-              onClick={addOtherCharge}
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Other Charges
-            </button>
-          </div>
-        )}
-
-        {/* OTHER CHARGES SECTION - Only show when user clicks Add Charge */}
-        {showOtherCharges && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-gray-200">
+        {/* OTHER CHARGES SECTION - Collapsible */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-gray-200">
+            <div className="flex items-center space-x-4">
               <h2 className="text-xl font-semibold text-gray-800 mb-4 sm:mb-0">
                 Other Charges
               </h2>
-              <div className="flex space-x-3">
-                <button 
-                  type="button" 
-                  className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center"
-                  onClick={addOtherCharge}
+              <button 
+                type="button" 
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium flex items-center"
+                onClick={() => setShowOtherCharges(!showOtherCharges)}
+              >
+                <svg 
+                  className={`w-5 h-5 mr-2 transform transition-transform ${showOtherCharges ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
                 >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Add Charge
-                </button>
-                <button 
-                  type="button" 
-                  className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
-                  onClick={() => setShowOtherCharges(false)}
-                >
-                  Hide Section
-                </button>
-              </div>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+                {showOtherCharges ? 'Hide Charges' : 'Show Charges'}
+              </button>
             </div>
+            
+            {showOtherCharges && (
+              <button 
+                type="button" 
+                className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center"
+                onClick={addOtherCharge}
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Charge
+              </button>
+            )}
+          </div>
 
+          {showOtherCharges && (
             <div className="space-y-6">
               {otherCharges.map((charge, index) => (
                 <div key={charge.id} className="border border-gray-200 rounded-xl overflow-hidden">
@@ -2190,7 +2377,7 @@ const CreatePurchaseOrder = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Amount ({currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}) *
+                          Amount ({getCurrencySymbol(currency)}) *
                         </label>
                         <input
                           type="number"
@@ -2207,8 +2394,46 @@ const CreatePurchaseOrder = () => {
                 </div>
               ))}
             </div>
+          )}
+
+          {!showOtherCharges && (
+            <div className="text-center py-8">
+              <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-gray-500 mb-4">No charges added yet</p>
+              <button 
+                type="button" 
+                className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center mx-auto"
+                onClick={() => {
+                  setShowOtherCharges(true);
+                  addOtherCharge();
+                }}
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Charge
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* SUMMARY SECTION */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-sm text-gray-600">Currency: <span className="font-medium">{currency}</span></p>
+                {currency !== "INR" && exchangeRate && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Exchange Rate: <span className="font-medium">1 {currency} = {parseFloat(exchangeRate).toFixed(2)} INR</span>
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Submit Buttons */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -2224,7 +2449,7 @@ const CreatePurchaseOrder = () => {
               type="button" 
               className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSubmit}
-              disabled={!selectedCompany || !selectedVendor || !selectedGstType}
+              disabled={!selectedCompany || !selectedVendor || !selectedGstType || (currency !== "INR" && (!exchangeRate || parseFloat(exchangeRate) <= 0))}
             >
               {location.state?.reorderData ? 'Create ReOrder' : 'Create Purchase Order'}
             </button>

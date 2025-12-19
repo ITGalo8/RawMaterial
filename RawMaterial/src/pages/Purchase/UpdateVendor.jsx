@@ -72,7 +72,7 @@ const UpdateVendor = () => {
         state: companyDetails.state,
         pincode: companyDetails.pincode,
         contactNumber: companyDetails.contactNumber,
-        alternateNumber: companyDetails.alternateNumber,
+        contactPerson: companyDetails.contactPerson,
         email: companyDetails.email,
         country: companyDetails.country,
         currency: companyDetails.currency,
@@ -368,13 +368,15 @@ const UpdateVendor = () => {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Alternate Number
+
+                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                      <EnvelopeIcon className="h-4 w-4" />
+                      Contact Person Name
                     </label>
                     <input
-                      name="alternateNumber"
-                      value={companyDetails.alternateNumber || ''}
+                      name="contactPerson"
+                      value={companyDetails.contactPerson || ''}
                       onChange={handleInputChange}
                       disabled={!isEditable}
                       className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${
@@ -382,6 +384,7 @@ const UpdateVendor = () => {
                       } ${isEditable ? 'border-blue-300' : 'border-gray-300'}`}
                     />
                   </div>
+
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">

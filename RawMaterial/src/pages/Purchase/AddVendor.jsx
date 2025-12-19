@@ -1048,12 +1048,12 @@ const AddVendor = () => {
     state: '',
     pincode: '',
     country: 'INDIA',
-    contactPersonName: '',
+    contactPerson: '',
     contactNumber: '',
     alternateNumber: '',
     email: '',
     currency: 'INR',
-    exchangerate: '1'
+    exchangeRate: '1'
   });
 
   const [loading, setLoading] = useState(false);
@@ -1202,8 +1202,8 @@ const AddVendor = () => {
       errors.gstNumber = 'GST number must be 15 characters (numbers and uppercase letters)';
     }
     
-    if (!companyData.contactPersonName.trim()) {
-      errors.contactPersonName = 'Contact person name is required';
+    if (!companyData.contactPerson.trim()) {
+      errors.contactPerson = 'Contact person name is required';
     }
     
     if (!companyData.email.trim()) {
@@ -1217,11 +1217,7 @@ const AddVendor = () => {
     } else if (!/^[0-9]{10}$/.test(companyData.contactNumber)) {
       errors.contactNumber = 'Contact number must be 10 digits';
     }
-    
-    if (companyData.alternateNumber && !/^[0-9]{10}$/.test(companyData.alternateNumber)) {
-      errors.alternateNumber = 'Alternate number must be 10 digits';
-    }
-    
+  
     if (!companyData.address.trim()) errors.address = 'Address is required';
     if (!companyData.city.trim()) errors.city = 'City is required';
     if (!companyData.state.trim()) errors.state = 'State is required';
@@ -1233,10 +1229,10 @@ const AddVendor = () => {
     }
 
     if (companyData.currency !== 'INR') {
-      if (!companyData.exchangerate.trim()) {
-        errors.exchangerate = 'Exchange rate is required';
-      } else if (isNaN(companyData.exchangerate) || parseFloat(companyData.exchangerate) <= 0) {
-        errors.exchangerate = 'Exchange rate must be a positive number';
+      if (!companyData.exchangeRate.trim()) {
+        errors.exchangeRate = 'Exchange rate is required';
+      } else if (isNaN(companyData.exchangeRate) || parseFloat(companyData.exchangeRate) <= 0) {
+        errors.exchangeRate = 'Exchange rate must be a positive number';
       }
     }
 
@@ -1255,7 +1251,7 @@ const AddVendor = () => {
       processedValue = value.replace(/[^0-9]/g, '').slice(0, 6);
     } else if (name === 'email') {
       processedValue = formatEmail(value);
-    } else if (name === 'exchangerate') {
+    } else if (name === 'exchangeRate') {
       processedValue = value.replace(/[^0-9.]/g, '');
       const parts = processedValue.split('.');
       if (parts.length > 2) {
@@ -1266,11 +1262,11 @@ const AddVendor = () => {
         setCompanyData(prevState => ({
           ...prevState,
           currency: value,
-          exchangerate: '1'
+          exchangeRate: '1'
         }));
         return;
       }
-    } else if (name === 'contactPersonName') {
+    } else if (name === 'contactPerson') {
       processedValue = value.replace(/[^a-zA-Z\s.'-]/g, '');
     }
 
@@ -1338,12 +1334,12 @@ const AddVendor = () => {
           state: '',
           pincode: '',
           country: 'INDIA',
-          contactPersonName: '',
+          contactPerson: '',
           contactNumber: '',
-          alternateNumber: '',
+          // alternateNumber: '',
           email: '',
           currency: 'INR',
-          exchangerate: '1'
+          exchangeRate: '1'
         });
       }
     } catch (err) {
@@ -1362,7 +1358,7 @@ const AddVendor = () => {
     const baseValidations = (
       companyData.name.trim() &&
       companyData.gstNumber.trim() &&
-      companyData.contactPersonName.trim() &&
+      companyData.contactPerson.trim() &&
       companyData.address.trim() &&
       companyData.city.trim() &&
       companyData.state.trim() &&
@@ -1375,7 +1371,7 @@ const AddVendor = () => {
       return baseValidations;
     }
     
-    return baseValidations && companyData.exchangerate.trim();
+    return baseValidations && companyData.exchangeRate.trim();
   };
 
   const clearForm = () => {
@@ -1387,12 +1383,12 @@ const AddVendor = () => {
       state: '',
       pincode: '',
       country: 'INDIA',
-      contactPersonName: '',
+      contactPerson: '',
       contactNumber: '',
       alternateNumber: '',
       email: '',
       currency: 'INR',
-      exchangerate: '1'
+      exchangeRate: '1'
     });
     setFieldErrors({});
     setError('');
@@ -1587,7 +1583,7 @@ const AddVendor = () => {
                   {/* Exchange Rate or INR Info */}
                   {companyData.currency !== 'INR' ? (
                     <div className="md:col-span-1">
-                      <label htmlFor="exchangerate" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="exchangeRate" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                         <span className="flex items-center">
                           <CurrencyDollarIcon className="h-3 w-3 mr-1 text-gray-400" />
                           Exchange Rate (to INR) <span className="text-red-500 ml-0.5">*</span>
@@ -1596,28 +1592,28 @@ const AddVendor = () => {
                       <div className="relative">
                         <input
                           type="text"
-                          id="exchangerate"
-                          name="exchangerate"
-                          value={companyData.exchangerate}
+                          id="exchangeRate"
+                          name="exchangeRate"
+                          value={companyData.exchangeRate}
                           onChange={handleChange}
                           required
                           className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
-                            fieldErrors.exchangerate ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                            fieldErrors.exchangeRate ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                           }`}
                           placeholder={`1 ${getCurrencySymbol(companyData.currency)} = ? ₹`}
                         />
                         <CurrencyDollarIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                       </div>
-                      {fieldErrors.exchangerate && (
+                      {fieldErrors.exchangeRate && (
                         <span className="text-red-600 text-xs mt-0.5 flex items-center">
                           <XCircleIcon className="h-3 w-3 mr-0.5" />
-                          {fieldErrors.exchangerate}
+                          {fieldErrors.exchangeRate}
                         </span>
                       )}
-                      {!fieldErrors.exchangerate && companyData.exchangerate && !isNaN(companyData.exchangerate) && (
+                      {!fieldErrors.exchangeRate && companyData.exchangeRate && !isNaN(companyData.exchangeRate) && (
                         <p className="text-green-600 text-xs mt-0.5 flex items-center">
                           <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                          {getCurrencySymbol(companyData.currency)}1 = ₹{companyData.exchangerate}
+                          {getCurrencySymbol(companyData.currency)}1 = ₹{companyData.exchangeRate}
                         </p>
                       )}
                     </div>
@@ -1867,7 +1863,7 @@ const AddVendor = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {/* Contact Person Name */}
                   <div className="md:col-span-2 lg:col-span-1">
-                    <label htmlFor="contactPersonName" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="contactPerson" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       <span className="flex items-center">
                         <UserIcon className="h-3 w-3 mr-1 text-gray-400" />
                         Contact Person Name <span className="text-red-500 ml-0.5">*</span>
@@ -1876,22 +1872,22 @@ const AddVendor = () => {
                     <div className="relative">
                       <input
                         type="text"
-                        id="contactPersonName"
-                        name="contactPersonName"
-                        value={companyData.contactPersonName}
+                        id="contactPerson"
+                        name="contactPerson"
+                        value={companyData.contactPerson}
                         onChange={handleChange}
                         required
                         className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
-                          fieldErrors.contactPersonName ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                          fieldErrors.contactPerson ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                         }`}
                         placeholder="John Smith"
                       />
                       <UserIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
-                    {fieldErrors.contactPersonName && (
+                    {fieldErrors.contactPerson && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
                         <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.contactPersonName}
+                        {fieldErrors.contactPerson}
                       </span>
                     )}
                   </div>
@@ -1933,35 +1929,6 @@ const AddVendor = () => {
                       </p>
                     )}
                   </div>
-
-                  {/* Alternate Number */}
-                  <div className="md:col-span-2 lg:col-span-1">
-                    <label htmlFor="alternateNumber" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                      Alternate Number
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="tel"
-                        id="alternateNumber"
-                        name="alternateNumber"
-                        value={companyData.alternateNumber}
-                        onChange={handleChange}
-                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
-                          fieldErrors.alternateNumber ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                        placeholder="Optional 10-digit number"
-                        maxLength="10"
-                      />
-                      <PhoneIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                    </div>
-                    {fieldErrors.alternateNumber && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.alternateNumber}
-                      </span>
-                    )}
-                  </div>
-
                   {/* Email Address */}
                   <div className="md:col-span-2 lg:col-span-1">
                     <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
