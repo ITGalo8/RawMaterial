@@ -1,10 +1,9 @@
 // import React, { useState, useEffect } from 'react';
 // import Api from '../../auth/Api';
 // import { useNavigate } from 'react-router-dom';
-// import Button from '../../components/Button/Button';
 
 // const ShowPurchaseOrder = () => {
-//   // State declarations
+
 //   const [companies, setCompanies] = useState([]);
 //   const [purchaseOrders, setPurchaseOrders] = useState([]);
 //   const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
@@ -43,12 +42,103 @@
 //   });
 
 //   const handleReceivedStock = () => {
-//     if (!selectedOrderDetails) return;
+//     if (!selectedOrderDetails || !selectedOrder) {
+//       alert('Please select a purchase order first');
+//       return;
+//     }
     
-//     navigate('/ReceivedPurchaseStock', {
+//     navigate('/receive-purchase-stock', {
 //       state: {
 //         purchaseOrderId: selectedOrder,
+//         selectedOrderDetails
+//       }
+//     });
+//   };
+
+//   // Handle ReOrder - Navigate to CreatePurchaseOrder with pre-filled data
+//   const handleReOrder = () => {
+//     if (!selectedOrderDetails) {
+//       alert('Please select a purchase order first');
+//       return;
+//     }
+    
+//     // Check if order is in foreign currency
+//     const isForeignCurrency = selectedOrderDetails.currency === 'USD' || selectedOrderDetails.currency === 'EUR' || selectedOrderDetails.currency === 'GBP';
+    
+//     // Calculate item totals properly based on currency
+//     const reorderItems = selectedOrderDetails.items?.map(item => {
+//       // Use rateInForeign if available and currency is foreign
+//       let rate, itemTotal, itemAmount;
       
+//       if (isForeignCurrency && item.rateInForeign) {
+//         // For foreign currency orders
+//         rate = parseFloat(item.rateInForeign) || 0;
+//         itemAmount = parseFloat(item.amountInForeign) || 0;
+//         itemTotal = parseFloat(item.total) || 0; // This is in INR including GST
+//       } else {
+//         // For INR orders
+//         rate = parseFloat(item.rate) || 0;
+//         const quantity = parseFloat(item.quantity) || 1;
+//         itemAmount = rate * quantity;
+//         itemTotal = itemAmount; // Will be updated with GST
+//       }
+      
+//       const quantity = parseFloat(item.quantity) || 1;
+//       const itemGstRate = parseFloat(item.gstRate) || parseFloat(selectedOrderDetails.gstRate) || 0;
+      
+//       // Calculate GST and totals
+//       const taxableAmount = itemAmount;
+//       const gstAmount = (taxableAmount * itemGstRate) / 100;
+//       const totalAmount = taxableAmount + gstAmount;
+      
+//       return {
+//         id: item.id || item.itemId || '',
+//         itemId: item.itemId || item.id || '',
+//         itemName: item.itemName || item.name || '',
+//         hsnCode: item.hsnCode || '',
+//         modelNumber: item.modelNumber || '',
+//         unit: item.unit || 'Nos',
+//         rate: rate.toString(), // Use the appropriate rate
+//         rateInForeign: item.rateInForeign ? item.rateInForeign.toString() : '',
+//         amountInForeign: item.amountInForeign ? item.amountInForeign.toString() : '',
+//         quantity: item.quantity || '1',
+//         gstRate: itemGstRate,
+//         itemDetail: item.itemDetail || '',
+//         total: itemTotal.toString(),
+//         amount: taxableAmount.toString(),
+//         taxableAmount: taxableAmount.toString(),
+//         gstAmount: gstAmount.toString(),
+//         totalAmount: totalAmount.toString()
+//       };
+//     }) || [];
+    
+//     // Prepare data for reorder
+//     const reorderData = {
+//       companyId: selectedOrderDetails.companyId,
+//       vendorId: selectedOrderDetails.vendorId,
+//       companyName: selectedOrderDetails.companyName,
+//       vendorName: selectedOrderDetails.vendorName,
+//       gstType: selectedOrderDetails.gstType,
+//       gstRate: selectedOrderDetails.gstRate || "",
+//       currency: selectedOrderDetails.currency || 'INR',
+//       exchangeRate: selectedOrderDetails.exchangeRate || "1",
+//       paymentTerms: selectedOrderDetails.paymentTerms || "",
+//       deliveryTerms: selectedOrderDetails.deliveryTerms || "",
+//       warranty: selectedOrderDetails.warranty || "",
+//       contactPerson: selectedOrderDetails.contactPerson || "",
+//       cellNo: selectedOrderDetails.cellNo || "",
+//       poNumber: selectedOrderDetails.poNumber,
+//       poDate: selectedOrderDetails.poDate,
+//       items: reorderItems,
+//       otherCharges: selectedOrderDetails.otherCharges || []
+//     };
+    
+//     console.log('ReOrder Data being sent:', reorderData);
+    
+//     navigate('/create-purchase-order', {
+//       state: { 
+//         reorderData,
+//         source: 'reorder'
 //       }
 //     });
 //   };
@@ -72,6 +162,8 @@
 //     { value: "Approved", label: "Approved", color: "bg-green-100 text-green-800" },
 //     { value: "Completed", label: "Completed", color: "bg-purple-100 text-purple-800" },
 //     { value: "Cancelled", label: "Cancelled", color: "bg-red-100 text-red-800" },
+//     { value: "Received", label: "Received", color: "bg-emerald-100 text-emerald-800" },
+//     { value: "Update Order", label: "Update Order", color: "bg-amber-100 text-amber-800" },
 //   ];
 
 //   // GST Types
@@ -405,7 +497,6 @@
 //           contactPerson: selectedOrderDetails.contactPerson,
 //           cellNo: selectedOrderDetails.cellNo,
 //           warranty: selectedOrderDetails.warranty,
-//           // status: selectedOrderDetails.status,
 //           remarks: selectedOrderDetails.remarks
 //         },
 //         {
@@ -505,6 +596,25 @@
 //     });
 //   };
 
+//   // Format foreign currency
+//   const formatForeignCurrency = (amount, currency) => {
+//     if (!amount) return '0.00';
+//     const formattedAmount = parseFloat(amount).toLocaleString('en-IN', { 
+//       minimumFractionDigits: 2, 
+//       maximumFractionDigits: 2 
+//     });
+    
+//     if (currency === 'USD') {
+//       return `$${formattedAmount}`;
+//     } else if (currency === 'EUR') {
+//       return `€${formattedAmount}`;
+//     } else if (currency === 'GBP') {
+//       return `£${formattedAmount}`;
+//     } else {
+//       return `${currency} ${formattedAmount}`;
+//     }
+//   };
+
 //   // Get status color
 //   const getStatusColor = (status) => {
 //     const statusOption = statusOptions.find(s => s.value === status);
@@ -524,6 +634,12 @@
 
 //   // Calculate totals for selected order
 //   const totals = selectedOrderDetails ? calculateTotals(selectedOrderDetails) : {};
+
+//   // Check if currency is foreign
+//   const isForeignCurrency = selectedOrderDetails && 
+//     (selectedOrderDetails.currency === 'USD' || 
+//      selectedOrderDetails.currency === 'EUR' || 
+//      selectedOrderDetails.currency === 'GBP');
 
 //   return (
 //     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -642,20 +758,56 @@
 //                         <span className="text-sm text-gray-600">
 //                           Vendor: {selectedOrderDetails.vendorName}
 //                         </span>
+//                         {isForeignCurrency && (
+//                           <span className="text-sm px-3 py-1 rounded-full font-medium bg-indigo-100 text-indigo-800">
+//                             Currency: {selectedOrderDetails.currency}
+//                           </span>
+//                         )}
 //                       </div>
 //                     </div>
 //                   </div>
                   
 //                   <div className="flex flex-col sm:flex-row gap-3">
-//                     <button 
-//                       className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium flex items-center justify-center"
-//                       onClick={() => prepareUpdateForm(selectedOrderDetails)}
-//                     >
-//                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-//                       </svg>
-//                       Update Order
-//                     </button>
+//                     {/* Conditionally show "Receive Stock" button only if status is not "Fully Received" or "Update Order" */}
+//                     {selectedOrderDetails.status !== 'Received' && selectedOrderDetails.status !== 'Update Order' && (
+//                       <button 
+//                         className="px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+//                         onClick={handleReceivedStock}
+//                         disabled={detailsLoading}
+//                       >
+//                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+//                         </svg>
+//                         Receive Stock
+//                       </button>
+//                     )}
+                    
+//                     {/* Conditionally show "Update Order" button only if status is not "Update Order" AND not "Received" */}
+//                     {selectedOrderDetails.status !== 'Update Order' && selectedOrderDetails.status !== 'Received' && (
+//                       <button 
+//                         className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium flex items-center justify-center"
+//                         onClick={() => prepareUpdateForm(selectedOrderDetails)}
+//                       >
+//                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+//                         </svg>
+//                         Update Order
+//                       </button>
+//                     )}
+
+//                     {/* ReOrder Button - Always visible for all statuses except maybe "Update Order" */}
+//                     {selectedOrderDetails.status !== 'Update Order' && (
+//                       <button 
+//                         className="px-5 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all duration-200 font-medium flex items-center justify-center"
+//                         onClick={handleReOrder}
+//                       >
+//                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+//                         </svg>
+//                         ReOrder
+//                       </button>
+//                     )}
+                    
 //                     <button 
 //                       className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
 //                       onClick={handleDownload}
@@ -675,13 +827,6 @@
 //                         </>
 //                       )}
 //                     </button>
-
-//                     <Button
-//                       variant="success"
-//                       onClick={handleReceivedStock}
-//                     >
-//                       Receive Stock
-//                     </Button>
 //                   </div>
 //                 </div>
 //               </div>
@@ -727,6 +872,10 @@
 //                         <div className="text-base font-semibold text-gray-900">{selectedOrderDetails.currency || 'N/A'}</div>
 //                       </div>
 //                       <div>
+//                         <label className="block text-sm font-medium text-gray-600 mb-2">Exchange Rate</label>
+//                         <div className="text-base font-semibold text-gray-900">{selectedOrderDetails.exchangeRate || '1'}</div>
+//                       </div>
+//                       <div>
 //                         <label className="block text-sm font-medium text-gray-600 mb-2">Payment Terms</label>
 //                         <div className="text-base font-semibold text-gray-900">{selectedOrderDetails.paymentTerms || 'N/A'}</div>
 //                       </div>
@@ -750,9 +899,16 @@
 //                         </svg>
 //                         Item Details
 //                       </h3>
-//                       <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
-//                         {selectedOrderDetails.items?.length || 0} Items
-//                       </span>
+//                       <div className="flex items-center gap-4">
+//                         {isForeignCurrency && (
+//                           <span className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold">
+//                             {selectedOrderDetails.currency} Currency
+//                           </span>
+//                         )}
+//                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
+//                           {selectedOrderDetails.items?.length || 0} Items
+//                         </span>
+//                       </div>
 //                     </div>
                     
 //                     <div className="space-y-4">
@@ -769,8 +925,15 @@
 //                                   <p className="text-sm text-gray-600">HSN: {item.hsnCode || 'N/A'}</p>
 //                                 </div>
 //                               </div>
-//                               <div className="text-lg font-bold text-blue-600">
-//                                 ₹{formatCurrency(item.total)}
+//                               <div className="text-right">
+//                                 <div className="text-lg font-bold text-blue-600">
+//                                   ₹{formatCurrency(item.total)}
+//                                 </div>
+//                                 {isForeignCurrency && item.amountInForeign && (
+//                                   <div className="text-sm font-semibold text-indigo-600">
+//                                     {formatForeignCurrency(item.amountInForeign, selectedOrderDetails.currency)}
+//                                   </div>
+//                                 )}
 //                               </div>
 //                             </div>
                             
@@ -784,14 +947,41 @@
 //                                 <div className="font-medium text-gray-900">{item.quantity || '0'}</div>
 //                               </div>
 //                               <div>
-//                                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Rate</label>
-//                                 <div className="font-medium text-gray-900">₹{formatCurrency(item.rate)}</div>
+//                                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                                   Rate {isForeignCurrency ? `(${selectedOrderDetails.currency})` : '(₹)'}
+//                                 </label>
+//                                 <div className="font-medium text-gray-900">
+//                                   {isForeignCurrency 
+//                                     ? formatForeignCurrency(item.rateInForeign || item.rate, selectedOrderDetails.currency)
+//                                     : `₹${formatCurrency(item.rate)}`
+//                                   }
+//                                 </div>
 //                               </div>
 //                               <div>
 //                                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Model</label>
 //                                 <div className="font-medium text-gray-900">{item.modelNumber || 'N/A'}</div>
 //                               </div>
 //                             </div>
+                            
+//                             {/* Show amountInForeign for foreign currency */}
+//                             {isForeignCurrency && item.amountInForeign && (
+//                               <div className="mb-3 p-3 bg-indigo-50 rounded-lg">
+//                                 <div className="grid grid-cols-2 gap-4">
+//                                   <div>
+//                                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Amount in {selectedOrderDetails.currency}</label>
+//                                     <div className="font-semibold text-indigo-700">
+//                                       {formatForeignCurrency(item.amountInForeign, selectedOrderDetails.currency)}
+//                                     </div>
+//                                   </div>
+//                                   <div>
+//                                     <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Amount in INR</label>
+//                                     <div className="font-semibold text-gray-900">
+//                                       ₹{formatCurrency((parseFloat(item.amountInForeign) || 0) * (parseFloat(selectedOrderDetails.exchangeRate) || 1))}
+//                                     </div>
+//                                   </div>
+//                                 </div>
+//                               </div>
+//                             )}
                             
 //                             {item.itemDetail && (
 //                               <div className="mt-3 pt-3 border-t border-gray-100">
@@ -842,40 +1032,6 @@
 //                       </div>
 //                     </div>
 //                   )}
-
-//                   {/* Order Summary */}
-//                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-100 p-6">
-//                     <h3 className="text-lg font-semibold text-gray-800 mb-6">Order Summary</h3>
-                    
-//                     <div className="space-y-3">
-//                       <div className="flex justify-between items-center py-2 border-b border-blue-100">
-//                         <span className="text-gray-600">Items Total</span>
-//                         <span className="font-semibold text-gray-900">₹{formatCurrency(totals.itemsTotal)}</span>
-//                       </div>
-                      
-//                       {totals.otherChargesTotal > 0 && (
-//                         <div className="flex justify-between items-center py-2 border-b border-blue-100">
-//                           <span className="text-gray-600">Other Charges</span>
-//                           <span className="font-semibold text-gray-900">₹{formatCurrency(totals.otherChargesTotal)}</span>
-//                         </div>
-//                       )}
-                      
-//                       <div className="flex justify-between items-center py-2 border-b border-blue-200">
-//                         <span className="font-medium text-gray-700">Subtotal</span>
-//                         <span className="font-semibold text-gray-900">₹{formatCurrency(totals.subtotal)}</span>
-//                       </div>
-                      
-//                       <div className="flex justify-between items-center py-2 border-b border-blue-100">
-//                         <span className="text-gray-600">GST ({selectedOrderDetails.gstRate || '0'}%)</span>
-//                         <span className="font-semibold text-gray-900">₹{formatCurrency(totals.gstAmount)}</span>
-//                       </div>
-                      
-//                       <div className="flex justify-between items-center pt-4">
-//                         <span className="text-xl font-bold text-gray-900">Grand Total</span>
-//                         <span className="text-2xl font-bold text-blue-600">₹{formatCurrency(totals.grandTotal)}</span>
-//                       </div>
-//                     </div>
-//                   </div>
 
 //                   {/* Remarks Section */}
 //                   {selectedOrderDetails.remarks && (
@@ -1442,7 +1598,6 @@
 
 // export default ShowPurchaseOrder;
 
-
 import React, { useState, useEffect } from 'react';
 import Api from '../../auth/Api';
 import { useNavigate } from 'react-router-dom';
@@ -1751,6 +1906,55 @@ const ShowPurchaseOrder = () => {
     fetchItems();
   };
 
+  // Handle item input changes with automatic calculation
+  const handleItemChange = (index, field, value) => {
+    const updatedItems = [...formData.items];
+    const currentItem = { ...updatedItems[index] };
+    
+    // Update the changed field
+    currentItem[field] = value;
+    
+    // Get numeric values
+    const quantity = parseFloat(currentItem.quantity) || 0;
+    const rate = parseFloat(currentItem.rate) || 0;
+    const total = parseFloat(currentItem.total) || 0;
+    
+    // Calculate the missing field based on which two fields are provided
+    if (field === 'quantity') {
+      // If quantity changed, calculate total if rate is available
+      if (rate > 0 && quantity > 0) {
+        currentItem.total = (rate * quantity).toFixed(2);
+      } else if (total > 0 && quantity > 0) {
+        // If total and quantity are available, calculate rate
+        currentItem.rate = (total / quantity).toFixed(2);
+      }
+    } else if (field === 'rate') {
+      // If rate changed, calculate total if quantity is available
+      if (quantity > 0 && rate > 0) {
+        currentItem.total = (rate * quantity).toFixed(2);
+      } else if (total > 0 && rate > 0) {
+        // If total and rate are available, calculate quantity
+        currentItem.quantity = Math.round(total / rate).toString();
+      }
+    } else if (field === 'total') {
+      // If total changed, calculate rate if quantity is available
+      if (quantity > 0 && total > 0) {
+        currentItem.rate = (total / quantity).toFixed(2);
+      } else if (rate > 0 && total > 0) {
+        // If total and rate are available, calculate quantity
+        currentItem.quantity = Math.round(total / rate).toString();
+      }
+    }
+    
+    // Update the item in the array
+    updatedItems[index] = currentItem;
+    
+    setFormData(prev => ({
+      ...prev,
+      items: updatedItems
+    }));
+  };
+
   // Handle update form submission
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
@@ -1798,27 +2002,6 @@ const ShowPurchaseOrder = () => {
     }));
   };
 
-  // Handle item input changes
-  const handleItemChange = (index, field, value) => {
-    const updatedItems = [...formData.items];
-    updatedItems[index] = {
-      ...updatedItems[index],
-      [field]: value
-    };
-    
-    // Calculate total if rate or quantity changes
-    if (field === 'rate' || field === 'quantity') {
-      const rate = parseFloat(updatedItems[index].rate) || 0;
-      const quantity = parseFloat(updatedItems[index].quantity) || 0;
-      updatedItems[index].total = (rate * quantity).toString();
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      items: updatedItems
-    }));
-  };
-
   // Handle item selection from dropdown
   const handleItemSelect = (index, selectedItem) => {
     const updatedItems = [...formData.items];
@@ -1837,7 +2020,7 @@ const ShowPurchaseOrder = () => {
     // Calculate total after item selection
     const rate = parseFloat(updatedItems[index].rate) || 0;
     const quantity = parseFloat(updatedItems[index].quantity) || 1;
-    updatedItems[index].total = (rate * quantity).toString();
+    updatedItems[index].total = (rate * quantity).toFixed(2);
     
     setFormData(prev => ({
       ...prev,
@@ -2886,6 +3069,7 @@ const ShowPurchaseOrder = () => {
                                 onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                 min="1"
+                                step="0.01"
                                 required
                               />
                             </div>
@@ -2907,11 +3091,17 @@ const ShowPurchaseOrder = () => {
 
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Total
+                                Total <span className="text-red-500">*</span>
                               </label>
-                              <div className="px-4 py-2.5 border border-gray-300 bg-gray-50 rounded-lg text-gray-900 font-semibold">
-                                ₹{formatCurrency(item.total || (parseFloat(item.rate || 0) * parseFloat(item.quantity || 0)))}
-                              </div>
+                              <input
+                                type="number"
+                                value={item.total}
+                                onChange={(e) => handleItemChange(index, 'total', e.target.value)}
+                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                step="0.01"
+                                min="0"
+                                required
+                              />
                             </div>
                           </div>
                           
