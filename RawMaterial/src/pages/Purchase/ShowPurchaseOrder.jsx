@@ -1636,6 +1636,7 @@ const ShowPurchaseOrder = () => {
     cellNo: '',
     gstRate: '',
     currency: '',
+    exchangeRate: '1',
     warranty: '',
     status: '',
     remarks: ''
@@ -1850,6 +1851,15 @@ const ShowPurchaseOrder = () => {
     { value: "LGST_ITEMWISE", label: "LGST Itemwise" },
   ];
 
+  const currencyOptions = [
+    { value: 'INR', label: 'INR' },
+    { value: 'USD', label: 'USD' },
+    { value: 'CNY', label: 'CNY'},
+    { value: 'EUR', label: 'EUR' },
+    { value: 'GBP', label: 'GBP' },
+    { value: 'AED', label: 'AED' },
+  ];
+
   // Filtered items based on search
   const filteredItems = items.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1953,7 +1963,6 @@ const ShowPurchaseOrder = () => {
         total: item.total || ''
       })) : [],
       otherCharges: orderDetails.otherCharges ? orderDetails.otherCharges.map(charge => ({
-        id: charge.id || '',
         name: charge.name || '',
         amount: charge.amount || ''
       })) : [],
@@ -1964,7 +1973,8 @@ const ShowPurchaseOrder = () => {
       contactPerson: orderDetails.contactPerson || '',
       cellNo: orderDetails.cellNo || '',
       gstRate: orderDetails.gstRate || '',
-      currency: orderDetails.currency || '',
+      currency: orderDetails.currency || 'INR',
+      exchangeRate: orderDetails.exchangeRate || '1',
       warranty: orderDetails.warranty || '',
       status: orderDetails.status || '',
       remarks: orderDetails.remarks || ''
@@ -1991,15 +2001,15 @@ const ShowPurchaseOrder = () => {
     if (field === 'quantity') {
       // If quantity changed, calculate total if rate is available
       if (rate > 0 && quantity > 0) {
-        currentItem.total = (rate * quantity).toFixed(4);
+        currentItem.total = (rate * quantity).toFixed(3);
       } else if (total > 0 && quantity > 0) {
         // If total and quantity are available, calculate rate
-        currentItem.rate = (total / quantity).toFixed(4);
+        currentItem.rate = (total / quantity).toFixed(3);
       }
     } else if (field === 'rate') {
       // If rate changed, calculate total if quantity is available
       if (quantity > 0 && rate > 0) {
-        currentItem.total = (rate * quantity).toFixed(4);
+        currentItem.total = (rate * quantity).toFixed(3);
       } else if (total > 0 && rate > 0) {
         // If total and rate are available, calculate quantity
         currentItem.quantity = Math.round(total / rate).toString();
@@ -2007,7 +2017,7 @@ const ShowPurchaseOrder = () => {
     } else if (field === 'total') {
       // If total changed, calculate rate if quantity is available
       if (quantity > 0 && total > 0) {
-        currentItem.rate = (total / quantity).toFixed(4);
+        currentItem.rate = (total / quantity).toFixed(3);
       } else if (rate > 0 && total > 0) {
         // If total and rate are available, calculate quantity
         currentItem.quantity = Math.round(total / rate).toString();
@@ -2064,10 +2074,19 @@ const ShowPurchaseOrder = () => {
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    if (name === 'currency' && value === 'INR') {
+      setFormData(prev => ({
+        ...prev,
+        currency: value,
+        exchangeRate: '1'
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   // Handle item selection from dropdown
@@ -2088,7 +2107,7 @@ const ShowPurchaseOrder = () => {
     // Calculate total after item selection
     const rate = parseFloat(updatedItems[index].rate) || 0;
     const quantity = parseFloat(updatedItems[index].quantity) || 1;
-    updatedItems[index].total = (rate * quantity).toFixed(4);
+    updatedItems[index].total = (rate * quantity).toFixed(3);
     
     setFormData(prev => ({
       ...prev,
@@ -2152,7 +2171,6 @@ const ShowPurchaseOrder = () => {
       otherCharges: [
         ...prev.otherCharges,
         {
-          id: '',
           name: '',
           amount: ''
         }
@@ -2188,6 +2206,7 @@ const ShowPurchaseOrder = () => {
           gstRate: selectedOrderDetails.gstRate,
           gstType: selectedOrderDetails.gstType,
           currency: selectedOrderDetails.currency,
+          exchangeRate: selectedOrderDetails.exchangeRate,
           paymentTerms: selectedOrderDetails.paymentTerms,
           deliveryTerms: selectedOrderDetails.deliveryTerms,
           contactPerson: selectedOrderDetails.contactPerson,
@@ -2240,20 +2259,65 @@ const ShowPurchaseOrder = () => {
 
   // Calculate totals
   const calculateTotals = (orderDetails) => {
-    if (!orderDetails) return {};
-    
-    const itemsTotal = orderDetails.items?.reduce((sum, item) => sum + parseFloat(item.total || 0), 0) || 0;
-    const otherChargesTotal = orderDetails.otherCharges?.reduce((sum, charge) => sum + parseFloat(charge.amount || 0), 0) || 0;
+    if (!orderDetails) {
+      return {
+        itemsTotal: 0,
+        otherChargesTotal: 0,
+        subtotal: 0,
+        gstAmount: 0,
+        grandTotal: 0,
+      };
+    }
+
+    // First, check if the API already provides the totals
+    if (orderDetails.subTotal && orderDetails.grandTotal) {
+      const itemsTotal = (orderDetails.items || []).reduce(
+        (sum, item) => sum + Number(item.total || 0),
+        0
+      );
+
+      const otherChargesTotal = (orderDetails.otherCharges || []).reduce(
+        (sum, charge) => sum + Number(charge.amount || 0),
+        0
+      );
+
+      const subtotal = Number(orderDetails.subTotal);
+      const grandTotal = Number(orderDetails.grandTotal);
+      const gstAmount = grandTotal - subtotal;
+
+      return {
+        itemsTotal: Number(itemsTotal.toFixed(3)),
+        otherChargesTotal: Number(otherChargesTotal.toFixed(3)),
+        subtotal: Number(subtotal.toFixed(3)),
+        gstAmount: Number(gstAmount.toFixed(3)),
+        grandTotal: Number(grandTotal.toFixed(3)),
+      };
+    }
+
+    // Fallback to the original calculation
+    const itemsTotal = (orderDetails.items || []).reduce(
+      (sum, item) => sum + Number(item.total || 0),
+      0
+    );
+
+    const otherChargesTotal = (orderDetails.otherCharges || []).reduce(
+      (sum, charge) => sum + Number(charge.amount || 0),
+      0
+    );
+
     const subtotal = itemsTotal + otherChargesTotal;
-    const gstAmount = (subtotal * parseFloat(orderDetails.gstRate || 0)) / 100;
-    const grandTotal = subtotal + gstAmount;
     
+    const gstRate = Number(orderDetails.gstRate || 0);
+    const gstAmount = (subtotal * gstRate) / 100;
+    
+    const grandTotal = subtotal + gstAmount;
+
     return {
-      itemsTotal,
-      otherChargesTotal,
-      subtotal,
-      gstAmount,
-      grandTotal
+      itemsTotal: Number(itemsTotal.toFixed(3)),
+      otherChargesTotal: Number(otherChargesTotal.toFixed(3)),
+      subtotal: Number(subtotal.toFixed(3)),
+      gstAmount: Number(gstAmount.toFixed(3)),
+      grandTotal: Number(grandTotal.toFixed(3)),
     };
   };
 
@@ -2306,6 +2370,10 @@ const ShowPurchaseOrder = () => {
       return `€${formattedAmount}`;
     } else if (currency === 'GBP') {
       return `£${formattedAmount}`;
+    } else if (currency === 'CNY') {
+      return `¥${formattedAmount}`;
+    } else if (currency === 'AED') {
+      return `د.إ${formattedAmount}`;
     } else {
       return `${currency} ${formattedAmount}`;
     }
@@ -2328,6 +2396,16 @@ const ShowPurchaseOrder = () => {
     fetchCompanies();
   }, []);
 
+  // Effect to set exchange rate to 1 when currency is INR
+  useEffect(() => {
+    if (formData.currency === 'INR') {
+      setFormData(prev => ({
+        ...prev,
+        exchangeRate: '1'
+      }));
+    }
+  }, [formData.currency]);
+
   // Calculate totals for selected order
   const totals = selectedOrderDetails ? calculateTotals(selectedOrderDetails) : {};
 
@@ -2335,7 +2413,9 @@ const ShowPurchaseOrder = () => {
   const isForeignCurrency = selectedOrderDetails && 
     (selectedOrderDetails.currency === 'USD' || 
      selectedOrderDetails.currency === 'EUR' || 
-     selectedOrderDetails.currency === 'GBP');
+     selectedOrderDetails.currency === 'GBP' ||
+     selectedOrderDetails.currency === 'CNY' ||
+     selectedOrderDetails.currency === 'AED');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -2613,7 +2693,7 @@ const ShowPurchaseOrder = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">Currency</label>
-                        <div className="text-base font-semibold text-gray-900">{selectedOrderDetails.currency || 'N/A'}</div>
+                        <div className="text-base font-semibold text-gray-900">{selectedOrderDetails.currency || 'INR'}</div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">Exchange Rate</label>
@@ -2669,16 +2749,6 @@ const ShowPurchaseOrder = () => {
                                   <p className="text-sm text-gray-600">HSN: {item.hsnCode || 'N/A'}</p>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <div className="text-lg font-bold text-blue-600">
-                                  ₹{formatCurrency(item.total)}
-                                </div>
-                                {isForeignCurrency && item.amountInForeign && (
-                                  <div className="text-sm font-semibold text-indigo-600">
-                                    {formatForeignCurrency(item.amountInForeign, selectedOrderDetails.currency)}
-                                  </div>
-                                )}
-                              </div>
                             </div>
                             
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -2690,7 +2760,7 @@ const ShowPurchaseOrder = () => {
                                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</label>
                                 <div className="font-medium text-gray-900">{item.quantity || '0'}</div>
                               </div>
-                              <div>
+                              {/* <div>
                                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
                                   Rate {isForeignCurrency ? `(${selectedOrderDetails.currency})` : '(₹)'}
                                 </label>
@@ -2700,7 +2770,7 @@ const ShowPurchaseOrder = () => {
                                     : `₹${formatCurrency(item.rate)}`
                                   }
                                 </div>
-                              </div>
+                              </div> */}
                               <div>
                                 <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Model</label>
                                 <div className="font-medium text-gray-900">{item.modelNumber || 'N/A'}</div>
@@ -2708,7 +2778,7 @@ const ShowPurchaseOrder = () => {
                             </div>
                             
                             {/* Show amountInForeign for foreign currency */}
-                            {isForeignCurrency && item.amountInForeign && (
+                            {/* {isForeignCurrency && item.amountInForeign && (
                               <div className="mb-3 p-3 bg-indigo-50 rounded-lg">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
@@ -2725,7 +2795,7 @@ const ShowPurchaseOrder = () => {
                                   </div>
                                 </div>
                               </div>
-                            )}
+                            )} */}
                             
                             {item.itemDetail && (
                               <div className="mt-3 pt-3 border-t border-gray-100">
@@ -2944,6 +3014,47 @@ const ShowPurchaseOrder = () => {
                           required
                         />
                       </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Currency <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          name="currency"
+                          value={formData.currency}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                          required
+                        >
+                          <option value="">Select Currency</option>
+                          {currencyOptions.map(option => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Exchange Rate <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          name="exchangeRate"
+                          value={formData.exchangeRate}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                          step="0.0001"
+                          min="0.0001"
+                          required
+                          disabled={formData.currency === 'INR'}
+                        />
+                        {formData.currency === 'INR' && (
+                          <p className="text-xs text-gray-500 mt-1">Exchange rate is automatically set to 1 for INR</p>
+                        )}
+                      </div>
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Payment Terms
@@ -3184,8 +3295,6 @@ const ShowPurchaseOrder = () => {
                                 value={item.quantity}
                                 onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                min="1"
-                                step="0.01"
                                 required
                               />
                             </div>
@@ -3199,8 +3308,6 @@ const ShowPurchaseOrder = () => {
                                 value={item.rate}
                                 onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
                                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                step="0.01"
-                                min="0"
                                 required
                               />
                             </div>
@@ -3214,8 +3321,6 @@ const ShowPurchaseOrder = () => {
                                 value={item.total}
                                 onChange={(e) => handleItemChange(index, 'total', e.target.value)}
                                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                step="0.01"
-                                min="0"
                                 required
                               />
                             </div>

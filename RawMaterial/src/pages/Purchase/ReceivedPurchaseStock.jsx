@@ -817,7 +817,7 @@ const ReceivedPurchaseStock = () => {
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Purchase Bill/Invoice Document
-                <span className="text-gray-500 font-normal ml-1">(Optional)</span>
+                {/* <span className="text-gray-500 font-normal ml-1">(Optional)</span> */}
               </label>
               <div className="flex items-center gap-3">
                 <label className="flex-1">

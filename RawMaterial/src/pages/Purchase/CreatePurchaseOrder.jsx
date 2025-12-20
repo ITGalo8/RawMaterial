@@ -2175,6 +2175,7 @@ const CreatePurchaseOrder = () => {
                         placeholder="0"
                         inputMode="numeric"
                         pattern="[0-9]*"
+                        disabled={!item.quantity.toString().length >= 1}
                       />
                       <p className="mt-1 text-xs text-gray-500">Enter rate per unit</p>
                     </div>
@@ -2199,6 +2200,7 @@ const CreatePurchaseOrder = () => {
                         placeholder="0"
                         inputMode="numeric"
                         pattern="[0-9]*"
+                        disabled={!item.quantity.toString().length >= 1}
                       />
                       <p className="mt-1 text-xs text-gray-500">Total without GST</p>
                     </div>
