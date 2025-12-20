@@ -2045,7 +2045,7 @@ const ShowPurchaseOrder = () => {
     setUpdateLoading(true);
     try {
       const response = await Api.put(
-        `/purchase/purchase-orders/update2/${selectedOrder}`,
+        `/purchase/purchase-orders/update/${selectedOrder}`,
         formData
       );
       
@@ -2194,7 +2194,7 @@ const ShowPurchaseOrder = () => {
     setDownloadLoading(true);
     try {
       const response = await Api.post(
-        `/purchase/purchase-orders/download2/${selectedOrder}`,
+        `/purchase/purchase-orders/download/${selectedOrder}`,
         {
           orderId: selectedOrder,
           poNumber: selectedOrderDetails.poNumber,
