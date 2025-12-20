@@ -1540,14 +1540,14 @@ const CreatePurchaseOrder = () => {
           return {
             ...updatedItem,
             rate: value,
-            amount: Number(newAmount)
+            amount: Number(newAmount.toFixed(3))
           }
         }
         if(field === "amount"){
           const newRate = Number(value) / Number(updatedItem.quantity);
           return {
             ...updatedItem,
-            rate:Number(newRate),
+            rate:Number(newRate.toFixed(3)),
             amount: value
           }
         }
@@ -1558,23 +1558,9 @@ const CreatePurchaseOrder = () => {
           return {
             ...updatedItem,
             quantity: value,
-            amount : Number(newAmount)
+            amount : Number(newAmount.toFixed(3))
           }
         }
-        // if (field === 'rate' || field === 'quantity' || field === 'amount') {
-        //   console.log("in if condition")
-        //   const calculatedAmounts = calculateItemAmounts(updatedItem);
-        //   return { 
-        //     ...updatedItem, 
-        //     rate: calculatedAmounts.rate.toString(),
-        //     quantity: calculatedAmounts.quantity.toString(),
-        //     amount: calculatedAmounts.amount.toString(),
-        //     taxableAmount: calculatedAmounts.taxableAmount,
-        //     gstAmount: calculatedAmounts.gstAmount,
-        //     totalAmount: calculatedAmounts.totalAmount
-        //   };
-        // }
-        
         // For GST rate changes (only for itemwise GST)
         if (isItemWiseGST && field === 'gstRate') {
           const calculatedAmounts = calculateItemAmounts(updatedItem);
@@ -2159,8 +2145,8 @@ const CreatePurchaseOrder = () => {
                         onChange={(e) => {
                           const value = e.target.value;
                           // allow only digits
-                          if (/^\d*$/.test(value)) {
-                            updateItemDetail(item.id, 'quantity', value);
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            updateItemDetail(item.id, "quantity", value);
                           }
                         }}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
@@ -2181,8 +2167,8 @@ const CreatePurchaseOrder = () => {
                         onChange={(e) => {
                           const value = e.target.value;
                           // allow only digits
-                          if (/^\d*$/.test(value)) {
-                            updateItemDetail(item.id, 'rate', value);
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            updateItemDetail(item.id, "rate", value);
                           }
                         }}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
@@ -2205,7 +2191,7 @@ const CreatePurchaseOrder = () => {
                         onChange={(e) => {
                           const value = e.target.value;
                           // allow only digits
-                          if (/^\d*$/.test(value)) {
+                          if (/^\d*\.?\d*$/.test(value)) {
                             updateItemDetail(item.id, 'amount', value);
                           }
                         }}
