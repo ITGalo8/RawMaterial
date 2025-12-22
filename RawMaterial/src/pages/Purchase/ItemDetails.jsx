@@ -117,7 +117,7 @@ const ItemDetails = () => {
           <option value="">-- Select an item --</option>
           {items.map((item) => (
             <option key={item.id} value={item.id}>
-              {item.name} ({item.source})
+              {item.name}
             </option>
           ))}
         </select>
