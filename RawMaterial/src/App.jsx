@@ -36,6 +36,7 @@ import ReceivedPurchaseStock from "./pages/Purchase/ReceivedPurchaseStock";
 import DebitNot from "./pages/Purchase/DebitNot";
 import AddRawMaterial from "./pages/Purchase/AddRawMaterial";
 import ShowDebitNot from "./pages/Purchase/ShowDebitNot";
+import ItemDetails from "./pages/Purchase/ItemDetails";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -346,6 +347,15 @@ const AppRoutes = () => {
           }
         />
 
+         <Route
+          path="item-details"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <ItemDetails />
+            </ProtectedRoute>
+          }
+        />
+
           <Route
           path="receive-purchase-stock"
           element={
@@ -364,6 +374,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        
 
         {/* Pending Process - FIXED */}
         <Route

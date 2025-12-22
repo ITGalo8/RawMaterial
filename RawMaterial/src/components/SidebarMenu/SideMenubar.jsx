@@ -1,401 +1,3 @@
-// import React, { useState } from "react";
-// import { NavLink } from "react-router-dom";
-// import { useUser } from "../../Context/UserContext";
-// import {
-//   FaWarehouse,
-//   FaPlus,
-//   FaBox,
-//   FaCogs,
-//   FaClipboardList,
-//   FaUser,
-//   FaChevronDown,
-//   FaChevronUp,
-//   FaBuilding,
-//   FaSignOutAlt,
-// } from "react-icons/fa";
-
-// const SideMenubar = () => {
-//   const [openMenus, setOpenMenus] = useState({
-//     company: false,
-//     vendor: false,
-//     purchase: false,
-//   });
-
-//   const { user, logout } = useUser();
-
-//   const toggleMenu = (menu) => {
-//     setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
-//   };
-
-//   const lineWorkerRoles = [
-//     "SFG Work",
-//     "Assemble",
-//     "Disassemble",
-//     "Stamping",
-//     "Winding",
-//     "Winding Connection",
-//   ];
-
-//   const PendinglineWorkerRoles = [
-//     "SFG Work",
-//     "Assemble",
-//     "Disassemble",
-//     "Stamping",
-//     "Testing",
-//     "Winding",
-//     "Winding Connection",
-//   ];
-
-//   if (!user)
-//     return <div className="w-64 bg-gray-800 text-white h-screen p-4">Loading...</div>;
-
-//   return (
-//     <div className="w-64 text-white h-screen fixed left-0 top-0 overflow-y-auto flex flex-col 
-//         bg-gradient-to-b from-[#F9EA76] to-[#FFF9DD]">
-
-//       {/* User Profile */}
-//       <div className="bg-gray-700 border-b border-gray-600 p-4">
-//         <div className="flex items-center p-2 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
-//           <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mr-3">
-//             <FaUser className="text-white text-xl" />
-//           </div>
-//           <div className="flex-1">
-//             <div className="font-semibold text-white text-base">
-//               {user.name || user.email}
-//             </div>
-//             <div className="text-gray-300 text-sm capitalize">
-//               {user.role}
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Menu List */}
-//       <ul className="flex-1 py-5">
-
-//         {/* Line Worker Item Request */}
-//         {lineWorkerRoles.includes(user.role) && (
-//           <li>
-//             <NavLink
-//               to="Item-Request"
-//               className={({ isActive }) =>
-//                 `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                  border-l-4 border-transparent transition-all gap-3 ${
-//                    isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                  }`
-//               }
-//             >
-//               <FaWarehouse className="text-lg" />
-//               Item Request
-//             </NavLink>
-//           </li>
-//         )}
-
-//         {PendinglineWorkerRoles.includes(user.role) && (
-//           <li>
-//             <NavLink
-//               to="pending-process"
-//               className={({ isActive }) =>
-//                 `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                  border-l-4 border-transparent transition-all gap-3 ${
-//                    isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                  }`
-//               }
-//             >
-//               <FaWarehouse className="text-lg" />
-//               Pending Process
-//             </NavLink>
-//           </li>
-//         )}
-
-//         {(user.role === "SFG Work" || user.role === "Disassemble") && (
-//           <>
-//             <li>
-//               <NavLink
-//                 to="service-process-request"
-//                 className={({ isActive }) =>
-//                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                    border-l-4 border-transparent transition-all gap-3 ${
-//                      isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                    }`
-//                 }
-//               >
-//                 <FaCogs className="text-lg" />
-//                 Service Process Request
-//               </NavLink>
-//             </li>
-//           </>
-//         )}
-
-//         {/* Store Menu */}
-//         {user.role === "Store" && (
-//           <>
-//             <li>
-//               <NavLink
-//                 to="store-keeper"
-//                 className={({ isActive }) =>
-//                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                    border-l-4 border-transparent transition-all gap-3 ${
-//                      isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                    }`
-//                 }
-//               >
-//                 <FaClipboardList className="text-lg" />
-//                 Approval Request
-//               </NavLink>
-//             </li>
-
-//             <li>
-//               <NavLink
-//                 to="store-tracking"
-//                 className={({ isActive }) =>
-//                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                    border-l-4 border-transparent transition-all gap-3 ${
-//                      isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                    }`
-//                 }
-//               >
-//                 <FaClipboardList className="text-lg" />
-//                 Process Tracking
-//               </NavLink>
-//             </li>
-
-//             <li>
-//               <NavLink
-//                 to="user-stock-data"
-//                 className={({ isActive }) =>
-//                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                    border-l-4 border-transparent transition-all gap-3 ${
-//                      isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                    }`
-//                 }
-//               >
-//                 <FaBox className="text-lg" />
-//                 User Stock Data
-//               </NavLink>
-//             </li>
-
-//             <li>
-//               <NavLink
-//                 to="stock-update"
-//                 className={({ isActive }) =>
-//                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                    border-l-4 border-transparent transition-all gap-3 ${
-//                      isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                    }`
-//                 }
-//               >
-//                 <FaPlus className="text-lg" />
-//                 Stock Update
-//               </NavLink>
-//             </li>
-
-//             <li>
-//               <NavLink
-//                 to="stock-update-history"
-//                 className={({ isActive }) =>
-//                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                    border-l-4 border-transparent transition-all gap-3 ${
-//                      isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                    }`
-//                 }
-//               >
-//                 <FaClipboardList className="text-lg" />
-//                 Stock Update History
-//               </NavLink>
-//             </li>
-//           </>
-//         )}
-
-//         {/* Admin Dashboard */}
-//         {(user.role === "Superadmin" || user.role === "Admin") && (
-//           <li>
-//             <NavLink
-//               to="admin-dashboard"
-//               className={({ isActive }) =>
-//                 `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-//                  border-l-4 border-transparent transition-all gap-3 ${
-//                    isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                  }`
-//               }
-//             >
-//               <FaCogs className="text-lg" />
-//               Admin Dashboard
-//             </NavLink>
-//           </li>
-//         )}
-
-//         {/* Purchase Panel */}
-//         {user.role === "Purchase" && (
-//           <>
-//             {/* Company */}
-//             <li className="border-b border-gray-300">
-//               <div
-//                 className="flex items-center justify-between px-5 py-3 cursor-pointer 
-//                 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 border-transparent transition-all"
-//                 onClick={() => toggleMenu("company")}
-//               >
-//                 <span className="flex items-center gap-3 text-sm font-medium">
-//                   <FaBuilding className="text-lg" />
-//                   Company
-//                 </span>
-//                 <span className="text-gray-600 transition-transform">
-//                   {openMenus.company ? <FaChevronUp /> : <FaChevronDown />}
-//                 </span>
-//               </div>
-
-//               {openMenus.company && (
-//                 <ul className="bg-yellow-50">
-//                   <li>
-//                     <NavLink
-//                       to="add-company"
-//                       className={({ isActive }) =>
-//                         `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-//                          border-transparent transition-all relative text-sm ${
-//                            isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                          }`
-//                       }
-//                     >
-//                       Add Company
-//                     </NavLink>
-//                   </li>
-
-//                   <li>
-//                     <NavLink
-//                       to="update-company"
-//                       className={({ isActive }) =>
-//                         `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-//                          border-transparent transition-all relative text-sm ${
-//                            isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                          }`
-//                       }
-//                     >
-//                       Update Company
-//                     </NavLink>
-//                   </li>
-//                 </ul>
-//               )}
-//             </li>
-
-//             {/* Vendor */}
-//             <li className="border-b border-gray-300">
-//               <div
-//                 className="flex items-center justify-between px-5 py-3 cursor-pointer 
-//                 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 border-transparent transition-all"
-//                 onClick={() => toggleMenu("vendor")}
-//               >
-//                 <span className="flex items-center gap-3 text-sm font-medium">
-//                   <FaBuilding className="text-lg" />
-//                   Vendor
-//                 </span>
-//                 <span className="text-gray-600 transition-transform">
-//                   {openMenus.vendor ? <FaChevronUp /> : <FaChevronDown />}
-//                 </span>
-//               </div>
-
-//               {openMenus.vendor && (
-//                 <ul className="bg-yellow-50">
-//                   <li>
-//                     <NavLink
-//                       to="add-vendor"
-//                       className={({ isActive }) =>
-//                         `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-//                          border-transparent transition-all relative text-sm ${
-//                            isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                          }`
-//                       }
-//                     >
-//                       Add Vendor
-//                     </NavLink>
-//                   </li>
-
-//                   <li>
-//                     <NavLink
-//                       to="update-vendor"
-//                       className={({ isActive }) =>
-//                         `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-//                          border-transparent transition-all relative text-sm ${
-//                            isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                          }`
-//                       }
-//                     >
-//                       Update Vendor
-//                     </NavLink>
-//                   </li>
-//                 </ul>
-//               )}
-//             </li>
-
-//             {/* Purchase */}
-//             <li className="border-b border-gray-300">
-//               <div
-//                 className="flex items-center justify-between px-5 py-3 cursor-pointer 
-//                 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 border-transparent transition-all"
-//                 onClick={() => toggleMenu("purchase")}
-//               >
-//                 <span className="flex items-center gap-3 text-sm font-medium">
-//                   <FaBuilding className="text-lg" />
-//                   Purchase
-//                 </span>
-//                 <span className="text-gray-600 transition-transform">
-//                   {openMenus.purchase ? <FaChevronUp /> : <FaChevronDown />}
-//                 </span>
-//               </div>
-
-//               {openMenus.purchase && (
-//                 <ul className="bg-yellow-50">
-//                   <li>
-//                     <NavLink
-//                       to="create-purchase-order"
-//                       className={({ isActive }) =>
-//                         `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-//                          border-transparent transition-all relative text-sm ${
-//                            isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                          }`
-//                       }
-//                     >
-//                       Create Purchase Order
-//                     </NavLink>
-//                   </li>
-
-//                   <li>
-//                     <NavLink
-//                       to="show-purchase-orders"
-//                       className={({ isActive }) =>
-//                         `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-//                          border-transparent transition-all relative text-sm ${
-//                            isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-//                          }`
-//                       }
-//                     >
-//                       Show Purchase Orders
-//                     </NavLink>
-//                   </li>
-//                 </ul>
-//               )}
-//             </li>
-//           </>
-//         )}
-//       </ul>
-
-//       {/* Logout */}
-//       <div className="p-4 border-t border-gray-400 mt-auto">
-//         <button
-//           className="w-full bg-red-500 text-white border-none py-2 px-4 rounded 
-//           flex items-center justify-center gap-2 text-sm hover:bg-red-600 transition-colors"
-//           onClick={logout}
-//         >
-//           <FaSignOutAlt className="text-lg" />
-//           Logout
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SideMenubar;
-
-
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useUser } from "../../Context/UserContext";
@@ -419,6 +21,7 @@ const SideMenubar = () => {
     company: false,
     vendor: false,
     purchase: false,
+    Item: false,
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -700,23 +303,208 @@ const SideMenubar = () => {
             </>
           )}
 
-          {(user.role === "Purchase") && (
+          {user.role === "Purchase" && (
             <>
-              <li>
-                <NavLink
-                  to="add-raw-material"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
+              {/* Company */}
+              <li className="border-b border-gray-300">
+                <div
+                  className="flex items-center justify-between px-5 py-3 cursor-pointer 
+                  text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 border-transparent transition-all"
+                  onClick={() => toggleMenu("Item")}
                 >
-                  <FaCogs className="text-lg" />
-                  Add Raw Material
-                </NavLink>
+                  <span className="flex items-center gap-3 text-sm font-medium">
+                    <FaBuilding className="text-lg" />
+                    Item
+                  </span>
+                  <span className="text-gray-600 transition-transform">
+                    {openMenus.Item ? <FaChevronUp /> : <FaChevronDown />}
+                  </span>
+                </div>
+
+                {openMenus.Item && (
+                  <ul className="bg-yellow-50">
+                    <li>
+                      <NavLink
+                        to="add-raw-material"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                         Add Raw Material
+                      </NavLink>
+                    </li>
+
+                     <li>
+                      <NavLink
+                        to="item-details"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Item Detail
+                      </NavLink>
+                    </li>
+
+                  </ul>
+                )}
               </li>
+
+              {/* Vendor */}
+              {/* <li className="border-b border-gray-300">
+                <div
+                  className="flex items-center justify-between px-5 py-3 cursor-pointer 
+                  text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 border-transparent transition-all"
+                  onClick={() => toggleMenu("vendor")}
+                >
+                  <span className="flex items-center gap-3 text-sm font-medium">
+                    <FaBuilding className="text-lg" />
+                    Vendor
+                  </span>
+                  <span className="text-gray-600 transition-transform">
+                    {openMenus.vendor ? <FaChevronUp /> : <FaChevronDown />}
+                  </span>
+                </div>
+
+                {openMenus.vendor && (
+                  <ul className="bg-yellow-50">
+                    <li>
+                      <NavLink
+                        to="add-vendor"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Add Vendor
+                      </NavLink>
+                    </li>
+
+                    <li>
+                      <NavLink
+                        to="update-vendor"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Update Vendor
+                      </NavLink>
+                    </li>
+
+                     <li>
+                      <NavLink
+                        to="active-deactivate-vendor"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        All Vendor
+                      </NavLink>
+                    </li>
+                  </ul>
+                )}
+              </li> */}
+
+              {/* Purchase */}
+              {/* <li className="border-b border-gray-300">
+                <div
+                  className="flex items-center justify-between px-5 py-3 cursor-pointer 
+                  text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 border-transparent transition-all"
+                  onClick={() => toggleMenu("purchase")}
+                >
+                  <span className="flex items-center gap-3 text-sm font-medium">
+                    <FaBuilding className="text-lg" />
+                    Purchase
+                  </span>
+                  <span className="text-gray-600 transition-transform">
+                    {openMenus.purchase ? <FaChevronUp /> : <FaChevronDown />}
+                  </span>
+                </div>
+
+                {openMenus.purchase && (
+                  <ul className="bg-yellow-50">
+                    <li>
+                      <NavLink
+                        to="create-purchase-order"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Create Purchase Order
+                      </NavLink>
+                    </li>
+
+                    <li>
+                      <NavLink
+                        to="show-purchase-orders"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Show Purchase Orders
+                      </NavLink>
+                    </li>
+
+                     <li>
+                      <NavLink
+                        to="debit-not"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Debit Not
+                      </NavLink>
+                    </li>
+
+                    <li>
+                      <NavLink
+                        to="show-debit-not"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Show Debit Not History
+                      </NavLink>
+                    </li>
+
+                    
+                  </ul>
+                )}
+              </li> */}
             </>
           )}
 
