@@ -2744,7 +2744,6 @@
 // export default CreatePurchaseOrder;
 
 
-
 import React, { useState, useEffect } from "react";
 import Api from "../../auth/Api";
 import { useLocation } from "react-router-dom";
@@ -2807,10 +2806,6 @@ const CreatePurchaseOrder = () => {
   // Add state for tracking loading status for individual items
   const [loadingItems, setLoadingItems] = useState({});
 
-  // State for search functionality
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredItems, setFilteredItems] = useState([]);
-
   // Make unitTypes state modifiable
   const [unitTypes, setUnitTypes] = useState([
     { value: "Nos", label: "Nos" },
@@ -2862,27 +2857,6 @@ const CreatePurchaseOrder = () => {
     const rateMatch = selectedGstType.match(/(\d+)/);
     return rateMatch ? parseFloat(rateMatch[1]) : 0;
   };
-
-  // Filter items based on search term
-  useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredItems(itemList);
-    } else {
-      const filtered = itemList.filter(item =>
-        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.hsnCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.modelNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredItems(filtered);
-    }
-  }, [searchTerm, itemList]);
-
-  // Initialize filtered items when itemList loads
-  useEffect(() => {
-    if (itemList.length > 0) {
-      setFilteredItems(itemList);
-    }
-  }, [itemList]);
 
   // Add useEffect to handle adding custom units from API responses
   useEffect(() => {
@@ -3062,7 +3036,7 @@ const CreatePurchaseOrder = () => {
           selectedItem: foundItem?.id || "",
           hsnCode: foundItem?.hsnCode || item.hsnCode || "",
           modelNumber: foundItem?.modelNumber || item.modelNumber || "",
-          selectedUnit: foundItem?.unit || item.unit || "Nos",
+          selectedUnit: foundItem?.unit || item.unit || "", // Changed from "Nos" to empty string
           rate: rate.toString(),
           quantity: quantity.toString(),
           gstRate: itemGstRate.toString(),
@@ -3228,10 +3202,12 @@ const CreatePurchaseOrder = () => {
     };
   };
 
-  // Updated handleItemSelect with proper API unit handling for empty strings
+  // Updated handleItemSelect with proper unit reset when item changes
   const handleItemSelect = async (id, itemId) => {
+    console.log(`Item changed: ${itemId} for item ${id}`);
+    
     if (!itemId) {
-      // If item is cleared, reset the fields
+      // If item is cleared, reset all fields including unit
       setItemDetails(
         itemDetails.map((item) => {
           if (item.id === id) {
@@ -3240,7 +3216,7 @@ const CreatePurchaseOrder = () => {
               selectedItem: "",
               hsnCode: "",
               modelNumber: "",
-              selectedUnit: "",
+              selectedUnit: "", // Reset unit to empty
               rate: "",
               itemDetail: "",
             };
@@ -3260,17 +3236,17 @@ const CreatePurchaseOrder = () => {
       setLoadingItems((prev) => ({ ...prev, [id]: true }));
 
       try {
-        // First, update with basic information from itemList
+        // First, update with basic information from itemList - RESET UNIT TO EMPTY
         let updatedItemDetails = itemDetails.map((item) => {
           if (item.id === id) {
             const updatedItem = {
               ...item,
               selectedItem: itemId,
-              hsnCode: selectedItemData.hsnCode || item.hsnCode,
-              modelNumber: selectedItemData.modelNumber || item.modelNumber,
-              selectedUnit: selectedItemData.unit || item.selectedUnit,
-              rate: selectedItemData.rate || item.rate,
-              itemDetail: selectedItemData.itemDetail || item.itemDetail,
+              hsnCode: selectedItemData.hsnCode || "",
+              modelNumber: selectedItemData.modelNumber || "",
+              selectedUnit: "", // RESET TO EMPTY - will be updated by API
+              rate: selectedItemData.rate || "",
+              itemDetail: selectedItemData.itemDetail || "",
             };
 
             const calculatedAmounts = calculateItemAmounts(updatedItem);
@@ -3300,17 +3276,21 @@ const CreatePurchaseOrder = () => {
             setItemDetails((prevItemDetails) =>
               prevItemDetails.map((item) => {
                 if (item.id === id) {
-                  // Use API's unit if available and not empty, otherwise keep existing
+                  // Use API's unit if available and not empty, otherwise keep empty
                   const apiUnit = detailedItem.unit;
-                  const newUnit = apiUnit !== undefined && apiUnit !== null && apiUnit.toString().trim() !== "" 
-                    ? apiUnit.toString().trim() 
-                    : item.selectedUnit;
+                  let newUnit = "";
                   
-                  // Use API's description if available and not empty, otherwise keep existing
+                  if (apiUnit !== undefined && apiUnit !== null && apiUnit.toString().trim() !== "") {
+                    newUnit = apiUnit.toString().trim();
+                  }
+                  
+                  // Use API's description if available and not empty, otherwise keep empty
                   const apiDescription = detailedItem.description;
-                  const newDescription = apiDescription !== undefined && apiDescription !== null && apiDescription.toString().trim() !== ""
-                    ? apiDescription.toString().trim()
-                    : item.itemDetail;
+                  let newDescription = "";
+                  
+                  if (apiDescription !== undefined && apiDescription !== null && apiDescription.toString().trim() !== "") {
+                    newDescription = apiDescription.toString().trim();
+                  }
 
                   console.log(`API Response for item ${itemId}:`, {
                     source: response.data.source,
@@ -3358,6 +3338,21 @@ const CreatePurchaseOrder = () => {
         // Clear loading state
         setLoadingItems((prev) => ({ ...prev, [id]: false }));
       }
+    } else {
+      // If item not found in itemList, reset unit
+      setItemDetails(
+        itemDetails.map((item) => {
+          if (item.id === id) {
+            return {
+              ...item,
+              selectedItem: itemId,
+              selectedUnit: "", // Reset unit to empty
+            };
+          }
+          return item;
+        })
+      );
+      setLoadingItems((prev) => ({ ...prev, [id]: false }));
     }
   };
 
@@ -3389,7 +3384,6 @@ const CreatePurchaseOrder = () => {
           }
 
           // If any of the three main fields change, recalculate
-          // console.log("udated Item -- ", updatedItem)
           if (field === "rate") {
             const newAmount = Number(value) * Number(updatedItem.quantity || 0);
 
@@ -3410,7 +3404,6 @@ const CreatePurchaseOrder = () => {
           if (field === "quantity") {
             const newAmount = Number(value) * Number(updatedItem.rate);
             const newValue = Number(removeStartingZero(value));
-            // console.log("quantity $ -- ", newValue)
             return {
               ...updatedItem,
               quantity: value,
@@ -3621,8 +3614,6 @@ const CreatePurchaseOrder = () => {
     setSkipCalculation({});
     setShowOtherCharges(false);
     setLoadingItems({});
-    setSearchTerm("");
-    setFilteredItems([]);
   };
 
   useEffect(() => {
@@ -4017,36 +4008,6 @@ const CreatePurchaseOrder = () => {
                           </span>
                         )}
                       </label>
-                      
-                      {/* Search Bar for Items */}
-                      <div className="mb-3">
-                        <input
-                          type="text"
-                          placeholder="Search items by name, HSN or model number..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                        />
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-xs text-gray-500">
-                            {filteredItems.length} items found
-                            {searchTerm && (
-                              <span className="ml-2">
-                                for: "{searchTerm}"
-                              </span>
-                            )}
-                          </span>
-                          {searchTerm && (
-                            <button
-                              type="button"
-                              onClick={() => setSearchTerm("")}
-                              className="text-xs text-blue-600 hover:text-blue-800"
-                            >
-                              Clear search
-                            </button>
-                          )}
-                        </div>
-                      </div>
 
                       <select
                         value={item.selectedItem}
@@ -4059,7 +4020,7 @@ const CreatePurchaseOrder = () => {
                         }`}
                       >
                         <option value="">-- Choose Item --</option>
-                        {filteredItems.map((itemOption) => (
+                        {itemList.map((itemOption) => (
                           <option key={itemOption.id} value={itemOption.id}>
                             {itemOption.name}
                             {itemOption.hsnCode &&
@@ -4073,21 +4034,6 @@ const CreatePurchaseOrder = () => {
                           </option>
                         ))}
                       </select>
-                      
-                      {filteredItems.length === 0 && searchTerm && (
-                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-sm text-red-600">
-                            No items found matching "{searchTerm}"
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setSearchTerm("")}
-                            className="mt-1 text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            Show all items
-                          </button>
-                        </div>
-                      )}
                       
                       {!item.selectedItem &&
                         location.state?.reorderData?.items?.[index] && (
