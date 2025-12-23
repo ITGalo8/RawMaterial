@@ -3515,8 +3515,13 @@ const ShowPurchaseOrder = () => {
     warranty: '',
     status: '',
     remarks: '',
-    warehouseName: ''
+    warehouseName: '',
+    unit: '',
   });
+
+  // Unit types state - fetched from API
+  const [unitTypes, setUnitTypes] = useState([]);
+  const [unitsLoading, setUnitsLoading] = useState(false);
 
   // Handle Cancel Purchase Order
   const handleCancelOrder = async () => {
@@ -3642,7 +3647,7 @@ const ShowPurchaseOrder = () => {
         itemName: item.itemName || item.name || '',
         hsnCode: item.hsnCode || '',
         modelNumber: item.modelNumber || '',
-        unit: item.unit || 'Nos',
+        unit: item.unit || 'Pcs/Nos',
         rate: rate.toString(), // Use the appropriate rate
         rateInForeign: item.rateInForeign ? item.rateInForeign.toString() : '',
         amountInForeign: item.amountInForeign ? item.amountInForeign.toString() : '',
@@ -3656,8 +3661,7 @@ const ShowPurchaseOrder = () => {
         totalAmount: totalAmount.toString()
       };
     }) || [];
-    
-    // Prepare data for reorder
+  
     const reorderData = {
       companyId: selectedOrderDetails.companyId,
       vendorId: selectedOrderDetails.vendorId,
@@ -3689,17 +3693,27 @@ const ShowPurchaseOrder = () => {
     });
   };
 
-  // Unit types array
-  const unitTypes = [
-    { value: "Nos", label: "Nos" },
-    { value: "Pcs", label: "Pcs" },
-    { value: "Mtr", label: "Mtr" },
-    { value: "Kg", label: "Kg" },
-    { value: "Box", label: "Box" },
-    { value: "Set", label: "Set" },
-    { value: "Roll", label: "Roll" },
-    { value: "Ltr", label: "Ltr" },
-  ];
+  // Fetch units from API
+  const fetchUnits = async () => {
+    setUnitsLoading(true);
+    try {
+      const response = await Api.get('/common/unit/view');
+      if (response.data.success) {
+        // Transform the API response to match our format {value, label}
+        const formattedUnits = response.data.data.map(unit => ({
+          value: unit.id,  // Use ID as value
+          label: unit.name, // Use name as label
+          id: unit.id,
+          name: unit.name
+        }));
+        setUnitTypes(formattedUnits);
+      }
+    } catch (error) {
+      console.error('Error fetching units:', error);
+    } finally {
+      setUnitsLoading(false);
+    }
+  };
 
   // Status options with colors
   const statusOptions = [
@@ -3822,6 +3836,9 @@ const ShowPurchaseOrder = () => {
   const prepareUpdateForm = (orderDetails) => {
     if (!orderDetails) return;
     
+    // Fetch units first to have them available
+    fetchUnits();
+    
     setFormData({
       companyId: orderDetails.companyId || '',
       vendorId: orderDetails.vendorId || '',
@@ -3833,7 +3850,7 @@ const ShowPurchaseOrder = () => {
         hsnCode: item.hsnCode || '',
         modelNumber: item.modelNumber || '',
         itemDetail: item.itemDetail || '',
-        unit: item.unit || '',
+        unit: item.unit || 'Pcs/Nos',  // Default to 'Pcs/Nos' if not specified
         quantity: item.quantity || '1',
         rate: item.rate || '',
         gstRate: item.gstRate || '',
@@ -3977,7 +3994,7 @@ const ShowPurchaseOrder = () => {
       source: selectedItem.source,
       hsnCode: selectedItem.hsnCode || '',
       modelNumber: selectedItem.modelNumber || '',
-      unit: selectedItem.unit || 'Nos',
+      unit: selectedItem.unit || 'Pcs/Nos',  // Default to 'Pcs/Nos'
       rate: selectedItem.rate || '',
       itemDetail: selectedItem.itemDetail || ''
     };
@@ -4023,7 +4040,7 @@ const ShowPurchaseOrder = () => {
           hsnCode: '',
           modelNumber: '',
           itemDetail: '',
-          unit: 'Nos',
+          unit: 'Pcs/Nos',  // Default to 'Pcs/Nos'
           quantity: '1',
           rate: '',
           gstRate: '',
@@ -5174,12 +5191,21 @@ const ShowPurchaseOrder = () => {
                                 required
                               >
                                 <option value="">Select Unit</option>
-                                {unitTypes.map(unit => (
-                                  <option key={unit.value} value={unit.value}>
-                                    {unit.label}
-                                  </option>
-                                ))}
+                                {unitsLoading ? (
+                                  <option value="" disabled>Loading units...</option>
+                                ) : (
+                                  unitTypes.map(unit => (
+                                    <option key={unit.id} value={unit.name}>  {/* Use unit.name as value */}
+                                      {unit.label}  {/* Display unit.name as label */}
+                                    </option>
+                                  ))
+                                )}
                               </select>
+                              {unitsLoading && (
+                                <p className="mt-1 text-xs text-blue-600">
+                                  Loading units from database...
+                                </p>
+                              )}
                             </div>
 
                             <div>

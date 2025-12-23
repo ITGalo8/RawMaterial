@@ -2744,6 +2744,7 @@
 // export default CreatePurchaseOrder;
 
 
+
 import React, { useState, useEffect } from "react";
 import Api from "../../auth/Api";
 import { useLocation } from "react-router-dom";
@@ -2806,17 +2807,8 @@ const CreatePurchaseOrder = () => {
   // Add state for tracking loading status for individual items
   const [loadingItems, setLoadingItems] = useState({});
 
-  // Make unitTypes state modifiable
-  const [unitTypes, setUnitTypes] = useState([
-    { value: "Nos", label: "Nos" },
-    { value: "Pcs", label: "Pcs" },
-    { value: "Mtr", label: "Mtr" },
-    { value: "Kg", label: "Kg" },
-    { value: "Box", label: "Box" },
-    { value: "Set", label: "Set" },
-    { value: "Roll", label: "Roll" },
-    { value: "Ltr", label: "Ltr" },
-  ]);
+  // Make unitTypes state modifiable - start as empty array
+  const [unitTypes, setUnitTypes] = useState([]);
 
   const currencyOptions = [
     { value: "INR", label: "INR" },
@@ -2858,6 +2850,35 @@ const CreatePurchaseOrder = () => {
     return rateMatch ? parseFloat(rateMatch[1]) : 0;
   };
 
+  // Fetch units from API
+  const fetchUnits = async () => {
+    try {
+      const response = await Api.get("/common/unit/view");
+      if (response.data.success) {
+        // Transform the API response to match our format {value, label}
+        const formattedUnits = response.data.data.map(unit => ({
+          value: unit.name,
+          label: unit.name,
+          id: unit.id // Keep the ID for reference if needed
+        }));
+        setUnitTypes(formattedUnits);
+      }
+    } catch (error) {
+      console.error("Error fetching units:", error);
+      // Fallback to static units if API fails
+      setUnitTypes([
+        { value: "Nos", label: "Nos" },
+        { value: "Pcs", label: "Pcs" },
+        { value: "Mtr", label: "Mtr" },
+        { value: "Kg", label: "Kg" },
+        { value: "Box", label: "Box" },
+        { value: "Set", label: "Set" },
+        { value: "Roll", label: "Roll" },
+        { value: "Ltr", label: "Ltr" },
+      ]);
+    }
+  };
+
   // Add useEffect to handle adding custom units from API responses
   useEffect(() => {
     // Check if any items have units not in unitTypes
@@ -2886,7 +2907,7 @@ const CreatePurchaseOrder = () => {
         setUnitTypes(newUnitTypes);
       }
     }
-  }, [itemDetails]);
+  }, [itemDetails, unitTypes]);
 
   // Helper function to check and log unit issues
   const checkUnitStatus = (item) => {
@@ -3621,6 +3642,7 @@ const CreatePurchaseOrder = () => {
     fetchVendors();
     fetchItemList();
     fetchWarehouses();
+    fetchUnits(); // Add this line to fetch units from API
   }, []);
 
   return (
@@ -4088,11 +4110,15 @@ const CreatePurchaseOrder = () => {
                         }`}
                       >
                         <option value="">-- Choose Unit --</option>
-                        {unitTypes.map((u) => (
-                          <option key={u.value} value={u.value}>
-                            {u.label}
-                          </option>
-                        ))}
+                        {unitTypes.length === 0 ? (
+                          <option value="" disabled>Loading units...</option>
+                        ) : (
+                          unitTypes.map((u) => (
+                            <option key={u.value} value={u.value}>
+                              {u.label}
+                            </option>
+                          ))
+                        )}
                       </select>
                       {item.selectedUnit ? (
                         <p className="mt-1 text-xs text-green-600">
