@@ -322,6 +322,7 @@ const SideMenubar = () => {
               </li>
             </>
           )}
+        
 
           {user.role === "Purchase" && (
             <>
@@ -621,6 +622,25 @@ const SideMenubar = () => {
 
         {/* Logout */}
         <div className="p-4 border-t border-gray-400 mt-auto">
+          {(user.role === "Purchase") && (
+            <>
+              <li>
+                <NavLink
+                  to="change-password"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FaCogs className="text-lg" />
+                  Change Password
+                </NavLink>
+              </li>
+            </>
+          )}
           <button
             className="w-full bg-red-500 text-white border-none py-2 px-4 rounded 
             flex items-center justify-center gap-2 text-sm hover:bg-red-600 transition-colors"

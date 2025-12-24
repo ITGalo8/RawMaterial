@@ -37,6 +37,7 @@ import DebitNot from "./pages/Purchase/DebitNot";
 import AddRawMaterial from "./pages/Purchase/AddRawMaterial";
 import ShowDebitNot from "./pages/Purchase/ShowDebitNot";
 import ItemDetails from "./pages/Purchase/ItemDetails";
+import ChangePassword from "./pages/Purchase/ChangePassword";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -244,6 +245,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <PurchaseDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="change-password"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <ChangePassword />
             </ProtectedRoute>
           }
         />
