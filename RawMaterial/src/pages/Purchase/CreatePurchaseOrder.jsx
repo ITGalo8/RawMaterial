@@ -2745,7 +2745,7 @@
 
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Api from "../../auth/Api";
 import { useLocation } from "react-router-dom";
 import { removeStartingZero } from "../../utils/number/removeStartingZero";
@@ -2809,6 +2809,11 @@ const CreatePurchaseOrder = () => {
 
   // Make unitTypes state modifiable - start as empty array
   const [unitTypes, setUnitTypes] = useState([]);
+
+  // Add state for dropdown visibility and search query
+  const [openItemDropdown, setOpenItemDropdown] = useState(null); // Track which item dropdown is open
+  const [searchQuery, setSearchQuery] = useState({}); // Store search query per item
+  const dropdownRefs = useRef({});
 
   const currencyOptions = [
     { value: "INR", label: "INR" },
@@ -3468,6 +3473,86 @@ const CreatePurchaseOrder = () => {
     }
   }, [selectedGstType]);
 
+  // Initialize search query for each item
+  useEffect(() => {
+    const initialSearchQueries = {};
+    itemDetails.forEach(item => {
+      initialSearchQueries[item.id] = "";
+    });
+    setSearchQuery(initialSearchQueries);
+  }, [itemDetails]);
+
+  // Filter items based on search query for each dropdown
+  const getFilteredItems = (itemId) => {
+    const query = searchQuery[itemId] || "";
+    if (!query.trim()) return itemList;
+
+    return itemList.filter(item => 
+      item.name.toLowerCase().includes(query.toLowerCase()) ||
+      (item.hsnCode && item.hsnCode.toLowerCase().includes(query.toLowerCase())) ||
+      (item.modelNumber && item.modelNumber.toLowerCase().includes(query.toLowerCase()))
+    );
+  };
+
+  // Handle search input change
+  const handleSearchChange = (itemId, value) => {
+    setSearchQuery(prev => ({
+      ...prev,
+      [itemId]: value
+    }));
+  };
+
+  // Toggle dropdown for specific item
+  const toggleItemDropdown = (itemId) => {
+    if (openItemDropdown === itemId) {
+      setOpenItemDropdown(null);
+      // Clear search query when closing
+      setSearchQuery(prev => ({ ...prev, [itemId]: "" }));
+    } else {
+      setOpenItemDropdown(itemId);
+      // Initialize search query if not exists
+      if (!searchQuery[itemId]) {
+        setSearchQuery(prev => ({ ...prev, [itemId]: "" }));
+      }
+    }
+  };
+
+  // Handle item selection from dropdown
+  const handleItemSelectFromDropdown = async (itemId, selectedItemId) => {
+    await handleItemSelect(itemId, selectedItemId);
+    setOpenItemDropdown(null);
+    // Clear search query after selection
+    setSearchQuery(prev => ({ ...prev, [itemId]: "" }));
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is outside any dropdown
+      let isOutside = true;
+      Object.values(dropdownRefs.current).forEach(ref => {
+        if (ref && ref.contains(event.target)) {
+          isOutside = false;
+        }
+      });
+
+      if (isOutside) {
+        setOpenItemDropdown(null);
+        // Clear all search queries when closing dropdown
+        const clearedQueries = {};
+        itemDetails.forEach(item => {
+          clearedQueries[item.id] = "";
+        });
+        setSearchQuery(clearedQueries);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [itemDetails]);
+
   const itemTotals = itemDetails.reduce(
     (acc, item) => {
       return {
@@ -3635,6 +3720,8 @@ const CreatePurchaseOrder = () => {
     setSkipCalculation({});
     setShowOtherCharges(false);
     setLoadingItems({});
+    setOpenItemDropdown(null);
+    setSearchQuery({});
   };
 
   useEffect(() => {
@@ -4001,7 +4088,10 @@ const CreatePurchaseOrder = () => {
                 <div className="p-6">
                   {/* Item Selection Row */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div>
+                    <div 
+                      className="relative"
+                      ref={el => dropdownRefs.current[item.id] = el}
+                    >
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Select Item *
                         {loadingItems[item.id] && (
@@ -4031,31 +4121,146 @@ const CreatePurchaseOrder = () => {
                         )}
                       </label>
 
-                      <select
-                        value={item.selectedItem}
-                        onChange={(e) =>
-                          handleItemSelect(item.id, e.target.value)
-                        }
+                      {/* Custom Dropdown Button */}
+                      <button
+                        type="button"
+                        onClick={() => toggleItemDropdown(item.id)}
                         disabled={loadingItems[item.id]}
-                        className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
+                        className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg text-left focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 flex justify-between items-center ${
                           loadingItems[item.id] ? "opacity-50" : ""
                         }`}
                       >
-                        <option value="">-- Choose Item --</option>
-                        {itemList.map((itemOption) => (
-                          <option key={itemOption.id} value={itemOption.id}>
-                            {itemOption.name}
-                            {itemOption.hsnCode &&
-                              ` (HSN: ${itemOption.hsnCode})`}
-                            {itemOption.modelNumber &&
-                              ` (Model: ${itemOption.modelNumber})`}
-                            {itemOption.rate &&
-                              ` - ${getCurrencySymbol(currency)}${parseFloat(
-                                itemOption.rate
-                              ).toFixed(3)}`}
-                          </option>
-                        ))}
-                      </select>
+                        <span className="truncate">
+                          {item.selectedItem
+                            ? (() => {
+                                const selected = itemList.find(i => i.id === item.selectedItem);
+                                return selected ? selected.name : "-- Choose Item --";
+                              })()
+                            : "-- Choose Item --"}
+                        </span>
+                        <svg
+                          className={`w-5 h-5 text-gray-400 transform transition-transform ${
+                            openItemDropdown === item.id ? "rotate-180" : ""
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </button>
+
+                      {/* Custom Dropdown Menu with Search */}
+                      {openItemDropdown === item.id && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-96 overflow-hidden">
+                          {/* Search Bar */}
+                          <div className="sticky top-0 bg-white p-2 border-b border-gray-200">
+                            <div className="relative">
+                              <svg
+                                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                              </svg>
+                              <input
+                                type="text"
+                                value={searchQuery[item.id] || ""}
+                                onChange={(e) => handleSearchChange(item.id, e.target.value)}
+                                placeholder="Search items by name, HSN, or model..."
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                autoFocus
+                              />
+                              {searchQuery[item.id] && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSearchChange(item.id, "")}
+                                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                            <div className="mt-1 text-xs text-gray-500">
+                              Type to search items. Showing {getFilteredItems(item.id).length} of {itemList.length} items.
+                            </div>
+                          </div>
+
+                          {/* Items List */}
+                          <div className="overflow-y-auto max-h-64">
+                            {getFilteredItems(item.id).length > 0 ? (
+                              getFilteredItems(item.id).map((itemOption) => (
+                                <button
+                                  key={itemOption.id}
+                                  type="button"
+                                  onClick={() => handleItemSelectFromDropdown(item.id, itemOption.id)}
+                                  className={`w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-100 focus:outline-none border-b border-gray-100 last:border-b-0 ${
+                                    item.selectedItem === itemOption.id ? "bg-blue-50" : ""
+                                  }`}
+                                >
+                                  <div className="font-medium text-gray-900">{itemOption.name}</div>
+                                  <div className="flex flex-wrap gap-2 mt-1">
+                                    {itemOption.hsnCode && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                        HSN: {itemOption.hsnCode}
+                                      </span>
+                                    )}
+                                    {itemOption.modelNumber && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                                        Model: {itemOption.modelNumber}
+                                      </span>
+                                    )}
+                                    {itemOption.rate && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                        {getCurrencySymbol(currency)}
+                                        {parseFloat(itemOption.rate).toFixed(3)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {itemOption.itemDetail && (
+                                    <div className="mt-1 text-xs text-gray-500 truncate">
+                                      {itemOption.itemDetail}
+                                    </div>
+                                  )}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="px-4 py-8 text-center">
+                                <svg
+                                  className="w-12 h-12 text-gray-300 mx-auto mb-3"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <p className="text-gray-500">No items found for "{searchQuery[item.id]}"</p>
+                                <p className="text-sm text-gray-400 mt-1">
+                                  Try different search terms
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       
                       {!item.selectedItem &&
                         location.state?.reorderData?.items?.[index] && (
