@@ -365,7 +365,7 @@ const InstallationStock = () => {
               >
                 Variable Items
               </button>
-              <button
+              {/* <button
                 onClick={() => setActiveTab("headwise")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "headwise"
@@ -374,7 +374,7 @@ const InstallationStock = () => {
                 }`}
               >
                 Head-wise Analysis
-              </button>
+              </button> */}
             </nav>
           </div>
 
