@@ -26,6 +26,23 @@ const RawMaterialStock = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [blinkingItems, setBlinkingItems] = useState([]);
   const [viewMode, setViewMode] = useState("grid");
+  const [warehouseList, setWarehouseList] = useState([]);
+  const [selectedWarehouse, setSelectedWarehouse] = useState("");
+
+
+   const fetchWarehouses = async () => {
+    try {
+      const res = await Api.get(`/purchase/warehouses`);
+      const formatted = res?.data?.data?.map((w) => ({
+        label: w.warehouseName,
+        value: w._id,
+      }));
+      setWarehouseList(formatted);
+      console.log("Warehouse List: ", response.data.data)
+    } catch (err) {
+      alert("Error loading warehouses");
+    }
+  };
 
   const fetchRawMaterials = async () => {
     try {
@@ -129,6 +146,24 @@ const RawMaterialStock = () => {
               </h1>
               <p className="text-gray-600 mt-2">Manage your production materials and stock levels</p>
             </div>
+
+             <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Warehouse *
+                </label>
+                <select
+                  value={selectedWarehouse}
+                  onChange={(e) => setSelectedWarehouse(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                >
+                  <option value="">-- Select Warehouse --</option>
+                  {warehouseList.map((warehouse) => (
+                    <option key={warehouse.value} value={warehouse.value}>
+                      {warehouse.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             
             <div className="flex items-center gap-4">
               <div className="flex bg-white rounded-lg border border-gray-200 overflow-hidden">
