@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Api from "../../auth/Api";
+import { useNavigate } from "react-router-dom";
 
 const AddRawMaterial = ({
   isEditMode = false,
   editData = null,
   onSuccess,
   onCancel,
+  closeModal
 }) => {
   const [rawMaterialName, setRawMaterialName] = useState("");
   const [rawMaterialDescription, setRawMaterialDescription] = useState("");
@@ -19,6 +21,7 @@ const AddRawMaterial = ({
   const [hsnCode, setHsnCode] = useState("");
 
   const [source, setSource] = useState("");
+  const navigate = useNavigate();
 
   const SourceOption = [
     { value: "Installation Material", label: "Installation Material" },
@@ -63,10 +66,10 @@ const AddRawMaterial = ({
       return;
     }
 
-    if (conversionUnit && conversionUnit === unit) {
-      alert("Base unit and conversion unit cannot be the same");
-      return;
-    }
+    // if (conversionUnit && conversionUnit === unit) {
+    //   alert("Base unit and conversion unit cannot be the same");
+    //   return;
+    // }
 
     try {
       setLoading(true);
@@ -94,14 +97,14 @@ const AddRawMaterial = ({
       let response;
       if (isEditMode) {
         response = await Api.put("/common/item/update", payload);
-      } else {
-        response = await Api.post("/common/item/create", payload);
       }
 
       alert(
         response?.data?.message ||
           (isEditMode ? "Item updated successfully" : "Item added successfully")
       );
+      closeModal(false);
+      
 
       if (onSuccess) onSuccess();
 
@@ -133,10 +136,10 @@ const AddRawMaterial = ({
       : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+    <div className="w-full bg-gradient-to-br from-slate-100 flex items-center justify-center px-4 ">
+      <div className="w-full bg-white  shadow-xs p-2 sm:p-2">
         {/* HEADER */}
-        <div className="mb-8 text-center">
+        <div className=" text-center ">
           <h2 className="text-3xl font-bold text-gray-800">
             {isEditMode ? "Edit Item" : "Add Item"}
           </h2>
@@ -148,19 +151,18 @@ const AddRawMaterial = ({
         {/* FORM */}
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-6"
         >
           {/* NAME */}
           <div className="sm:col-span-2">
-            <label className="block text-sm font-semibold mb-2">
+            <label className="block text-sm font-semibold mb-1">
               Name <span className="text-red-500">*</span>
             </label>
             <input
               value={rawMaterialName}
               onChange={(e) => setRawMaterialName(e.target.value)}
-              readOnly={isEditMode}
-              className={`w-full px-4 py-3 rounded-lg border
-                ${isEditMode ? "bg-gray-100 cursor-not-allowed" : ""}`}
+              // readOnly={isEditMode}
+              className={`w-full px-4 py-3 rounded-lg border`}
               required
             />
           </div>
@@ -303,9 +305,8 @@ const AddRawMaterial = ({
               disabled={loading}
               className={`h-[48px] rounded-lg bg-yellow-400 text-black font-semibold
               hover:bg-yellow-500 active:scale-[0.98] transition-all
-              disabled:opacity-60 disabled:cursor-not-allowed ${
-                isEditMode ? "flex-1" : "w-full"
-              }`}
+              disabled:opacity-60 disabled:cursor-not-allowed 
+               ${isEditMode ? "flex-1" : "w-full"}`}
             >
               {loading
                 ? isEditMode

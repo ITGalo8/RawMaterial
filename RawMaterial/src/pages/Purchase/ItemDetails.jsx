@@ -40,7 +40,6 @@ const ItemDetails = () => {
         const res = await Api.get(
           `/common/item/details/${selectedItemId}`
         );
-        // Combine data from response - source is at top level
         setItemDetails({
           ...res?.data?.data,
           source: res?.data?.source
@@ -57,13 +56,14 @@ const ItemDetails = () => {
   const handleUpdateClick = () => {
     if (itemDetails) {
       setEditItemData({
-        id: itemDetails.id,
-        name: itemDetails.name,
+        id: itemDetails?.id || "",
+        name: itemDetails?.name || "",
         description: itemDetails.description || "",
         unit: itemDetails.unit || "",
         source: itemDetails.source || "",
         conversionUnit: itemDetails.conversionUnit || "",
-        conversionFactor: itemDetails.conversionFactor || ""
+        conversionFactor: itemDetails.conversionFactor || "",
+        hsnCode: itemDetails.hsnCode || ""
       });
       setIsEditMode(true);
       setShowEditModal(true);
@@ -80,7 +80,7 @@ const ItemDetails = () => {
     // Also update the items list
     setItems(prev => prev.map(item => 
       item.id === selectedItemId 
-        ? { ...item, name: updatedItem.name, source: updatedItem.source }
+        ? { ...item, name: updatedItem?.name, source: updatedItem?.source }
         : item
     ));
     
@@ -138,7 +138,7 @@ const ItemDetails = () => {
               onClick={handleUpdateClick}
               className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-4 py-2 rounded-lg transition-colors"
             >
-              Update Item
+              Edit Details
             </button>
           </div>
 
@@ -202,6 +202,18 @@ const ItemDetails = () => {
               />
             </div>
 
+            <div>
+              <label className="text-sm text-gray-500">
+                HSN Code
+              </label>
+              <input
+                type="text"
+                value={itemDetails.hsnCode || "N/A"}
+                readOnly
+                className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+              />
+            </div>
+
             {/* Description (Full Width) */}
             <div className="md:col-span-2">
               <label className="text-sm text-gray-500">
@@ -226,16 +238,14 @@ const ItemDetails = () => {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 h-full ">
+          <div className="bg-white shadow-lg w-10/12 h-8/12 relative">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  Edit Item
-                </h2>
+                
                 <button
                   onClick={handleEditCancel}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="text-gray-500 hover:text-gray-700 text-2xl absolute top-2 right-4 bg-red-500 text-white px-3 pb-1 rounded-md"
                 >
                   ×
                 </button>
@@ -245,6 +255,8 @@ const ItemDetails = () => {
                 editData={editItemData}
                 onSuccess={handleEditSuccess}
                 onCancel={handleEditCancel}
+                closeModal={setShowEditModal}
+                
               />
             </div>
           </div>
