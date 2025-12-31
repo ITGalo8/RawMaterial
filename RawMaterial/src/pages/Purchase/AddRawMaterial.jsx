@@ -16,6 +16,7 @@ const AddRawMaterial = ({
 
   const [conversionUnit, setConversionUnit] = useState("");
   const [conversionFactor, setConversionFactor] = useState("");
+  const [hsnCode, setHsnCode] = useState("");
 
   const [source, setSource] = useState("");
 
@@ -24,7 +25,6 @@ const AddRawMaterial = ({
     { value: "Raw Material", label: "Raw Material" },
   ];
 
-  /* -------------------- INIT EDIT DATA -------------------- */
   useEffect(() => {
     if (isEditMode && editData) {
       setRawMaterialName(editData.name || "");
@@ -35,10 +35,10 @@ const AddRawMaterial = ({
         editData.conversionFactor ? String(editData.conversionFactor) : ""
       );
       setSource(editData.source || "");
+      setHsnCode(editData.hsnCode || "");
     }
   }, [isEditMode, editData]);
 
-  /* -------------------- FETCH UNITS -------------------- */
   useEffect(() => {
     const fetchUnits = async () => {
       try {
@@ -55,11 +55,10 @@ const AddRawMaterial = ({
     fetchUnits();
   }, []);
 
-  /* -------------------- SUBMIT -------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!rawMaterialName || !unit || !source) {
+    if (!rawMaterialName || !unit || !source || !hsnCode) {
       alert("Please fill all required fields");
       return;
     }
@@ -77,6 +76,7 @@ const AddRawMaterial = ({
         description: rawMaterialDescription || null,
         unit,
         source,
+        hsnCode: hsnCode.trim(),
       };
 
       if (isEditMode && editData?.id) {
@@ -112,6 +112,7 @@ const AddRawMaterial = ({
         setConversionUnit("");
         setConversionFactor("");
         setSource("");
+        setHsnCode("");
       }
     } catch (error) {
       alert(error?.response?.data?.message || "Something went wrong");
@@ -242,8 +243,7 @@ const AddRawMaterial = ({
                 min="0"
                 value={conversionFactor}
                 onChange={(e) =>
-                  e.target.value === "" ||
-                  Number(e.target.value) >= 0
+                  e.target.value === "" || Number(e.target.value) >= 0
                     ? setConversionFactor(e.target.value)
                     : null
                 }
@@ -261,6 +261,20 @@ const AddRawMaterial = ({
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              HSN Code <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={hsnCode}
+              onChange={(e) => setHsnCode(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border"
+              required
+              placeholder="Enter HSN code"
+              maxLength="10"
+            />
+          </div>
           {/* DESCRIPTION */}
           <div className="sm:col-span-2">
             <label className="block text-sm font-semibold mb-2">
@@ -273,7 +287,7 @@ const AddRawMaterial = ({
               className="w-full px-4 py-3 rounded-lg border resize-none"
             />
           </div>
-           <div className="sm:col-span-2 flex gap-4">
+          <div className="sm:col-span-2 flex gap-4">
             {isEditMode && (
               <button
                 type="button"
@@ -289,11 +303,17 @@ const AddRawMaterial = ({
               disabled={loading}
               className={`h-[48px] rounded-lg bg-yellow-400 text-black font-semibold
               hover:bg-yellow-500 active:scale-[0.98] transition-all
-              disabled:opacity-60 disabled:cursor-not-allowed ${isEditMode ? 'flex-1' : 'w-full'}`}
+              disabled:opacity-60 disabled:cursor-not-allowed ${
+                isEditMode ? "flex-1" : "w-full"
+              }`}
             >
-              {loading 
-                ? (isEditMode ? "Updating..." : "Saving...")
-                : (isEditMode ? "Update Item" : "Add Item")}
+              {loading
+                ? isEditMode
+                  ? "Updating..."
+                  : "Saving..."
+                : isEditMode
+                ? "Update Item"
+                : "Add Item"}
             </button>
           </div>
         </form>

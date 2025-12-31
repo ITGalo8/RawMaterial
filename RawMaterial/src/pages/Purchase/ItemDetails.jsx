@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Api from "../../auth/Api";
-import AddRawMaterial from "./AddRawMaterial"; // Adjust the import path as needed
+import AddRawMaterial from "./AddRawMaterial";
 
 const ItemDetails = () => {
   const [items, setItems] = useState([]);

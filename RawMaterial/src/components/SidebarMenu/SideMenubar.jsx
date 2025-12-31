@@ -13,9 +13,10 @@ import {
   FaBuilding,
   FaSignOutAlt,
   FaBars,
-  FaTimes
+  FaTimes,
 } from "react-icons/fa";
-
+import { IoStorefrontSharp } from "react-icons/io5";
+import {MdDashboard} from "react-icons/md";
 const SideMenubar = () => {
   const [openMenus, setOpenMenus] = useState({
     company: false,
@@ -296,7 +297,7 @@ const SideMenubar = () => {
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <FaCogs className="text-lg" />
+                  <MdDashboard className="text-lg" />
                  Purchase Dashboard
                 </NavLink>
               </li>
@@ -316,7 +317,7 @@ const SideMenubar = () => {
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <FaCogs className="text-lg" />
+                  <IoStorefrontSharp  className="text-lg" />
                   Raw Material Stock
                 </NavLink>
               </li>
