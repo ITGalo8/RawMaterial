@@ -1955,16 +1955,7 @@ const CreatePurchaseOrder = () => {
     } catch (error) {
       console.error("Error fetching units:", error);
       // Fallback to static units if API fails
-      setUnitTypes([
-        { value: "Nos", label: "Nos" },
-        { value: "Pcs", label: "Pcs" },
-        { value: "Mtr", label: "Mtr" },
-        { value: "Kg", label: "Kg" },
-        { value: "Box", label: "Box" },
-        { value: "Set", label: "Set" },
-        { value: "Roll", label: "Roll" },
-        { value: "Ltr", label: "Ltr" },
-      ]);
+      
     }
   };
 

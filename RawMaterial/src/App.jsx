@@ -39,6 +39,7 @@ import ShowDebitNot from "./pages/Purchase/ShowDebitNot";
 import ItemDetails from "./pages/Purchase/ItemDetails";
 import ChangePassword from "./pages/Purchase/ChangePassword";
 import InstallationStock from "./pages/Purchase/InstallationStock";
+import SingleOut from "./pages/LineWorker/StoreKeeper/SingleOut/SingleOut";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -449,14 +450,14 @@ const AppRoutes = () => {
           }
         />
 
-         {/* <Route
-          path="raw-material-stock"
+         <Route
+          path="single-out"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
-              <RawMaterialStock />
+              <SingleOut />
             </ProtectedRoute>
           }
-        /> */}
+        />
         
 
          <Route

@@ -33,7 +33,7 @@ const Layout = () => {
       </div>
 
       {/* Main content fills rest of screen */}
-      <div className="flex-1 h-full overflow-y-auto px-10 py-6">
+      <div className="flex-1 h-full overflow-y-auto">
         <Outlet />
       </div>
 

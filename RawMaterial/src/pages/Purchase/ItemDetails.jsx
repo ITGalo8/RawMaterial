@@ -527,9 +527,9 @@ const ItemDetails = () => {
                 <div className="p-3 border-b bg-blue-50">
                   <div className="text-sm text-gray-500 mb-1">Currently Selected:</div>
                   <div className="font-medium">{selectedItem.name}</div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  {/* <div className="text-xs text-gray-500 mt-1">
                     Source: {selectedItem.source || "N/A"} • HSN: {selectedItem.hsnCode || "N/A"}
-                  </div>
+                  </div> */}
                 </div>
               )}
 
@@ -556,11 +556,11 @@ const ItemDetails = () => {
                         >
                           <div>
                             <div className="font-medium">{item.name}</div>
-                            <div className="text-sm text-gray-500 flex items-center gap-3 mt-1">
+                            {/* <div className="text-sm text-gray-500 flex items-center gap-3 mt-1">
                               <span>Source: {item.source || "N/A"}</span>
                               <span>•</span>
                               <span>HSN: {item.hsnCode || "N/A"}</span>
-                            </div>
+                            </div> */}
                           </div>
                           <div className="text-blue-500 text-lg">→</div>
                         </button>

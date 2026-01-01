@@ -4145,10 +4145,10 @@ const ShowPurchaseOrder = () => {
         hsnCode: item.hsnCode || '',
         modelNumber: item.modelNumber || '',
         itemDetail: item.itemDetail || '',
-        unit: item.unit || 'Pcs/Nos',  // Default to 'Pcs/Nos' if not specified
+        unit: item.unit || '', 
         quantity: item.quantity || '1',
         rate: item.rate || '',
-        gstRate: item.gstRate || '', // Initialize gstRate for each item
+        gstRate: item.gstRate || '',
         total: item.total || ''
       })) : [],
       otherCharges: orderDetails.otherCharges ? orderDetails.otherCharges.map(charge => ({
@@ -4169,6 +4169,8 @@ const ShowPurchaseOrder = () => {
       remarks: orderDetails.remarks || '',
       warehouseName: orderDetails.warehouseName || '',
     });
+    
+    console.log('Prepared form data for update:', formData);
     
     setShowUpdateForm(true);
     fetchItems();
