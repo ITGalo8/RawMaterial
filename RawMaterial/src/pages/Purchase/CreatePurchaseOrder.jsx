@@ -3358,7 +3358,7 @@ const CreatePurchaseOrder = () => {
                                     item.selectedItem === itemOption.id ? "bg-blue-50" : ""
                                   }`}
                                 >
-                                  <div className="font-medium text-gray-900">{itemOption.name}</div>
+                                  <div className="font-medium text-gray-900">{itemOption.name + " - "}{itemOption.source === "mongo" ? "Installation Material" : "Raw Material"}</div>
                                   <div className="flex flex-wrap gap-2 mt-1">
                                     {itemOption.hsnCode && (
                                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
