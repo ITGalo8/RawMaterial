@@ -230,7 +230,7 @@ const SideMenubar = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <FaClipboardList className="text-lg" />
-                  Single Out
+                  Raw Material Out
                 </NavLink>
               </li>
 

@@ -152,7 +152,8 @@ useEffect(() => {
     setUpdating(id);
     try {
       const newStatus = !currentStatus;
-      await Api.put(`/store-keeper/markRawMaterialUsedOrNotUsed?id=${id}&isUsed=${newStatus}`);
+      console.log("TO status -> ", newStatus);
+      await Api.put(`/store-keeper/markRawMaterialUsedOrNotUsed?id=${id}&isUsed=${newStatus}${selectedWarehouse !== null ? `&warehouseId=${selectedWarehouse}` : "" }`);
       
       setRawMaterials(prev =>
         prev.map(item =>
@@ -468,7 +469,7 @@ useEffect(() => {
           {/* Content based on view mode */}
           {viewMode === "grid" ? (
             /* Grid View */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {filtered.length > 0 ? (
                 filtered.map((item) => {
                   const isOutOfStock = item.outOfStock;
@@ -576,16 +577,6 @@ useEffect(() => {
                           </button>
 
                           {/* Stock Status Message */}
-                          {isOutOfStock && (
-                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <InformationCircleIcon className="h-4 w-4 text-red-600 flex-shrink-0" />
-                                <p className="text-xs text-red-700">
-                                  This item is out of stock. Usage status can still be updated, but it needs to be reordered.
-                                </p>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>
