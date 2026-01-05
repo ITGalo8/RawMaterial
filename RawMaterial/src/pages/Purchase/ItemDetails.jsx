@@ -555,7 +555,7 @@ const ItemDetails = () => {
                           className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded transition-colors flex items-center justify-between"
                         >
                           <div>
-                            <div className="font-medium">{item.name}</div>
+                            <div className="font-medium">{item.name + " - "}{item.source ==="mongo" ? "Installation Material" : "Raw Material"}</div>
                             {/* <div className="text-sm text-gray-500 flex items-center gap-3 mt-1">
                               <span>Source: {item.source || "N/A"}</span>
                               <span>•</span>
