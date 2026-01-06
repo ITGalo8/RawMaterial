@@ -7066,6 +7066,7 @@ const ShowPurchaseOrder = () => {
   const [warehouseLoading, setWarehouseLoading] = useState(false);
   const [vendorsList, setVendorsList] = useState([]);
   const [vendorsLoading, setVendorsLoading] = useState(false);
+  const [loadingItems, setLoadingItems] = useState({});
   const navigate = useNavigate();
 
   // Form data state
@@ -7249,6 +7250,17 @@ const ShowPurchaseOrder = () => {
       setItems([]);
     } finally {
       setItemsLoading(false);
+    }
+  };
+
+  // Fetch item details from API
+  const fetchItemDetails = async (itemId) => {
+    try {
+      const response = await Api.get(`/purchase/items/details/${itemId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching item details for ID ${itemId}:`, error);
+      return null;
     }
   };
 
@@ -7579,7 +7591,7 @@ const ShowPurchaseOrder = () => {
 
       setSelectedOrder(poData.id);
       setShowUpdateForm(true);
-      fetchItems();
+      fetchItems(); // Fetch items when opening update form
     } catch (error) {
       console.log(
         "Error fetching order details for update:",
@@ -7640,7 +7652,7 @@ const ShowPurchaseOrder = () => {
     });
 
     setShowUpdateForm(true);
-    fetchItems();
+    fetchItems(); // Fetch items when preparing update form
   };
 
   // Handle item input changes with automatic calculation
@@ -7814,19 +7826,24 @@ const ShowPurchaseOrder = () => {
     }
   };
 
-  // Handle item selection from dropdown
-  const handleItemSelect = (index, selectedItem) => {
+  // Handle item selection from dropdown - UPDATED VERSION
+  const handleItemSelect = async (index, selectedItem) => {
+    // Set loading state for this item
+    setLoadingItems((prev) => ({ ...prev, [index]: true }));
+
     const updatedItems = [...formData.items];
+    
+    // First, set basic information from the selected item in the dropdown
     updatedItems[index] = {
       ...updatedItems[index],
-      name: selectedItem.name,
       id: selectedItem.id,
-      source: selectedItem.source,
+      name: selectedItem.name,
+      source: "mysql", // Default source
       hsnCode: selectedItem.hsnCode || "",
       modelNumber: selectedItem.modelNumber || "",
       unit: selectedItem.unit || "",
       rate: selectedItem.rate || "",
-      itemDetail: selectedItem.itemDetail || "",
+      itemDetail: selectedItem.itemDetail || selectedItem.description || "",
     };
 
     // Calculate total after item selection
@@ -7834,10 +7851,42 @@ const ShowPurchaseOrder = () => {
     const quantity = parseFloat(updatedItems[index].quantity) || 1;
     updatedItems[index].total = (rate * quantity).toFixed(3);
 
+    // Update form data with initial values
     setFormData((prev) => ({
       ...prev,
       items: updatedItems,
     }));
+
+    // Now fetch detailed item information from API
+    try {
+      const itemDetailsResponse = await fetchItemDetails(selectedItem.id);
+      
+      if (itemDetailsResponse && itemDetailsResponse.success) {
+        const detailedItem = itemDetailsResponse.item;
+        console.log("Item details from API:", detailedItem);
+        
+        // Update item with detailed information from API
+        const updatedItemsWithDetails = [...formData.items];
+        updatedItemsWithDetails[index] = {
+          ...updatedItemsWithDetails[index],
+          // Only update fields if API provides them
+          hsnCode: detailedItem.hsnCode || updatedItemsWithDetails[index].hsnCode || "",
+          unit: detailedItem.unit || updatedItemsWithDetails[index].unit || "",
+          itemDetail: detailedItem.description || updatedItemsWithDetails[index].itemDetail || "",
+        };
+
+        setFormData((prev) => ({
+          ...prev,
+          items: updatedItemsWithDetails,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching item details from API:", error);
+      // Continue with the itemList data if API fails
+    } finally {
+      // Clear loading state
+      setLoadingItems((prev) => ({ ...prev, [index]: false }));
+    }
 
     setShowItemsDropdown(null);
     setSearchQuery("");
@@ -9428,6 +9477,11 @@ const ShowPurchaseOrder = () => {
                               <h4 className="font-semibold text-gray-900">
                                 Item {index + 1}
                               </h4>
+                              {loadingItems[index] && (
+                                <div className="ml-2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                </div>
+                              )}
                             </div>
                             <button
                               type="button"
@@ -9502,6 +9556,18 @@ const ShowPurchaseOrder = () => {
                                           </svg>
                                         </button>
                                       </div>
+                                      <div className="px-4 py-2 border-b border-gray-200">
+                                        <input
+                                          type="text"
+                                          placeholder="Search items..."
+                                          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                          value={searchQuery}
+                                          onChange={(e) =>
+                                            setSearchQuery(e.target.value)
+                                          }
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                      </div>
                                     </div>
                                     <div className="py-1">
                                       {itemsLoading ? (
@@ -9520,6 +9586,9 @@ const ShowPurchaseOrder = () => {
                                           >
                                             <div className="font-medium text-gray-900">
                                               {apiItem.name}
+                                            </div>
+                                            <div className="text-sm text-gray-500 mt-1">
+                                              HSN: {apiItem.hsnCode || "N/A"}
                                             </div>
                                           </div>
                                         ))
