@@ -245,6 +245,7 @@ const CreatePurchaseOrder = () => {
       setCellNo(reorderData.cellNo || "");
       setSelectedWarehouse(reorderData.warehouseId || "");
 
+
       // Store items for processing after itemList is loaded
       if (reorderData.items && reorderData.items.length > 0) {
         setPendingReorderItems(reorderData.items);
@@ -308,7 +309,7 @@ const CreatePurchaseOrder = () => {
           selectedItem: foundItem?.id || "",
           hsnCode: foundItem?.hsnCode || item.hsnCode || "",
           modelNumber: foundItem?.modelNumber || item.modelNumber || "",
-          selectedUnit: foundItem?.unit || item.unit || "", // Changed from "Nos" to empty string
+          selectedUnit: foundItem?.unit || item.unit || "",
           rate: rate.toString(),
           quantity: quantity.toString(),
           gstRate: itemGstRate.toString(),
@@ -1060,13 +1061,12 @@ const CreatePurchaseOrder = () => {
     fetchVendors();
     fetchItemList();
     fetchWarehouses();
-    fetchUnits(); // Add this line to fetch units from API
+    fetchUnits();
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Loading Overlay for Reorder Processing */}
         {processingReorder && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-xl shadow-lg">
@@ -1076,7 +1076,6 @@ const CreatePurchaseOrder = () => {
           </div>
         )}
 
-        {/* Centered Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
             {location.state?.reorderData
