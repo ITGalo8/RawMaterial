@@ -7243,6 +7243,7 @@ const ShowPurchaseOrder = () => {
     setItemsLoading(true);
     try {
       const response = await Api.get("/purchase/items");
+      console.log("Items from API:", response.data.items); // Debug log
       setItems(response.data.items || []);
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -7826,36 +7827,38 @@ const ShowPurchaseOrder = () => {
     }
   };
 
-  // Handle item selection from dropdown - UPDATED VERSION
+  // Handle item selection from dropdown - FIXED VERSION
   const handleItemSelect = async (index, selectedItem) => {
     // Set loading state for this item
     setLoadingItems((prev) => ({ ...prev, [index]: true }));
 
-    const updatedItems = [...formData.items];
-    
-    // First, set basic information from the selected item in the dropdown
-    updatedItems[index] = {
-      ...updatedItems[index],
-      id: selectedItem.id,
-      name: selectedItem.name,
-      source: "mysql", // Default source
-      hsnCode: selectedItem.hsnCode || "",
-      modelNumber: selectedItem.modelNumber || "",
-      unit: selectedItem.unit || "",
-      rate: selectedItem.rate || "",
-      itemDetail: selectedItem.itemDetail || selectedItem.description || "",
-    };
+    // First, update the form data with the selected item information immediately
+    setFormData((prev) => {
+      const newItems = [...prev.items];
+      
+      // Update the item with information from the dropdown
+      newItems[index] = {
+        ...newItems[index],
+        id: selectedItem.id,
+        name: selectedItem.name || "Unnamed Item", // Ensure name is set
+        source: "mysql",
+        hsnCode: selectedItem.hsnCode || "", // Keep HSN from dropdown
+        modelNumber: selectedItem.modelNumber || "",
+        unit: selectedItem.unit || "",
+        rate: selectedItem.rate || "",
+        itemDetail: selectedItem.itemDetail || selectedItem.description || "",
+      };
 
-    // Calculate total after item selection
-    const rate = parseFloat(updatedItems[index].rate) || 0;
-    const quantity = parseFloat(updatedItems[index].quantity) || 1;
-    updatedItems[index].total = (rate * quantity).toFixed(3);
+      // Calculate total after item selection
+      const rate = parseFloat(newItems[index].rate) || 0;
+      const quantity = parseFloat(newItems[index].quantity) || 1;
+      newItems[index].total = (rate * quantity).toFixed(3);
 
-    // Update form data with initial values
-    setFormData((prev) => ({
-      ...prev,
-      items: updatedItems,
-    }));
+      return {
+        ...prev,
+        items: newItems,
+      };
+    });
 
     // Now fetch detailed item information from API
     try {
@@ -7865,24 +7868,28 @@ const ShowPurchaseOrder = () => {
         const detailedItem = itemDetailsResponse.item;
         console.log("Item details from API:", detailedItem);
         
-        // Update item with detailed information from API
-        const updatedItemsWithDetails = [...formData.items];
-        updatedItemsWithDetails[index] = {
-          ...updatedItemsWithDetails[index],
-          // Only update fields if API provides them
-          hsnCode: detailedItem.hsnCode || updatedItemsWithDetails[index].hsnCode || "",
-          unit: detailedItem.unit || updatedItemsWithDetails[index].unit || "",
-          itemDetail: detailedItem.description || updatedItemsWithDetails[index].itemDetail || "",
-        };
-
-        setFormData((prev) => ({
-          ...prev,
-          items: updatedItemsWithDetails,
-        }));
+        // Update form with API details - but preserve HSN from dropdown
+        setFormData((prev) => {
+          const newItems = [...prev.items];
+          // Make sure we're updating the same item
+          if (newItems[index] && newItems[index].id === selectedItem.id) {
+            newItems[index] = {
+              ...newItems[index],
+              // Preserve the HSN code from dropdown, don't overwrite it
+              hsnCode: newItems[index].hsnCode || detailedItem.hsnCode || "",
+              unit: detailedItem.unit || newItems[index].unit || "",
+              itemDetail: detailedItem.description || newItems[index].itemDetail || "",
+            };
+          }
+          return {
+            ...prev,
+            items: newItems,
+          };
+        });
       }
     } catch (error) {
       console.error("Error fetching item details from API:", error);
-      // Continue with the itemList data if API fails
+      // Continue with the dropdown data if API fails
     } finally {
       // Clear loading state
       setLoadingItems((prev) => ({ ...prev, [index]: false }));
@@ -8840,9 +8847,12 @@ const ShowPurchaseOrder = () => {
                                 <h4 className="font-semibold text-gray-900">
                                   {item.itemName || "Unnamed Item"}
                                 </h4>
-                                <p className="text-sm text-gray-600">
-                                  HSN: {item.hsnCode || "N/A"}
-                                </p>
+                                {/* Conditionally show HSN code only when available */}
+                                {item.hsnCode && (
+                                  <p className="text-sm text-gray-600">
+                                    HSN: {item.hsnCode}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -9585,11 +9595,14 @@ const ShowPurchaseOrder = () => {
                                             }
                                           >
                                             <div className="font-medium text-gray-900">
-                                              {apiItem.name}
+                                              {apiItem.name || "Unnamed Item"}
                                             </div>
-                                            <div className="text-sm text-gray-500 mt-1">
-                                              HSN: {apiItem.hsnCode || "N/A"}
-                                            </div>
+                                            {/* Conditionally show HSN code only when available */}
+                                            {apiItem.hsnCode && (
+                                              <div className="text-sm text-gray-500 mt-1">
+                                                HSN: {apiItem.hsnCode}
+                                              </div>
+                                            )}
                                           </div>
                                         ))
                                       ) : (

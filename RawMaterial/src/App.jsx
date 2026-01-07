@@ -32,7 +32,6 @@ import RequestItemHistory from "./pages/LineWorker/getRequestsByUser/RequestItem
 import UserStock from "./pages/LineWorker/UserStock/UserStock";
 import ActiveDeactivateVendor from "./pages/Purchase/ActiveDeactivateVendor";
 import ActiveDeactivateCompany from "./pages/Purchase/ActiveDeactivateCompany";
-import ReceivedPurchaseStock from "./pages/Purchase/ReceivedPurchaseStock";
 import DebitNot from "./pages/Purchase/DebitNot";
 import AddRawMaterial from "./pages/Purchase/AddRawMaterial";
 import ShowDebitNot from "./pages/Purchase/ShowDebitNot";
@@ -40,6 +39,9 @@ import ItemDetails from "./pages/Purchase/ItemDetails";
 import ChangePassword from "./pages/Purchase/ChangePassword";
 import InstallationStock from "./pages/Purchase/InstallationStock";
 import SingleOut from "./pages/LineWorker/StoreKeeper/SingleOut/SingleOut";
+import PoStockReceiving from "./pages/LineWorker/StoreKeeper/PoStockReceiving/PoStockReceiving";
+import ReceivedPurchaseStock from './pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock'
+
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -160,6 +162,15 @@ const AppRoutes = () => {
         />
 
         <Route
+          path="po-stock-receiving"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <PoStockReceiving />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="store-tracking"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
@@ -167,12 +178,21 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
+        
         <Route
           path="stock-update-history"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <StockUpdateHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="received-purchase-stock"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <ReceivedPurchaseStock />
             </ProtectedRoute>
           }
         />
@@ -368,14 +388,7 @@ const AppRoutes = () => {
           }
         />
 
-          <Route
-          path="receive-purchase-stock"
-          element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
-              <ReceivedPurchaseStock />
-            </ProtectedRoute>
-          }
-        />
+
 
          <Route
           path="installation-stock"

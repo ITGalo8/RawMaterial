@@ -266,7 +266,7 @@ const SideMenubar = () => {
                 </NavLink>
               </li>
 
-              <li>
+              {/* <li>
                 <NavLink
                   to="stock-update"
                   className={({ isActive }) =>
@@ -280,9 +280,25 @@ const SideMenubar = () => {
                   <FaPlus className="text-lg" />
                   Stock Update
                 </NavLink>
+              </li> */}
+
+               <li>
+                <NavLink
+                  to="po-stock-receiving"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FaPlus className="text-lg" />
+                  Po Stock Receiving
+                </NavLink>
               </li>
 
-              <li>
+              {/* <li>
                 <NavLink
                   to="stock-update-history"
                   className={({ isActive }) =>
@@ -296,7 +312,7 @@ const SideMenubar = () => {
                   <FaClipboardList className="text-lg" />
                   Stock Update History
                 </NavLink>
-              </li>
+              </li> */}
             </>
           )}
 
