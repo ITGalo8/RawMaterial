@@ -25,6 +25,7 @@ const CreatePurchaseOrder = () => {
   const [warehouseList, setWarehouseList] = useState([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState("");
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState("");
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const [itemDetails, setItemDetails] = useState([
     {
       id: 1,
@@ -244,7 +245,6 @@ const CreatePurchaseOrder = () => {
       setContactPerson(reorderData.contactPerson || "");
       setCellNo(reorderData.cellNo || "");
       setSelectedWarehouse(reorderData.warehouseId || "");
-
 
       // Store items for processing after itemList is loaded
       if (reorderData.items && reorderData.items.length > 0) {
@@ -900,12 +900,65 @@ const CreatePurchaseOrder = () => {
       itemTotals.taxableAmount + itemTotals.gstAmount + otherChargesTotal,
   };
 
+  const handleDownload = async (poId) => {
+    if (!poId) return;
+
+    setDownloadLoading(true);
+    try {
+      const response = await Api.post(
+        `/purchase/purchase-orders/download/${poId}`,
+        {},
+        {
+          responseType: "blob",
+        }
+      );
+
+      // Create a blob from the response
+      const blob = new Blob([response.data], { type: "application/pdf" });
+
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Create a temporary anchor element
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Get filename from content-disposition header or use default
+      const contentDisposition = response.headers["content-disposition"];
+      let fileName = `purchase_order_${poId}.pdf`;
+
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (fileNameMatch && fileNameMatch.length === 2) {
+          fileName = fileNameMatch[1];
+        }
+      }
+
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setDownloadLoading(false);
+    } catch (error) {
+      console.error("Error downloading purchase order:", error);
+      alert(
+        "Error downloading purchase order: " +
+          (error?.response?.data?.message || error?.message)
+      );
+      setDownloadLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedWarehouse) {
       alert("Please select a warehouse");
       return;
     }
-    if(!expectedDeliveryDate){
+    if (!expectedDeliveryDate) {
       alert("Please select expected delivery date");
       return;
     }
@@ -996,13 +1049,22 @@ const CreatePurchaseOrder = () => {
       );
 
       if (response.data.success) {
+        const poId = response.data.data.id;
+        const poNumber = response.data.data.poNumber;
         alert("Purchase Order created successfully!");
+        
+        const shouldDownload = window.confirm(
+          "Do you want to download the purchase order PDF?"
+        );
+        if (shouldDownload) {
+          await handleDownload(poId);
+        }
         handleReset();
       } else {
         alert("Error creating purchase order: " + response.data.message);
       }
     } catch (error) {
-      console.error("Error creating purchase order:", error);
+      console.log("Error creating purchase order:", error);
       alert(
         "Error creating purchase order: " +
           (error?.response?.data?.message || error?.message)
@@ -1067,6 +1129,27 @@ const CreatePurchaseOrder = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
+      
+        {(processingReorder || downloadLoading) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-lg">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-700">
+                {processingReorder && "Loading reorder data..."}
+                {downloadLoading && "Downloading Purchase Order..."}
+              </p>
+            </div>
+          </div>
+        )}
+        {downloadLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-lg">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-700">Downloading Purchase Order...</p>
+            </div>
+          </div>
+        )}
+
         {processingReorder && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-xl shadow-lg">
@@ -1319,32 +1402,6 @@ const CreatePurchaseOrder = () => {
 
         {/* ITEM SECTION */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 sm:mb-0">
-              Item Details
-            </h2>
-            <button
-              type="button"
-              className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center"
-              onClick={addItemDetail}
-            >
-              <svg
-                className="w-5 h-5 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Add Item
-            </button>
-          </div>
-
           {/* GST Type Info */}
           {selectedGstType && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1407,7 +1464,6 @@ const CreatePurchaseOrder = () => {
             </div>
           </div>
 
-          {/* Item Details Cards */}
           <div className="space-y-6">
             {itemDetails.map((item, index) => (
               <div
@@ -1431,6 +1487,9 @@ const CreatePurchaseOrder = () => {
 
                 <div className="p-6">
                   {/* Item Selection Row */}
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4 sm:mb-0">
+                    Item Details
+                  </h2>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     <div
                       className="relative"
@@ -2068,6 +2127,28 @@ const CreatePurchaseOrder = () => {
               </div>
             ))}
           </div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-3 border-b border-gray-200">
+            <button
+              type="button"
+              className="px-4 py-2.5 bg-yellow-400 text-dark rounded-lg  transition-colors duration-200 font-medium flex items-center"
+              onClick={addItemDetail}
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add Item
+            </button>
+          </div>
         </div>
 
         {/* OTHER CHARGES SECTION - Collapsible */}
@@ -2104,7 +2185,7 @@ const CreatePurchaseOrder = () => {
             {showOtherCharges && (
               <button
                 type="button"
-                className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center"
+                className="px-4 py-2.5 bg-yellow-400 text-dark rounded-lg hover:bg-yellow-400 transition-colors duration-200 font-medium flex items-center"
                 onClick={addOtherCharge}
               >
                 <svg
@@ -2209,7 +2290,7 @@ const CreatePurchaseOrder = () => {
               <p className="text-gray-500 mb-4">No charges added yet</p>
               <button
                 type="button"
-                className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center mx-auto"
+                className="px-4 py-2.5 bg-yellow-400 text-dark rounded-lg hover:bg-yellow-400 transition-colors duration-200 font-medium flex items-center mx-auto"
                 onClick={() => {
                   setShowOtherCharges(true);
                   addOtherCharge();
@@ -2267,7 +2348,7 @@ const CreatePurchaseOrder = () => {
             </button>
             <button
               type="button"
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-yellow-400 text-dark rounded-lg hover:bg-yellow-400 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSubmit}
               disabled={
                 !selectedCompany ||
