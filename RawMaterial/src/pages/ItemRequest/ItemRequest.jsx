@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Api from "../../auth/Api";
 import { useLocation } from "react-router-dom";
 import SingleSelect from "../../components/dropdown/SingleSelect";
@@ -19,6 +19,7 @@ const ItemRequest = () => {
   const [quantities, setQuantities] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // New state for search term
 
   useEffect(() => {
     fetchData();
@@ -43,6 +44,18 @@ const ItemRequest = () => {
       setLoading(false);
     }
   };
+
+  // Filter materials based on search term
+  const filteredMaterials = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return rawMaterials;
+    }
+    
+    const searchLower = searchTerm.toLowerCase();
+    return rawMaterials.filter(material => 
+      material.name?.toLowerCase().includes(searchLower)
+    );
+  }, [rawMaterials, searchTerm]);
 
   // Handler for MultiSelect component
   const handleMultiSelectChange = (selectedIds) => {
@@ -144,13 +157,16 @@ const ItemRequest = () => {
         setSelectedMaterials([]);
         setSelectedStorePerson(null);
         setQuantities({});
+        setSearchTerm(""); // Clear search term on successful submit
         setTimeout(() => fetchData(), 1000);
+        alert("Successfully: ", response?.data?.message)
       } else {
-        setSubmitMessage("Failed: " + response.data.message);
+        setSubmitMessage("Failed: " + response?.data?.message);
       }
     } catch (err) {
-      console.error(err);
-      setSubmitMessage("Error: " + (err.response?.data?.message || err.message));
+      console.log(err?.response?.data?.error);
+      setSubmitMessage("Error: " + (err?.response?.data?.message || err?.message));
+      alert("Error - " + err?.response?.data?.error);
     } finally {
       setSubmitting(false);
     }
@@ -160,7 +176,7 @@ const ItemRequest = () => {
     submitting || !selectedStorePerson || selectedMaterials.length === 0;
 
   // Prepare materials for MultiSelect with disabled state for out-of-stock items
-  const multiSelectMaterials = rawMaterials.map(mat => ({
+  const multiSelectMaterials = filteredMaterials.map(mat => ({
     id: mat.id,
     name: `${mat.name} (${mat.stock} ${mat.unit})`,
     disabled: mat.outOfStock
@@ -197,14 +213,33 @@ const ItemRequest = () => {
         <div className="border shadow-md rounded-xl p-6 bg-white">
           <h2 className="text-xl font-semibold mb-4">Select Materials *</h2>
           
+          {/* Search Bar */}
+          <div className="mb-4">
+            <InputField
+              type="text"
+              placeholder="Search materials by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              label=""
+              className="w-full"
+            />
+          </div>
+
           <MultiSelect
             lists={multiSelectMaterials}
             selectedValues={selectedMaterials.map(m => m.id)}
             setSelectedValues={handleMultiSelectChange}
             label=""
-            placeholder="Search & select materials..."
+            placeholder={searchTerm ? `Search results for "${searchTerm}"...` : "Select materials..."}
             loadingText="Loading materials..."
           />
+
+          {/* Search Results Info */}
+          {searchTerm && (
+            <div className="mt-2 text-sm text-gray-600">
+              Showing {filteredMaterials.length} of {rawMaterials.length} materials matching "{searchTerm}"
+            </div>
+          )}
 
           {/* Legend */}
           <div className="flex gap-4 mt-3">
