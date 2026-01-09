@@ -933,7 +933,7 @@ const ShowPurchaseOrder = () => {
   };
 
   // Download as PDF
-  const handleDownload = async (poId) => {
+  const handleDownload = async (poId,poName) => {
     if (!poId) return;
 
     setDownloadLoading(true);
@@ -954,7 +954,7 @@ const ShowPurchaseOrder = () => {
       const link = document.createElement("a");
       link.href = url;
 
-      const fileName = `PurchaseOrder_${poId}.pdf`;
+      const fileName = `${poName}.pdf`;
       link.setAttribute("download", fileName);
 
       document.body.appendChild(link);
@@ -1324,7 +1324,7 @@ const ShowPurchaseOrder = () => {
                         className="p-2 text-white rounded-md bg-violet-500 hover:bg-violet-800"
                       />
                       <ButtonWithIcon
-                        onClick={() => handleDownload(po?.id)}
+                        onClick={() => handleDownload(po.id,po?.poNumber)}
                         disabled={downloadLoading}
                         icon={<FaCloudDownloadAlt />}
                         className="p-2 text-white rounded-md bg-blue-500 hover:bg-blue-800"
