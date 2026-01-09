@@ -31,8 +31,8 @@ const ReceivedPurchaseStock = () => {
         const remainingQty = orderedQty - receivedQty;
 
         return {
-          receivedQty: remainingQty.toString(),
-          goodQty: remainingQty.toString(),
+          receivedQty: "",
+          goodQty: "",
           damagedQty: "0",
           remarks: "",
         };
@@ -45,8 +45,15 @@ const ReceivedPurchaseStock = () => {
     const updated = [...itemInputs];
     updated[index][field] = value;
 
+    // If receivedQty changes, update goodQty to match (user can override)
     if (field === "receivedQty") {
-      updated[index].goodQty = value;
+      // Only auto-update if goodQty was empty or same as previous receivedQty
+      const prevReceived = parseFloat(updated[index].receivedQty || 0);
+      const currentGood = parseFloat(updated[index].goodQty || 0);
+      
+      if (currentGood === 0 || currentGood === prevReceived) {
+        updated[index].goodQty = value;
+      }
     }
 
     setItemInputs(updated);
@@ -66,8 +73,9 @@ const ReceivedPurchaseStock = () => {
         return;
       }
 
-      // Validate inputs
+      // Validate only items that have received quantity > 0
       const validationErrors = [];
+      const itemsToProcess = [];
 
       filteredItems.forEach((item, i) => {
         const input = itemInputs[i];
@@ -79,12 +87,13 @@ const ReceivedPurchaseStock = () => {
         const goodQty = parseFloat(input.goodQty) || 0;
         const damagedQty = parseFloat(input.damagedQty) || 0;
 
+        // Skip validation for items with 0 received quantity (allow partial delivery)
         if (receivedQty <= 0) {
-          validationErrors.push(
-            `Please enter received quantity for ${item.itemName}`
-          );
+          console.log(`Skipping ${item.itemName} - no quantity received in this batch`);
+          return; // Skip this item entirely
         }
 
+        // Only validate items that have received quantity > 0
         if (receivedQty > remainingQty) {
           validationErrors.push(
             `Received quantity for ${item.itemName} cannot exceed remaining quantity (${remainingQty})`
@@ -96,6 +105,13 @@ const ReceivedPurchaseStock = () => {
             `For ${item.itemName}, Good Qty + Damaged Qty must equal Received Qty`
           );
         }
+
+        // Add to items to process
+        itemsToProcess.push({
+          index: i,
+          item: item,
+          input: input
+        });
       });
 
       if (validationErrors.length > 0) {
@@ -104,10 +120,17 @@ const ReceivedPurchaseStock = () => {
         return;
       }
 
-      // Prepare items array in the NEW format required for /store-keeper/purchaseOrder/receive
-      const itemsToSend = filteredItems.map((item, idx) => {
-        const goodQty = parseFloat(itemInputs[idx].goodQty) || 0;
-        const damagedQty = parseFloat(itemInputs[idx].damagedQty) || 0;
+      // Check if at least one item has quantity to receive
+      if (itemsToProcess.length === 0) {
+        alert("Please enter received quantity for at least one item");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare items array - only include items with received quantity > 0
+      const itemsToSend = itemsToProcess.map(({ item, input }) => {
+        const goodQty = parseFloat(input.goodQty) || 0;
+        const damagedQty = parseFloat(input.damagedQty) || 0;
 
         return {
           purchaseOrderItemId: item.id,
@@ -116,7 +139,7 @@ const ReceivedPurchaseStock = () => {
           itemName: item.itemName,
           goodQty: goodQty,
           damagedQty: damagedQty,
-          remarks: itemInputs[idx].remarks || "",
+          remarks: input.remarks || "",
         };
       });
 
@@ -297,7 +320,7 @@ const ReceivedPurchaseStock = () => {
                 )}
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Upload the purchase bill or invoice document (optional)
+                Upload the purchase bill or invoice document
               </p>
             </div>
           </div>
@@ -388,7 +411,7 @@ const ReceivedPurchaseStock = () => {
                           </label>
                           <input
                             type="number"
-                            min="1"
+                            min="0"
                             max={remainingQty}
                             step="1"
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
@@ -403,7 +426,7 @@ const ReceivedPurchaseStock = () => {
                             placeholder="Enter quantity"
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            Max: {remainingQty}
+                            Max: {remainingQty} (Leave 0 to skip this item)
                           </p>
                         </div>
 
@@ -414,7 +437,7 @@ const ReceivedPurchaseStock = () => {
                           <input
                             type="number"
                             min="0"
-                            max={itemInputs[index]?.receivedQty || remainingQty}
+                            max={remainingQty}
                             step="1"
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                             value={itemInputs[index]?.goodQty || ""}
@@ -426,6 +449,7 @@ const ReceivedPurchaseStock = () => {
                               )
                             }
                             placeholder="Good condition"
+                            disabled={!itemInputs[index]?.receivedQty}
                           />
                         </div>
 
@@ -436,7 +460,7 @@ const ReceivedPurchaseStock = () => {
                           <input
                             type="number"
                             min="0"
-                            max={itemInputs[index]?.receivedQty || remainingQty}
+                            max={remainingQty}
                             step="1"
                             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition"
                             value={itemInputs[index]?.damagedQty || ""}
@@ -448,32 +472,36 @@ const ReceivedPurchaseStock = () => {
                               )
                             }
                             placeholder="Damaged items"
+                            disabled={!itemInputs[index]?.receivedQty}
                           />
                         </div>
                       </div>
 
-                      {/* Validation message */}
-                      {itemInputs[index]?.receivedQty &&
-                        itemInputs[index]?.goodQty &&
-                        itemInputs[index]?.damagedQty && (
-                          <div
-                            className={`p-2 rounded-lg text-sm ${
-                              (parseFloat(itemInputs[index].goodQty) || 0) +
-                                (parseFloat(itemInputs[index].damagedQty) ||
-                                  0) ===
-                              (parseFloat(itemInputs[index].receivedQty) || 0)
-                                ? "bg-green-50 text-green-700"
-                                : "bg-red-50 text-red-700"
-                            }`}
-                          >
-                            Good ({itemInputs[index].goodQty}) + Damaged (
-                            {itemInputs[index].damagedQty}) ={" "}
-                            {(parseFloat(itemInputs[index].goodQty) || 0) +
-                              (parseFloat(itemInputs[index].damagedQty) ||
-                                0)}{" "}
-                            | Received: {itemInputs[index].receivedQty}
-                          </div>
-                        )}
+                      {/* Validation message - only show if received quantity > 0 */}
+                      {parseFloat(itemInputs[index]?.receivedQty || 0) > 0 && (
+                        <div
+                          className={`p-2 rounded-lg text-sm ${
+                            (parseFloat(itemInputs[index].goodQty) || 0) +
+                              (parseFloat(itemInputs[index].damagedQty) || 0) ===
+                            (parseFloat(itemInputs[index].receivedQty) || 0)
+                              ? "bg-green-50 text-green-700"
+                              : "bg-red-50 text-red-700"
+                          }`}
+                        >
+                          Good ({itemInputs[index].goodQty}) + Damaged (
+                          {itemInputs[index].damagedQty}) ={" "}
+                          {(parseFloat(itemInputs[index].goodQty) || 0) +
+                            (parseFloat(itemInputs[index].damagedQty) || 0)}{" "}
+                          | Received: {itemInputs[index].receivedQty}
+                        </div>
+                      )}
+
+                      {/* Instruction when no quantity entered */}
+                      {!itemInputs[index]?.receivedQty && (
+                        <div className="p-2 rounded-lg text-sm bg-gray-50 text-gray-600">
+                          Enter a quantity above to receive this item, or leave empty to skip
+                        </div>
+                      )}
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -493,6 +521,36 @@ const ReceivedPurchaseStock = () => {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Summary and Submit Button */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Receiving Summary
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-500">Items in this PO</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {poData?.items?.length || 0}
+                  </p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-500">Items in this delivery</p>
+                  <p className="text-2xl font-bold text-blue-700">
+                    {itemInputs.filter(item => parseFloat(item.receivedQty || 0) > 0).length}
+                  </p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-500">Total Qty in this delivery</p>
+                  <p className="text-2xl font-bold text-green-700">
+                    {itemInputs.reduce((sum, item) => sum + (parseFloat(item.receivedQty) || 0), 0)}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mt-4">
+                You can receive items in multiple deliveries. Items left empty will remain pending for future deliveries.
+              </p>
             </div>
 
             {/* Submit Button - Fixed to include both Cancel and Submit buttons */}
@@ -536,13 +594,12 @@ const ReceivedPurchaseStock = () => {
                         Processing...
                       </span>
                     ) : (
-                      "Receive Stock"
+                      "Submit Delivery"
                     )}
                   </button>
                 </div>
                 <p className="text-sm text-gray-500 text-center mt-3">
-                  Please verify all quantities and invoice number before
-                  submission
+                  Only items with quantity entered will be received. You can make multiple deliveries.
                 </p>
               </div>
             </div>

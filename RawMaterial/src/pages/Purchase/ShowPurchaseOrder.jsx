@@ -2417,26 +2417,7 @@ const ShowPurchaseOrder = () => {
                           </span>
                         )}
                       </h3>
-                      <button
-                        type="button"
-                        className="px-4 py-2 bg-yellow-400 text-dark rounded-lg hover:bg-yellow-400 transition-all duration-200 font-medium flex items-center"
-                        onClick={addNewItem}
-                      >
-                        <svg
-                          className="w-4 h-4 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
-                        Add Item
-                      </button>
+                      
                     </div>
 
                     <div className="space-y-6">
@@ -2757,7 +2738,28 @@ const ShowPurchaseOrder = () => {
                             />
                           </div>
                         </div>
+                        
                       ))}
+                      <button
+                        type="button"
+                        className="px-4 py-2 bg-yellow-400 text-dark rounded-lg hover:bg-yellow-400 transition-all duration-200 font-medium flex items-center"
+                        onClick={addNewItem}
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                        Add Item
+                      </button>
                     </div>
                   </div>
 

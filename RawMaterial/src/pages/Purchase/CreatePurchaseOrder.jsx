@@ -259,6 +259,7 @@ const CreatePurchaseOrder = () => {
           amount: charge.amount || "",
         }));
         setOtherCharges(mappedCharges);
+        setShowOtherCharges(true)
       }
     }
   }, [location.state]);
