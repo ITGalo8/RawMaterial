@@ -926,7 +926,7 @@ const CreatePurchaseOrder = () => {
 
       // Get filename from content-disposition header or use default
       const contentDisposition = response.headers["content-disposition"];
-      let fileName = `purchase_order_${poId}.pdf`;
+      let fileName = `${poId}.pdf`;
 
       if (contentDisposition) {
         const fileNameMatch = contentDisposition.match(/filename="(.+)"/);

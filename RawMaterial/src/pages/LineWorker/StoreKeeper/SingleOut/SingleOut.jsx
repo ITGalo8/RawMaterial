@@ -14,10 +14,19 @@ const SingleOut = () => {
   const [lineWorkers, setLineWorkers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [bulkQuantity, setBulkQuantity] = useState("");
+  const [otherName, setOtherName] = useState("");
+  const [otherDepartment, setOtherDepartment] = useState("");
   const dropdownRef = useRef(null);
 
-  /* ================= FETCH DATA ================= */
+  // Find the "Others" worker from the list
+  const othersWorker = lineWorkers.find(worker => 
+    worker.name.toLowerCase().includes("others") || 
+    (worker.role?.name || "").toLowerCase().includes("other department")
+  );
+  
+  // Get the ID of the "Others" worker
+  const OTHERS_ID = othersWorker?.id || "";
+
   useEffect(() => {
     const fetchItemList = async () => {
       setLoading(true);
@@ -46,7 +55,6 @@ const SingleOut = () => {
     fetchLineWorkers();
   }, []);
 
-  /* ========== CLOSE DROPDOWN WHEN CLICKING OUTSIDE ========== */
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -60,7 +68,6 @@ const SingleOut = () => {
     };
   }, []);
 
-  /* ========== MAKE UNIQUE ITEM LIST WITH TOTAL STOCK ========== */
   useEffect(() => {
     if (!itemList.length) return;
 
@@ -81,7 +88,6 @@ const SingleOut = () => {
     setUniqueItemList(uniqueItems);
   }, [itemList]);
 
-  /* ========== FILTER ITEMS BASED ON SEARCH ========== */
   const filteredItems = uniqueItemList.filter(item => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
@@ -92,7 +98,6 @@ const SingleOut = () => {
     );
   });
 
-  /* ========== TOGGLE ITEM SELECTION ========== */
   const handleItemSelection = (item) => {
     const isSelected = selectedItems.some(selected => selected.id === item.id);
     
@@ -122,7 +127,6 @@ const SingleOut = () => {
     }
   };
 
-  /* ========== UPDATE QUANTITY FOR SPECIFIC ITEM ========== */
   const handleQuantityChange = (itemId, quantity) => {
     if (quantity === "" || parseFloat(quantity) >= 0) {
       setItemQuantities({
@@ -132,7 +136,6 @@ const SingleOut = () => {
     }
   };
 
-  /* ========== SET MAX QUANTITY FOR ITEM ========== */
   const handleSetMaxQuantity = (itemId) => {
     const item = selectedItems.find(item => item.id === itemId);
     if (item) {
@@ -143,36 +146,6 @@ const SingleOut = () => {
     }
   };
 
-  /* ========== APPLY BULK QUANTITY ========== */
-  const handleApplyBulkQuantity = () => {
-    if (!bulkQuantity || parseFloat(bulkQuantity) <= 0) {
-      alert("Please enter a valid quantity");
-      return;
-    }
-
-    const newQuantities = { ...itemQuantities };
-    let hasError = false;
-    let errorMessage = "";
-
-    selectedItems.forEach(item => {
-      const qty = parseFloat(bulkQuantity);
-      if (qty > item.stock) {
-        hasError = true;
-        errorMessage += `"${item.name}" max: ${item.stock} ${item.unit}\n`;
-      } else {
-        newQuantities[item.id] = bulkQuantity;
-      }
-    });
-
-    if (hasError) {
-      alert("Some items exceed stock limits:\n" + errorMessage);
-    } else {
-      setItemQuantities(newQuantities);
-      alert(`Quantity ${bulkQuantity} applied to all selected items`);
-    }
-  };
-
-  /* ========== REMOVE SELECTED ITEM ========== */
   const handleRemoveItem = (itemId) => {
     setSelectedItems(selectedItems.filter(item => item.id !== itemId));
     const newQuantities = { ...itemQuantities };
@@ -180,7 +153,22 @@ const SingleOut = () => {
     setItemQuantities(newQuantities);
   };
 
-  /* ========== VALIDATE FORM ========== */
+  const handleWorkerChange = (e) => {
+    const value = e.target.value;
+    setSelectedWorker(value);
+    
+    // Reset "other" fields when selecting a regular worker
+    if (value !== OTHERS_ID) {
+      setOtherName("");
+      setOtherDepartment("");
+      setErrors(prev => ({
+        ...prev,
+        otherName: undefined,
+        otherDepartment: undefined
+      }));
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -204,10 +192,19 @@ const SingleOut = () => {
       newErrors.selectedWorker = "Please select a line worker";
     }
 
+    // Validate "other" fields when "Others" is selected
+    if (selectedWorker === OTHERS_ID && othersWorker) {
+      if (!otherName.trim()) {
+        newErrors.otherName = "Name is required";
+      }
+      if (!otherDepartment.trim()) {
+        newErrors.otherDepartment = "Department is required";
+      }
+    }
+
     return newErrors;
   };
 
-  /* ========== SUBMIT FORM ========== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -221,7 +218,7 @@ const SingleOut = () => {
 
     try {
       const payload = {
-        issuedTo: selectedWorker,
+        issuedTo: selectedWorker, // This will be the actual ID (e.g., "others-worker-id-123")
         rawMaterialIssued: selectedItems.map(item => ({
           rawMaterialId: item.id,
           quantity: String(itemQuantities[item.id]),
@@ -229,6 +226,12 @@ const SingleOut = () => {
         })),
         remarks: remarks || undefined,
       };
+
+      // Only add these fields when the "Others" worker is selected
+      if (selectedWorker === OTHERS_ID && othersWorker) {
+        payload.issuedToName = otherName;
+        payload.department = otherDepartment;
+      }
 
       console.log("FINAL PAYLOAD 👉", payload);
 
@@ -243,7 +246,6 @@ const SingleOut = () => {
     }
   };
 
-  /* ========== RESET FORM ========== */
   const handleReset = () => {
     setSelectedItems([]);
     setItemQuantities({});
@@ -251,16 +253,10 @@ const SingleOut = () => {
     setRemarks("");
     setErrors({});
     setSelectedWorker("");
-    setBulkQuantity("");
+    setOtherName("");
+    setOtherDepartment("");
   };
 
-  /* ========== CALCULATE TOTALS ========== */
-  const totalSelectedItems = selectedItems.length;
-  const totalQuantity = selectedItems.reduce((sum, item) => {
-    return sum + (parseFloat(itemQuantities[item.id]) || 0);
-  }, 0);
-
-  /* ========== RENDER SELECTED ITEMS BADGES ========== */
   const renderSelectedBadges = () => {
     if (selectedItems.length === 0) {
       return (
@@ -472,26 +468,6 @@ const SingleOut = () => {
                 <h3 className="text-lg font-semibold text-gray-700">
                   Set Quantities ({selectedItems.length} items)
                 </h3>
-                
-                {/* BULK QUANTITY SETTER */}
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    value={bulkQuantity}
-                    onChange={(e) => setBulkQuantity(e.target.value)}
-                    placeholder="Bulk quantity"
-                    className="border border-gray-300 rounded px-3 py-1.5 text-sm w-32"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleApplyBulkQuantity}
-                    className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                  >
-                    Apply to All
-                  </button>
-                </div>
               </div>
 
               {/* QUANTITY INPUTS */}
@@ -572,65 +548,73 @@ const SingleOut = () => {
             </div>
           )}
 
-          {/* ADDITIONAL INFORMATION */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
-            {/* LINE WORKER */}
-            <div>
-              <label className="block mb-2 font-medium text-gray-700">
-                Issued To (Line Worker) <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={selectedWorker}
-                onChange={(e) => setSelectedWorker(e.target.value)}
-                className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
-                  errors.selectedWorker ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Select Line Worker</option>
-                {lineWorkers.map((worker) => (
-                  <option key={worker.id} value={worker.id}>
-                    {worker.name} ({worker?.role?.name || 'No Role'})
-                  </option>
-                ))}
-              </select>
-              {errors.selectedWorker && (
-                <p className="text-red-500 text-sm mt-1">{errors.selectedWorker}</p>
-              )}
-            </div>
+          {/* LINE WORKER SELECTION */}
+          <div className="mb-6">
+            <label className="block mb-2 font-medium text-gray-700">
+              Issued To <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={selectedWorker}
+              onChange={handleWorkerChange}
+              className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
+                errors.selectedWorker ? 'border-red-500' : 'border-gray-300'
+              }`}
+            >
+              <option value="">Select Issued To</option>
+              {lineWorkers.map((worker) => (
+                <option key={worker.id} value={worker.id}>
+                  {worker.name} ({worker?.role?.name || 'No Role'})
+                </option>
+              ))}
+            </select>
+            {errors.selectedWorker && (
+              <p className="text-red-500 text-sm mt-1">{errors.selectedWorker}</p>
+            )}
 
-            {/* SUMMARY CARD */}
-            <div>
-              <label className="block mb-2 font-medium text-gray-700">
-                Transaction Summary
-              </label>
-              <div className="border border-gray-300 rounded-lg p-4 bg-gradient-to-r from-blue-50 to-indigo-50">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Total Items:</span>
-                    <span className={`font-semibold text-lg ${
-                      selectedItems.length > 0 ? 'text-blue-600' : 'text-gray-400'
-                    }`}>
-                      {selectedItems.length}
-                    </span>
+            {/* OTHER NAME AND DEPARTMENT FIELDS */}
+            {selectedWorker === OTHERS_ID && othersWorker && (
+              <div className="mt-4 p-4 border border-gray-300 rounded-lg bg-blue-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* OTHER NAME */}
+                  <div>
+                    <label className="block mb-2 font-medium text-gray-700">
+                      Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={otherName}
+                      onChange={(e) => setOtherName(e.target.value)}
+                      placeholder="Enter person's name"
+                      className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
+                        errors.otherName ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.otherName && (
+                      <p className="text-red-500 text-sm mt-1">{errors.otherName}</p>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Total Quantity:</span>
-                    <span className="font-semibold text-lg text-green-600">
-                      {totalQuantity.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Line Worker:</span>
-                    <span className="font-semibold text-purple-600 truncate max-w-[150px]">
-                      {selectedWorker 
-                        ? lineWorkers.find(w => w.id === selectedWorker)?.name || 'Selected'
-                        : 'Not selected'
-                      }
-                    </span>
+
+                  {/* OTHER DEPARTMENT */}
+                  <div>
+                    <label className="block mb-2 font-medium text-gray-700">
+                      Department <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={otherDepartment}
+                      onChange={(e) => setOtherDepartment(e.target.value)}
+                      placeholder="Enter department name"
+                      className={`w-full border rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
+                        errors.otherDepartment ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.otherDepartment && (
+                      <p className="text-red-500 text-sm mt-1">{errors.otherDepartment}</p>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* REMARKS */}
@@ -665,12 +649,10 @@ const SingleOut = () => {
                   Processing...
                 </span>
               ) : (
-                `Issue ${selectedItems.length} Item${selectedItems.length !== 1 ? 's' : ''}`
+                `Submit ${selectedItems.length} Item${selectedItems.length !== 1 ? 's' : ''}`
               )}
             </button>
           </div>
-
-    
         </form>
       )}
 
