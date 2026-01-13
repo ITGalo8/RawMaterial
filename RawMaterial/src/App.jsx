@@ -40,7 +40,8 @@ import ChangePassword from "./pages/Purchase/ChangePassword";
 import InstallationStock from "./pages/Purchase/InstallationStock";
 import SingleOut from "./pages/LineWorker/StoreKeeper/SingleOut/SingleOut";
 import PoStockReceiving from "./pages/LineWorker/StoreKeeper/PoStockReceiving/PoStockReceiving";
-import ReceivedPurchaseStock from './pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock'
+import ReceivedPurchaseStock from './pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock';
+import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/DirectItemIssueHistory";
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -193,6 +194,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <ReceivedPurchaseStock />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="direct-item-issue-history"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <DirectItemIssueHistory />
             </ProtectedRoute>
           }
         />

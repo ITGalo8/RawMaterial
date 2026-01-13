@@ -266,9 +266,9 @@ const SideMenubar = () => {
                 </NavLink>
               </li>
 
-              {/* <li>
+              <li>
                 <NavLink
-                  to="stock-update"
+                  to="direct-item-issue-history"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
@@ -277,10 +277,10 @@ const SideMenubar = () => {
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <FaPlus className="text-lg" />
-                  Stock Update
+                  <FaBox className="text-lg" />
+                  Direct Item Issue History
                 </NavLink>
-              </li> */}
+              </li>
 
                <li>
                 <NavLink
@@ -294,7 +294,7 @@ const SideMenubar = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <FaPlus className="text-lg" />
-                  Po Stock Receiving
+                  PO Stock Receiving
                 </NavLink>
               </li>
 
