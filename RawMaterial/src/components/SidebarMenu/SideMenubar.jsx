@@ -15,6 +15,7 @@ import {
   FaBars,
   FaTimes,
 } from "react-icons/fa";
+import { MdOutlinePayment } from "react-icons/md";
 import { IoStorefrontSharp } from "react-icons/io5";
 import {MdDashboard} from "react-icons/md";
 const SideMenubar = () => {
@@ -23,6 +24,7 @@ const SideMenubar = () => {
     vendor: false,
     purchase: false,
     Item: false,
+    Payment: false
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -664,7 +666,86 @@ const SideMenubar = () => {
                         Show Debit Not History
                       </NavLink>
                     </li>
+                    
+                  </ul>
+                )}
+              </li>
+                <li className="border-b border-gray-300">
+                <div
+                  className="flex items-center justify-between px-5 py-3 cursor-pointer 
+                  text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 border-transparent transition-all"
+                  onClick={() => toggleMenu("Payment")}
+                >
+                  <span className="flex items-center gap-3 text-sm font-medium">
+                    <MdOutlinePayment className="text-lg" />
+                    Payment
+                  </span>
+                  <span className="text-gray-600 transition-transform">
+                    {openMenus.Payment ? <FaChevronUp /> : <FaChevronDown />}
+                  </span>
+                </div>
 
+                {openMenus.Payment && (
+                  <ul className="bg-yellow-50">
+                    <li>
+                      <NavLink
+                        to="payment-pending"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Payment Pending
+                      </NavLink>
+                    </li>
+
+                    {/* <li>
+                      <NavLink
+                        to="show-purchase-orders"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Show Purchase Orders
+                      </NavLink>
+                    </li> */}
+
+                     {/* <li>
+                      <NavLink
+                        to="debit-not"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Debit Not
+                      </NavLink>
+                    </li> */}
+
+                    {/* <li>
+                      <NavLink
+                        to="show-debit-not"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Show Debit Not History
+                      </NavLink>
+                    </li> */}
                     
                   </ul>
                 )}
@@ -672,6 +753,8 @@ const SideMenubar = () => {
             </>
           )}
         </ul>
+
+        
 
         {/* Logout */}
         <div className="p-4 border-t border-gray-400 mt-auto">

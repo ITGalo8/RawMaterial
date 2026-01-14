@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Api from '../../../auth/Api';
+import showData from "../../../utils/axios/getMethod";
 
 const UserStock = () => {
   const [data, setData] = useState([]);
@@ -10,8 +11,8 @@ const UserStock = () => {
   // Fetch API Data
   const fetchData = async () => {
     try {
-      const res = await Api.get(`/line-worker/showUserItemStock`);
-      const list = res?.data?.data || [];
+      const res = await showData("/line-worker/showUserItemStock")
+      const list = res?.data || [];
       setData(list);
       setFiltered(list);
     } catch (err) {

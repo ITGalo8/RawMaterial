@@ -13,7 +13,7 @@ const UserStockData = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tableLoading, setTableLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('currentStock'); // 'currentStock', 'directIssued', 'requests'
+  const [activeTab, setActiveTab] = useState('currentStock');
 
   const fetchLineWorkers = async () => {
     try {

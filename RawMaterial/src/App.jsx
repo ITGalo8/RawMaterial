@@ -42,6 +42,8 @@ import SingleOut from "./pages/LineWorker/StoreKeeper/SingleOut/SingleOut";
 import PoStockReceiving from "./pages/LineWorker/StoreKeeper/PoStockReceiving/PoStockReceiving";
 import ReceivedPurchaseStock from './pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock';
 import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/DirectItemIssueHistory";
+import PaymentPending from "./pages/Payment/PaymentPending";
+import PaymentRequest from "./pages/Payment/PaymentRequest";
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -397,14 +399,29 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
-
-
          <Route
           path="installation-stock"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <InstallationStock />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="payment-pending"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <PaymentPending />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="payment-request"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <PaymentRequest />
             </ProtectedRoute>
           }
         />
