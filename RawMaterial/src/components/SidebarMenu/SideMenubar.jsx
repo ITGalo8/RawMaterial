@@ -702,9 +702,9 @@ const SideMenubar = () => {
                       </NavLink>
                     </li>
 
-                    {/* <li>
+                    <li>
                       <NavLink
-                        to="show-purchase-orders"
+                        to="po-payment-details"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
@@ -713,9 +713,9 @@ const SideMenubar = () => {
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Show Purchase Orders
+                        Payment Details
                       </NavLink>
-                    </li> */}
+                    </li>
 
                      {/* <li>
                       <NavLink

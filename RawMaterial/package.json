@@ -10,12 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
+    "@ant-design/icons": "^6.1.0",
     "@heroicons/react": "^2.2.0",
-    "@mui/icons-material": "^7.3.5",
-    "@mui/material": "^7.3.5",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "antd": "^6.2.0",
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "lodash": "^4.17.21",

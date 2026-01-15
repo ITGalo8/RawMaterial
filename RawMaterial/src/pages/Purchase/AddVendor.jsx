@@ -180,11 +180,11 @@ const AddVendor = () => {
     
     if (!companyData.name.trim()) errors.name = 'Company name is required';
     
-    if (!companyData.gstNumber.trim()) {
-      errors.gstNumber = 'GST number is required';
-    } else if (!/^[0-9A-Z]{15}$/.test(companyData.gstNumber)) {
-      errors.gstNumber = 'GST number must be 15 characters (numbers and uppercase letters)';
-    }
+    // if (!companyData.gstNumber.trim()) {
+    //   errors.gstNumber = 'GST number is required';
+    // } else if (!/^[0-9A-Z]{15}$/.test(companyData.gstNumber)) {
+    //   errors.gstNumber = 'GST number must be 15 characters (numbers and uppercase letters)';
+    // }
     
     if (!companyData.contactPerson.trim()) {
       errors.contactPerson = 'Contact person name is required';
@@ -306,6 +306,7 @@ const AddVendor = () => {
           }
         }
       );
+      alert("Successfully: Submit Vendor",)
 
       if (response.status === 200 || response.status === 201) {
         setMessage('Vendor added successfully!');
@@ -341,7 +342,6 @@ const AddVendor = () => {
   const isFormValid = () => {
     const baseValidations = (
       companyData.name.trim() &&
-      companyData.gstNumber.trim() &&
       companyData.contactPerson.trim() &&
       companyData.address.trim() &&
       companyData.city.trim() &&
@@ -508,7 +508,7 @@ const AddVendor = () => {
                     <label htmlFor="gstNumber" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       <span className="flex items-center">
                         <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
-                        GST Number <span className="text-red-500 ml-0.5">*</span>
+                        GST Number <span className="text-red-500 ml-0.5"></span>
                       </span>
                     </label>
                     <div className="relative">
@@ -518,7 +518,6 @@ const AddVendor = () => {
                         name="gstNumber"
                         value={companyData.gstNumber}
                         onChange={handleChange}
-                        required
                         className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
                           fieldErrors.gstNumber ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                         }`}

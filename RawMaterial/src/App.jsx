@@ -45,6 +45,7 @@ import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/Dir
 import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
 import POVerificationDashboard from "./pages/POVerification/POVerificationDashboard";
+import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -424,6 +425,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <PaymentRequest />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="po-payment-details"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <PoPaymentDetails />
             </ProtectedRoute>
           }
         />
