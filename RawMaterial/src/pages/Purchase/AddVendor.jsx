@@ -36,8 +36,9 @@ const AddVendor = () => {
     contactNumber: '',
     alternateNumber: '',
     email: '',
-    currency: 'INR',
+    currency: '',
     exchangeRate: '1',
+    zipCode: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -168,7 +169,7 @@ const AddVendor = () => {
 
   const formatPhoneNumber = (value) => {
     const cleaned = value.replace(/[^0-9]/g, '');
-    return cleaned.slice(0, 10);
+    return cleaned.slice(0, 20);
   };
 
   const formatEmail = (value) => {
@@ -191,11 +192,11 @@ const AddVendor = () => {
     }
   
     
-    if (!companyData.contactNumber.trim()) {
-      errors.contactNumber = 'Contact number is required';
-    } else if (!/^[0-9]{10}$/.test(companyData.contactNumber)) {
-      errors.contactNumber = 'Contact number must be 10 digits';
-    }
+    // if (!companyData.contactNumber.trim()) {
+    //   errors.contactNumber = 'Contact number is required';
+    // } else if (!/^[0-20]{10}$/.test(companyData.contactNumber)) {
+    //   errors.contactNumber = 'Contact number must be 10 digits';
+    // }
 
     if (companyData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(companyData.email)) {
       errors.email = 'Invalid email format';
@@ -205,19 +206,19 @@ const AddVendor = () => {
     if (!companyData.city.trim()) errors.city = 'City is required';
     if (!companyData.state.trim()) errors.state = 'State is required';
     
-    if (!companyData.pincode.trim()) {
-      errors.pincode = 'Pincode is required';
-    } else if (!/^[1-9][0-9]{5}$/.test(companyData.pincode)) {
-      errors.pincode = 'Invalid pincode format';
-    }
+    // if (!companyData.pincode.trim()) {
+    //   errors.pincode = 'Pincode is required';
+    // } else if (!/^[1-9][0-9]{5}$/.test(companyData.pincode)) {
+    //   errors.pincode = 'Invalid pincode format';
+    // }
 
-    if (companyData.currency !== 'INR') {
-      if (!companyData.exchangeRate.trim()) {
-        errors.exchangeRate = 'Exchange rate is required';
-      } else if (isNaN(companyData.exchangeRate) || parseFloat(companyData.exchangeRate) <= 0) {
-        errors.exchangeRate = 'Exchange rate must be a positive number';
-      }
-    }
+    // if (companyData.currency !== 'INR') {
+    //   if (!companyData.exchangeRate.trim()) {
+    //     errors.exchangeRate = 'Exchange rate is required';
+    //   } else if (isNaN(companyData.exchangeRate) || parseFloat(companyData.exchangeRate) <= 0) {
+    //     errors.exchangeRate = 'Exchange rate must be a positive number';
+    //   }
+    // }
 
     return errors;
   };
@@ -231,7 +232,9 @@ const AddVendor = () => {
     } else if (name === 'contactNumber' || name === 'alternateNumber') {
       processedValue = formatPhoneNumber(value);
     } else if (name === 'pincode') {
-      processedValue = value.replace(/[^0-9]/g, '').slice(0, 6);
+      processedValue = value.replace(/[^0-9]/g, '');
+    }else if (name === 'zipCode') {
+      processedValue = value.replace(/[^0-9]/g, '');
     } else if (name === 'email') {
       processedValue = formatEmail(value);
     } else if (name === 'exchangeRate') {
@@ -322,8 +325,9 @@ const AddVendor = () => {
           contactNumber: '',
           alternateNumber: '',
           email: '',
-          currency: 'INR',
+          currency: '',
           exchangeRate: '1',
+          zipCode: '',
 
         });
       }
@@ -346,7 +350,6 @@ const AddVendor = () => {
       companyData.address.trim() &&
       companyData.city.trim() &&
       companyData.state.trim() &&
-      companyData.pincode.trim() &&
       companyData.contactNumber.trim()
     );
 
@@ -372,6 +375,7 @@ const AddVendor = () => {
       email: '',
       currency: 'INR',
       exchangeRate: '1',
+      zipCode: '',
     });
     setFieldErrors({});
     setError('');
@@ -539,16 +543,16 @@ const AddVendor = () => {
                     <label htmlFor="currency" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       <span className="flex items-center">
                         <CurrencyDollarIcon className="h-3 w-3 mr-1 text-gray-400" />
-                        Currency <span className="text-red-500 ml-0.5">*</span>
+                        Currency <span className="text-red-500 ml-0.5"></span>
                       </span>
                     </label>
                     <div className="relative">
+
                       <select
                         id="currency"
                         name="currency"
                         value={companyData.currency}
                         onChange={handleChange}
-                        required
                         className="w-full pl-8 pr-8 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm hover:border-gray-400 appearance-none bg-white cursor-pointer"
                       >
                         {currencyOptions.map((option) => (
@@ -563,7 +567,7 @@ const AddVendor = () => {
                   </div>
 
                   {/* Exchange Rate or INR Info */}
-                  {companyData.currency !== 'INR' ? (
+                  {/* {companyData.currency !== 'INR' ? (
                     <div className="md:col-span-1">
                       <label htmlFor="exchangeRate" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                         <span className="flex items-center">
@@ -613,7 +617,7 @@ const AddVendor = () => {
                         </div>
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
 
@@ -716,7 +720,7 @@ const AddVendor = () => {
                   <div className="sm:col-span-1">
                     <label htmlFor="pincode" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       <span className="flex items-center justify-between">
-                        Pincode <span className="text-red-500">*</span>
+                        Pincode <span className="text-red-500"></span>
                         {detectingState && (
                           <span className="text-xs text-blue-600 flex items-center">
                             <ArrowPathIcon className="h-3 w-3 mr-0.5 animate-spin" />
@@ -731,11 +735,10 @@ const AddVendor = () => {
                       name="pincode"
                       value={companyData.pincode}
                       onChange={handleChange}
-                      required
                       className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
                         fieldErrors.pincode ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                       }`}
-                      placeholder="6-digit postal code"
+                      placeholder="postal code"
                       maxLength="6"
                     />
                     {fieldErrors.pincode && (
@@ -749,6 +752,28 @@ const AddVendor = () => {
                         <CheckCircleIcon className="h-3 w-3 mr-0.5" />
                         Valid pincode format
                       </p>
+                    )}
+                  </div>
+                   <div className="sm:col-span-1">
+                    <label htmlFor="zipCode" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      ZipCode <span className="text-red-500"></span>
+                    </label>
+                    <input
+                      type="text"
+                      id="zipCode"
+                      name="zipCode"
+                      value={companyData.zipCode}
+                      onChange={handleChange}
+                      className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                        fieldErrors.zipCode ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                      placeholder="Enter Zip Code"
+                    />
+                    {fieldErrors.zipCode && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.zipCode}
+                      </span>
                     )}
                   </div>
 
@@ -893,23 +918,11 @@ const AddVendor = () => {
                         className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
                           fieldErrors.contactNumber ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                         }`}
-                        placeholder="10-digit contact number"
-                        maxLength="10"
+                        placeholder="contact number"
                       />
                       <PhoneIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
-                    {fieldErrors.contactNumber && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.contactNumber}
-                      </span>
-                    )}
-                    {!fieldErrors.contactNumber && companyData.contactNumber.length === 10 && (
-                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                        Valid contact number
-                      </p>
-                    )}
+                  
                   </div>
 
                   {/* Email Address */}
