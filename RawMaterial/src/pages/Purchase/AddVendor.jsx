@@ -36,8 +36,7 @@ const AddVendor = () => {
     contactNumber: '',
     alternateNumber: '',
     email: '',
-    currency: '',
-    exchangeRate: '1',
+    currency: 'INR',
     zipCode: '',
   });
 
@@ -212,14 +211,6 @@ const AddVendor = () => {
     //   errors.pincode = 'Invalid pincode format';
     // }
 
-    // if (companyData.currency !== 'INR') {
-    //   if (!companyData.exchangeRate.trim()) {
-    //     errors.exchangeRate = 'Exchange rate is required';
-    //   } else if (isNaN(companyData.exchangeRate) || parseFloat(companyData.exchangeRate) <= 0) {
-    //     errors.exchangeRate = 'Exchange rate must be a positive number';
-    //   }
-    // }
-
     return errors;
   };
 
@@ -233,25 +224,10 @@ const AddVendor = () => {
       processedValue = formatPhoneNumber(value);
     } else if (name === 'pincode') {
       processedValue = value.replace(/[^0-9]/g, '');
-    }else if (name === 'zipCode') {
+    } else if (name === 'zipCode') {
       processedValue = value.replace(/[^0-9]/g, '');
     } else if (name === 'email') {
       processedValue = formatEmail(value);
-    } else if (name === 'exchangeRate') {
-      processedValue = value.replace(/[^0-9.]/g, '');
-      const parts = processedValue.split('.');
-      if (parts.length > 2) {
-        processedValue = parts[0] + '.' + parts.slice(1).join('');
-      }
-    } else if (name === 'currency') {
-      if (value === 'INR') {
-        setCompanyData(prevState => ({
-          ...prevState,
-          currency: value,
-          exchangeRate: '1'
-        }));
-        return;
-      }
     } else if (name === 'contactPerson') {
       processedValue = value.replace(/[^a-zA-Z\s.'-]/g, '');
     } 
@@ -325,10 +301,8 @@ const AddVendor = () => {
           contactNumber: '',
           alternateNumber: '',
           email: '',
-          currency: '',
-          exchangeRate: '1',
+          currency: 'INR',
           zipCode: '',
-
         });
       }
     } catch (err) {
@@ -344,7 +318,7 @@ const AddVendor = () => {
   };
 
   const isFormValid = () => {
-    const baseValidations = (
+    return (
       companyData.name.trim() &&
       companyData.contactPerson.trim() &&
       companyData.address.trim() &&
@@ -352,12 +326,6 @@ const AddVendor = () => {
       companyData.state.trim() &&
       companyData.contactNumber.trim()
     );
-
-    if (companyData.currency === 'INR') {
-      return baseValidations;
-    }
-    
-    return baseValidations && companyData.exchangeRate.trim();
   };
 
   const clearForm = () => {
@@ -374,7 +342,6 @@ const AddVendor = () => {
       alternateNumber: '',
       email: '',
       currency: 'INR',
-      exchangeRate: '1',
       zipCode: '',
     });
     setFieldErrors({});
@@ -393,19 +360,6 @@ const AddVendor = () => {
     { value: 'CAD', label: 'Canadian Dollar (C$)' },
     { value: 'SGD', label: 'Singapore Dollar (S$)' }
   ];
-
-  const getCurrencySymbol = (currencyCode) => {
-    const symbols = {
-      'INR': '₹',
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£',
-      'AUD': 'A$',
-      'CAD': 'C$',
-      'SGD': 'S$'
-    };
-    return symbols[currencyCode] || currencyCode;
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-3 sm:py-6 sm:px-4 md:px-6">
@@ -475,7 +429,7 @@ const AddVendor = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {/* Company Name */}
                   <div className="md:col-span-2 lg:col-span-1">
                     <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
@@ -547,7 +501,6 @@ const AddVendor = () => {
                       </span>
                     </label>
                     <div className="relative">
-
                       <select
                         id="currency"
                         name="currency"
@@ -565,59 +518,6 @@ const AddVendor = () => {
                       <ChevronDownIcon className="h-4 w-4 text-gray-400 absolute right-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
                   </div>
-
-                  {/* Exchange Rate or INR Info */}
-                  {/* {companyData.currency !== 'INR' ? (
-                    <div className="md:col-span-1">
-                      <label htmlFor="exchangeRate" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                        <span className="flex items-center">
-                          <CurrencyDollarIcon className="h-3 w-3 mr-1 text-gray-400" />
-                          Exchange Rate (to INR) <span className="text-red-500 ml-0.5">*</span>
-                        </span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="exchangeRate"
-                          name="exchangeRate"
-                          value={companyData.exchangeRate}
-                          onChange={handleChange}
-                          required
-                          className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
-                            fieldErrors.exchangeRate ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
-                          }`}
-                          placeholder={`1 ${getCurrencySymbol(companyData.currency)} = ? ₹`}
-                        />
-                        <CurrencyDollarIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
-                      </div>
-                      {fieldErrors.exchangeRate && (
-                        <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                          <XCircleIcon className="h-3 w-3 mr-0.5" />
-                          {fieldErrors.exchangeRate}
-                        </span>
-                      )}
-                      {!fieldErrors.exchangeRate && companyData.exchangeRate && !isNaN(companyData.exchangeRate) && (
-                        <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                          <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                          {getCurrencySymbol(companyData.currency)}1 = ₹{companyData.exchangeRate}
-                        </p>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="md:col-span-2 lg:col-span-1">
-                      <div className="bg-blue-50 border border-blue-100 rounded-md p-3 h-full">
-                        <div className="flex items-start">
-                          <InformationCircleIcon className="h-4 w-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs text-blue-700 font-medium">INR Selected</p>
-                            <p className="text-xs text-blue-600 mt-0.5">
-                              Exchange rate is automatically set to 1 for Indian Rupee (base currency).
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )} */}
                 </div>
               </div>
 
