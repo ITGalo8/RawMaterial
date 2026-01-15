@@ -338,6 +338,43 @@ const SideMenubar = () => {
             </>
           )}
 
+
+          {(user.role === "Verification") && (
+            <>
+              <li>
+                <NavLink
+                  to="po-verification-dashboard"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <MdDashboard className="text-lg" />
+                 PO Verification Dashboard
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink
+                  to="po-verification"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <MdDashboard className="text-lg" />
+                 PO Verification
+                </NavLink>
+              </li>
+            </>
+          )}
+
           {(user.role === "Store" || user.role === "Purchase") && (
             <>
               <li>
@@ -702,9 +739,9 @@ const SideMenubar = () => {
                       </NavLink>
                     </li>
 
-                    <li>
+                    {/* <li>
                       <NavLink
-                        to="po-payment-details"
+                        to="show-purchase-orders"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
@@ -713,9 +750,9 @@ const SideMenubar = () => {
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Payment Details
+                        Show Purchase Orders
                       </NavLink>
-                    </li>
+                    </li> */}
 
                      {/* <li>
                       <NavLink

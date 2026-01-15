@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const POVerification = () => {
+const PoVerification = () => {
   const [paymentRequests, setPaymentRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -540,4 +540,4 @@ const POVerification = () => {
     </div>
   );
 };
-export default POVerification;
+export default PoVerification;

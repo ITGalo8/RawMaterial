@@ -46,6 +46,7 @@ import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
 import POVerificationDashboard from "./pages/POVerification/POVerificationDashboard";
 import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
+import PoVerification from "./pages/POVerification/PoVerification";
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -443,6 +444,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Verification"]}>
               <POVerificationDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="po-verification"
+          element={
+            <ProtectedRoute allowedRoles={["Verification"]}>
+              <PoVerification />
             </ProtectedRoute>
           }
         />

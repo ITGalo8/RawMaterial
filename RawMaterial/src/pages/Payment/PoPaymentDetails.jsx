@@ -177,7 +177,6 @@ const PoPaymentDetails = () => {
           <table className="min-w-full border-collapse">
             <thead className="bg-gray-100">
               <tr className="text-left text-sm font-semibold text-gray-700">
-                <th className="px-6 py-3">Request ID</th>
                 <th className="px-6 py-3">PO Number</th>
                 <th className="px-6 py-3">Company</th>
                 <th className="px-6 py-3">Vendor</th>
@@ -192,9 +191,9 @@ const PoPaymentDetails = () => {
               {filteredData.map((request) => (
                 <React.Fragment key={request.paymentRequestId}>
                   <tr className="border-t hover:bg-gray-50 text-sm transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs">
+                    {/* <td className="px-6 py-4 font-mono text-xs">
                       {request.paymentRequestId.substring(0, 8)}...
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 font-medium">
                       {request.poNumber}
                     </td>
@@ -314,11 +313,6 @@ const PoPaymentDetails = () => {
                                 </div>
                               </div>
                             </div>
-                          </div>
-                          
-                          <div className="mt-4 text-xs text-gray-500">
-                            <p><strong>PO ID:</strong> {request.poId}</p>
-                            <p><strong>Request ID:</strong> {request.paymentRequestId}</p>
                           </div>
                         </div>
                       </td>
