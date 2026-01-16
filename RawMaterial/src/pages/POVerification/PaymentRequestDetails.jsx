@@ -1,0 +1,807 @@
+import React, { useState, useEffect } from "react";
+import Api from "../../auth/Api";
+
+const PaymentRequestDetails = () => {
+  const [paymentRequests, setPaymentRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filterType, setFilterType] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortConfig, setSortConfig] = useState({
+    key: "createdAt",
+    direction: "desc",
+  });
+  const [processingRequest, setProcessingRequest] = useState(null);
+
+  useEffect(() => {
+    fetchPaymentRequests();
+  }, []);
+
+  const fetchPaymentRequests = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await Api.get(
+        `/verification-dept/purchase-orders/payments/requests/show`
+      );
+      setPaymentRequests(response?.data?.data || []);
+    } catch (error) {
+      setError(
+        error?.response?.data?.message || "Failed to fetch payment requests"
+      );
+      console.error("Error fetching payment requests:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sort function
+  const sortedRequests = React.useMemo(() => {
+    let sortableItems = [...paymentRequests];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === "asc" ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [paymentRequests, sortConfig]);
+
+  // Filter and search logic
+  const filteredRequests = sortedRequests.filter((request) => {
+    const matchesSearch =
+      request.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.vendorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.payementRequestedBy
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+    const matchesFilter =
+      filterType === "all" || request.billpaymentType === filterType;
+
+    return matchesSearch && matchesFilter;
+  });
+
+  // Handle sort
+  const requestSort = (key) => {
+    let direction = "asc";
+    if (sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Format currency
+  const formatCurrency = (amount, currency) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Get sort indicator
+  const getSortIndicator = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === "asc" ? "↑" : "↓";
+    }
+    return "↕";
+  };
+
+  // Calculate statistics
+  const stats = {
+    total: paymentRequests.length,
+    totalAmount: paymentRequests.reduce(
+      (sum, req) => sum + req.requestedAmount,
+      0
+    ),
+    advanceCount: paymentRequests.filter(
+      (req) => req.billpaymentType === "Advance_Payment"
+    ).length,
+    partialCount: paymentRequests.filter(
+      (req) => req.billpaymentType === "Partial_Payment"
+    ).length,
+    uniqueVendors: [...new Set(paymentRequests.map((req) => req.vendorName))]
+      .length,
+    uniquePOs: [...new Set(paymentRequests.map((req) => req.poNumber))].length,
+  };
+
+  // Handle approve payment request
+  const handleApprove = async (requestId, poNumber) => {
+    const remarks = window.prompt(`Enter remarks for approving ${poNumber}:`, "Docs are verified");
+    if (remarks === null) return; // User cancelled
+    
+    if (window.confirm(`Are you sure you want to approve payment request for ${poNumber}?`)) {
+      try {
+        setProcessingRequest(requestId);
+        
+        await Api.patch(
+          `/verification-dept/purchase-orders/payments/requests/status`,
+          {
+            paymentRequestId: requestId,
+            status: "APPROVED",
+            remarks: remarks || "Docs are verified"
+          }
+        );
+
+        alert(`Payment request for ${poNumber} approved successfully!`);
+        fetchPaymentRequests(); // Refresh data
+      } catch (error) {
+        const errorMessage = error?.response?.data?.message || "Failed to approve payment request";
+        alert(errorMessage);
+        console.error("Error approving payment request:", error);
+      } finally {
+        setProcessingRequest(null);
+      }
+    }
+  };
+
+  // Handle reject payment request
+  const handleReject = async (requestId, poNumber) => {
+    const remarks = window.prompt(`Enter reason for rejecting ${poNumber}:`);
+    if (!remarks) {
+      alert("Rejection reason is required");
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to reject payment request for ${poNumber}?`)) {
+      try {
+        setProcessingRequest(requestId);
+        
+        await Api.patch(
+          `/verification-dept/purchase-orders/payments/requests/status`,
+          {
+            paymentRequestId: requestId,
+            status: "REJECTED",
+            remarks: remarks
+          }
+        );
+
+        alert(`Payment request for ${poNumber} rejected successfully!`);
+        fetchPaymentRequests(); // Refresh data
+      } catch (error) {
+        const errorMessage = error?.response?.data?.message || "Failed to reject payment request";
+        alert(errorMessage);
+        console.error("Error rejecting payment request:", error);
+      } finally {
+        setProcessingRequest(null);
+      }
+    }
+  };
+
+  // Handle view details
+  const handleViewDetails = (requestId, poNumber) => {
+    console.log("View details for:", requestId, poNumber);
+    // You can implement navigation or modal here
+    // Example: navigate(`/payment-requests/${requestId}`);
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-300 rounded w-1/4 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white rounded-xl shadow p-6">
+                  <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
+                  <div className="h-8 bg-gray-300 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+            <div className="bg-white rounded-xl shadow p-6">
+              <div className="h-96 bg-gray-300 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Payment Request Details
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Manage and review pending payment requests
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0 flex space-x-3">
+              <button
+                onClick={fetchPaymentRequests}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                disabled={processingRequest}
+              >
+                <svg
+                  className={`h-4 w-4 mr-2 ${processingRequest ? 'animate-spin' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-center">
+              <svg
+                className="h-5 w-5 text-red-400 mr-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <h3 className="text-sm font-medium text-red-800">
+                  Error loading payment requests
+                </h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="ml-auto text-red-400 hover:text-red-600"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Filters and Search */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 p-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <svg
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search by PO Number, Vendor, Company, or Requester..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Filter by:
+                </span>
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none min-w-[140px]"
+                >
+                  <option value="all">All Types</option>
+                  <option value="Advance_Payment">Advance Payment</option>
+                  <option value="Partial_Payment">Partial Payment</option>
+                </select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Sort by:
+                </span>
+                <select
+                  value={sortConfig.key}
+                  onChange={(e) => requestSort(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none min-w-[140px]"
+                >
+                  <option value="createdAt">Date</option>
+                  <option value="poNumber">PO Number</option>
+                  <option value="requestedAmount">Amount</option>
+                  <option value="vendorName">Vendor</option>
+                  <option value="companyName">Company</option>
+                </select>
+                <button
+                  onClick={() => requestSort(sortConfig.key)}
+                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  {sortConfig.direction === "asc" ? "↑" : "↓"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Requests Table */}
+        {filteredRequests.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
+            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+              <svg
+                className="h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              {searchTerm || filterType !== "all"
+                ? "No matching results"
+                : "No payment requests found"}
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {searchTerm || filterType !== "all"
+                ? "Try adjusting your search or filter criteria"
+                : "All payment requests have been processed or there are no pending requests"}
+            </p>
+            {(searchTerm || filterType !== "all") && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterType("all");
+                }}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            {/* Table Container */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => requestSort("poNumber")}
+                    >
+                      <div className="flex items-center">
+                        PO Details
+                        <span className="ml-1">
+                          {getSortIndicator("poNumber")}
+                        </span>
+                      </div>
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => requestSort("vendorName")}
+                    >
+                      <div className="flex items-center">
+                        Vendor & Company
+                        <span className="ml-1">
+                          {getSortIndicator("vendorName")}
+                        </span>
+                      </div>
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => requestSort("requestedAmount")}
+                    >
+                      <div className="flex items-center">
+                        Amount & Type
+                        <span className="ml-1">
+                          {getSortIndicator("requestedAmount")}
+                        </span>
+                      </div>
+                    </th>
+                    <th
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      onClick={() => requestSort("createdAt")}
+                    >
+                      <div className="flex items-center">
+                        Request Info
+                        <span className="ml-1">
+                          {getSortIndicator("createdAt")}
+                        </span>
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredRequests.map((request) => (
+                    <tr
+                      key={request.paymentRequestId}
+                      className="hover:bg-gray-50 transition-colors group"
+                    >
+                      {/* PO Details */}
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="flex items-center">
+                            <div className="p-2 bg-blue-50 rounded-lg">
+                              <svg
+                                className="h-5 w-5 text-blue-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                            </div>
+                            <div className="ml-3">
+                              <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                {request.poNumber}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Vendor & Company */}
+                      <td className="px-6 py-4">
+                        <div className="space-y-3">
+                          <div>
+                            <div className="flex items-center text-sm">
+                              <svg
+                                className="h-4 w-4 text-gray-400 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                                />
+                              </svg>
+                              <span className="font-medium text-gray-900">
+                                {request.vendorName}
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <svg
+                                className="h-4 w-4 text-gray-400 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                                />
+                              </svg>
+                              <span className="truncate">
+                                {request.companyName}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Amount & Type */}
+                      <td className="px-6 py-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center">
+                            <svg
+                              className="h-5 w-5 text-green-500 mr-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <div>
+                              <span className="text-lg font-bold text-gray-900">
+                                {formatCurrency(
+                                  request.requestedAmount,
+                                  request.currency
+                                )}
+                              </span>
+                              <div className="text-xs text-gray-500">
+                                {request.currency}
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <span
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                                                            ${
+                                                              request.billpaymentType ===
+                                                              "Advance_Payment"
+                                                                ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                                                                : "bg-blue-50 text-blue-700 border border-blue-200"
+                                                            }`}
+                            >
+                              <svg
+                                className="h-3 w-3 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                />
+                              </svg>
+                              {request.billpaymentType.replace("_", " ")}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Request Info */}
+                      <td className="px-6 py-4">
+                        <div className="space-y-3">
+                          <div>
+                            <div className="flex items-center text-sm">
+                              <svg
+                                className="h-4 w-4 text-gray-400 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                              </svg>
+                              <span className="font-medium text-gray-700">
+                                {request.payementRequestedBy}
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <svg
+                                className="h-4 w-4 text-gray-400 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                              <span>{formatDate(request.createdAt)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0">
+                          <button
+                            onClick={() =>
+                              handleApprove(
+                                request.paymentRequestId,
+                                request.poNumber
+                              )
+                            }
+                            disabled={processingRequest === request.paymentRequestId}
+                            className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition flex-1 sm:flex-none ${
+                              processingRequest === request.paymentRequestId ? 'opacity-70 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            {processingRequest === request.paymentRequestId ? (
+                              <>
+                                <svg className="animate-spin h-4 w-4 mr-2 text-white" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                </svg>
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  className="h-4 w-4 mr-2"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                Approve
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleReject(
+                                request.paymentRequestId,
+                                request.poNumber
+                              )
+                            }
+                            disabled={processingRequest === request.paymentRequestId}
+                            className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition flex-1 sm:flex-none ${
+                              processingRequest === request.paymentRequestId ? 'opacity-70 cursor-not-allowed' : ''
+                            }`}
+                          >
+                            {processingRequest === request.paymentRequestId ? (
+                              <>
+                                <svg className="animate-spin h-4 w-4 mr-2 text-white" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                </svg>
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  className="h-4 w-4 mr-2"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                Reject
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Table Footer */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div className="text-sm text-gray-600 mb-2 md:mb-0">
+                  Showing{" "}
+                  <span className="font-medium">
+                    {Math.min(filteredRequests.length, 10)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium">{filteredRequests.length}</span>{" "}
+                  payment requests
+                  {searchTerm && (
+                    <span>
+                      {" "}
+                      matching "
+                      <span className="font-medium">{searchTerm}</span>"
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-4">
+
+                  <div className="flex items-center space-x-2">
+                    <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                    </button>
+                    <span className="text-sm text-gray-600">1 of 1</span>
+                    <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PaymentRequestDetails;

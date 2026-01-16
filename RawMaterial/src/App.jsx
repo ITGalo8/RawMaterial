@@ -47,6 +47,8 @@ import PaymentRequest from "./pages/Payment/PaymentRequest";
 import POVerificationDashboard from "./pages/POVerification/POVerificationDashboard";
 import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
 import PoVerification from "./pages/POVerification/PoVerification";
+import PoInvoice from "./pages/POVerification/PoInvoice";
+import PaymentRequestDetails from "./pages/POVerification/PaymentRequestDetails";
 
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -457,6 +459,24 @@ const AppRoutes = () => {
           }
         />
 
+        <Route
+          path="po-invoice"
+          element={
+            <ProtectedRoute allowedRoles={["Verification"]}>
+              <PoInvoice />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="payment-request-details"
+          element={
+            <ProtectedRoute allowedRoles={["Verification"]}>
+              <PaymentRequestDetails />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Service Process */}
         <Route
           path="service-process-request"
@@ -466,7 +486,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        
 
         {/* Pending Process - FIXED */}
         <Route

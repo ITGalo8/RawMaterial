@@ -60,6 +60,26 @@ const PaymentPending = () => {
     fetchData();
   }, []);
 
+  // Format currency based on the actual currency in the data
+  const formatCurrency = (amount, currencyCode = "INR") => {
+    // Only include currencies that actually exist in your data
+    const localeMap = {
+      INR: "en-IN", // Indian Rupee
+      USD: "en-US", // US Dollar
+      CNY: "zh-CN", // Chinese Yuan
+    };
+
+    const locale = localeMap[currencyCode] || "en-IN"; // Default to INR if currency not found
+    const currency = currencyCode || "INR";
+
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
   // Filter data based on search criteria
   const filteredData = useMemo(() => {
     const filtered = purchaseOrders.filter((po) => {
@@ -104,13 +124,7 @@ const PaymentPending = () => {
     setCurrentPage(1); // Reset to first page when filters change
 
     return filtered;
-  }, [
-    purchaseOrders,
-    searchTerm,
-    searchFilter,
-    statusFilter,
-    itemsPerPage,
-  ]);
+  }, [purchaseOrders, searchTerm, searchFilter, statusFilter, itemsPerPage]);
 
   // Get current items for pagination
   const currentItems = useMemo(() => {
@@ -152,17 +166,16 @@ const PaymentPending = () => {
 
   const handleMakePayment = (po) => {
     try {
-      navigate('../payment-request', {
-        state: { 
+      navigate("../payment-request", {
+        state: {
           poData: po,
-          // poId: po.poId 
-        }
+        },
       });
-      
-      console.log('Navigating with PO:', po.poId, po.poNumber);
+
+      console.log("Navigating with PO:", po.poId, po.poNumber);
     } catch (err) {
-      console.error('Navigation error:', err);
-      setError('Failed to navigate to make payment page');
+      console.error("Navigation error:", err);
+      setError("Failed to navigate to make payment page");
     }
   };
 
@@ -229,25 +242,30 @@ const PaymentPending = () => {
     return pageNumbers;
   };
 
-  // Calculate total pending amount
+  // Calculate total pending amount (in INR)
   const calculateTotalPendingAmount = () => {
-    return purchaseOrders.reduce((total, po) => total + po.pendingAmount, 0);
+    return purchaseOrders.reduce((total, po) => {
+      return total + po.pendingAmount;
+    }, 0);
   };
 
-  // Calculate total paid amount
+  // Calculate total paid amount (in INR)
   const calculateTotalPaidAmount = () => {
-    return purchaseOrders.reduce((total, po) => total + po.totalPaid, 0);
+    return purchaseOrders.reduce((total, po) => {
+      return total + po.totalPaid;
+    }, 0);
   };
 
-  // Format currency
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
+  // Get currency counts for display
+  const getCurrencyCounts = () => {
+    const counts = {};
+    purchaseOrders.forEach((po) => {
+      counts[po.currency] = (counts[po.currency] || 0) + 1;
+    });
+    return counts;
   };
+
+  const currencyCounts = getCurrencyCounts();
 
   if (loading) {
     return (
@@ -261,8 +279,8 @@ const PaymentPending = () => {
     return (
       <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
         <p>{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
+        <button
+          onClick={() => window.location.reload()}
           className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
         >
           Reload Page
@@ -276,111 +294,11 @@ const PaymentPending = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Payment Pending
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">Payment Pending</h1>
           <p className="text-gray-600 mt-2">
             Manage purchase orders with pending payments
           </p>
         </div>
-
-        {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total POs</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {purchaseOrders.length}
-                </p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Filter className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Pending POs</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {statusCounts.Pending}
-                </p>
-              </div>
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <svg
-                  className="h-6 w-6 text-yellow-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Total Pending Amount</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {formatCurrency(calculateTotalPendingAmount())}
-                </p>
-              </div>
-              <div className="p-3 bg-red-100 rounded-lg">
-                <svg
-                  className="h-6 w-6 text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Showing</p>
-                <div className="flex items-center space-x-2">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {currentItems.length}
-                  </p>
-                  <span className="text-gray-400">/</span>
-                  <p className="text-lg font-medium text-gray-600">
-                    {filteredData.length}
-                  </p>
-                </div>
-              </div>
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <svg
-                  className="h-6 w-6 text-purple-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div> */}
 
         {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
@@ -503,6 +421,35 @@ const PaymentPending = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Currency Filter */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Currency
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        // Clear currency filter - we'll handle this separately
+                        // For now, just show all
+                      }}
+                      className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800"
+                    >
+                      All Currencies
+                    </button>
+                    {Object.entries(currencyCounts).map(([currency, count]) => (
+                      <button
+                        key={currency}
+                        onClick={() => {
+                          // Add currency filter logic here if needed
+                        }}
+                        className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
+                      >
+                        {currency} ({count})
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -602,10 +549,11 @@ const PaymentPending = () => {
                               {po.poNumber}
                             </div>
                             <div className="text-sm text-gray-500">
-                              Sub: {formatCurrency(po.subTotal)}
+                              Sub: {formatCurrency(po.subTotal, po.currency)}
                             </div>
                             <div className="text-sm text-gray-500">
-                              Grand: {formatCurrency(po.grandTotal)}
+                              Grand:{" "}
+                              {formatCurrency(po.grandTotal, po.currency)}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -621,10 +569,12 @@ const PaymentPending = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm">
                               <div className="text-green-600">
-                                Paid: {formatCurrency(po.totalPaid)}
+                                Paid:{" "}
+                                {formatCurrency(po.totalPaid, po.currency)}
                               </div>
                               <div className="text-red-600 font-medium">
-                                Pending: {formatCurrency(po.pendingAmount)}
+                                Pending:{" "}
+                                {formatCurrency(po.pendingAmount, po.currency)}
                               </div>
                             </div>
                           </td>
@@ -650,7 +600,7 @@ const PaymentPending = () => {
                                 : "View Items"}
                             </button>
                             {po.paymentStatusFlag === "Pending" && (
-                              <button 
+                              <button
                                 onClick={() => handleMakePayment(po)}
                                 className="text-green-600 hover:text-green-900"
                               >

@@ -14,17 +14,19 @@ import {
   FaSignOutAlt,
   FaBars,
   FaTimes,
+  FaFileInvoice,
 } from "react-icons/fa";
 import { MdOutlinePayment } from "react-icons/md";
+import { MdPayments } from "react-icons/md";
 import { IoStorefrontSharp } from "react-icons/io5";
-import {MdDashboard} from "react-icons/md";
+import { MdDashboard } from "react-icons/md";
 const SideMenubar = () => {
   const [openMenus, setOpenMenus] = useState({
     company: false,
     vendor: false,
     purchase: false,
     Item: false,
-    Payment: false
+    Payment: false,
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -46,8 +48,6 @@ const SideMenubar = () => {
     "Winding",
     "Winding Connection",
   ];
-
-  
 
   const PendinglineWorkerRoles = [
     "SFG Work",
@@ -87,7 +87,11 @@ const SideMenubar = () => {
         className={`w-64 text-white h-screen fixed left-0 top-0 overflow-y-auto flex flex-col 
           bg-gradient-to-b from-[#F9EA76] to-[#FFF9DD] z-40
           transition-transform duration-300 ease-in-out
-          ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+          ${
+            mobileMenuOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
+          }`}
       >
         {/* User Profile */}
         <div className="bg-gray-700 border-b border-gray-600 p-4">
@@ -116,7 +120,9 @@ const SideMenubar = () => {
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                    border-l-4 border-transparent transition-all gap-3 ${
-                     isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     isActive
+                       ? "bg-yellow-300 text-black border-yellow-600"
+                       : ""
                    }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -134,13 +140,15 @@ const SideMenubar = () => {
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                    border-l-4 border-transparent transition-all gap-3 ${
-                     isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     isActive
+                       ? "bg-yellow-300 text-black border-yellow-600"
+                       : ""
                    }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <FaWarehouse className="text-lg" />
-               Item Request History
+                Item Request History
               </NavLink>
             </li>
           )}
@@ -152,13 +160,15 @@ const SideMenubar = () => {
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                    border-l-4 border-transparent transition-all gap-3 ${
-                     isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     isActive
+                       ? "bg-yellow-300 text-black border-yellow-600"
+                       : ""
                    }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <FaWarehouse className="text-lg" />
-               User Stock Data
+                User Stock Data
               </NavLink>
             </li>
           )}
@@ -170,7 +180,9 @@ const SideMenubar = () => {
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                    border-l-4 border-transparent transition-all gap-3 ${
-                     isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     isActive
+                       ? "bg-yellow-300 text-black border-yellow-600"
+                       : ""
                    }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -189,7 +201,9 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -210,7 +224,9 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -219,14 +235,16 @@ const SideMenubar = () => {
                   Approval Request
                 </NavLink>
               </li>
-              
+
               <li>
                 <NavLink
                   to="single-out"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -242,7 +260,9 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -258,7 +278,9 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -274,7 +296,9 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -284,13 +308,15 @@ const SideMenubar = () => {
                 </NavLink>
               </li>
 
-               <li>
+              <li>
                 <NavLink
                   to="po-stock-receiving"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -318,7 +344,7 @@ const SideMenubar = () => {
             </>
           )}
 
-           {(user.role === "Purchase") && (
+          {user.role === "Purchase" && (
             <>
               <li>
                 <NavLink
@@ -326,20 +352,21 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <MdDashboard className="text-lg" />
-                 Purchase Dashboard
+                  Purchase Dashboard
                 </NavLink>
               </li>
             </>
           )}
 
-
-          {(user.role === "Verification") && (
+          {user.role === "Verification" && (
             <>
               <li>
                 <NavLink
@@ -347,29 +374,69 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <MdDashboard className="text-lg" />
-                 PO Verification Dashboard
+                  Dashboard
                 </NavLink>
               </li>
 
-              <li>
+              {/* <li>
                 <NavLink
                   to="po-verification"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <MdDashboard className="text-lg" />
-                 PO Verification
+                  PO Verification
+                </NavLink>
+              </li> */}
+
+              <li>
+                <NavLink
+                  to="po-invoice"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FaFileInvoice className="text-lg" />
+                  PO Invoice
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink
+                  to="payment-request-details"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <MdOutlinePayment className="text-lg" />
+                  Payment Request Details
                 </NavLink>
               </li>
             </>
@@ -383,19 +450,21 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <IoStorefrontSharp  className="text-lg" />
+                  <IoStorefrontSharp className="text-lg" />
                   Raw Material Stock
                 </NavLink>
               </li>
             </>
           )}
 
-          {(user.role === "Purchase") && (
+          {user.role === "Purchase" && (
             <>
               <li>
                 <NavLink
@@ -403,7 +472,9 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -414,7 +485,6 @@ const SideMenubar = () => {
               </li>
             </>
           )}
-        
 
           {user.role === "Purchase" && (
             <>
@@ -442,22 +512,26 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                         Add Raw Material
+                        Add Raw Material
                       </NavLink>
                     </li>
 
-                     <li>
+                    <li>
                       <NavLink
                         to="item-details"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -465,7 +539,6 @@ const SideMenubar = () => {
                         Item Detail
                       </NavLink>
                     </li>
-
                   </ul>
                 )}
               </li>
@@ -480,7 +553,9 @@ const SideMenubar = () => {
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                    border-l-4 border-transparent transition-all gap-3 ${
-                     isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                     isActive
+                       ? "bg-yellow-300 text-black border-yellow-600"
+                       : ""
                    }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
@@ -518,7 +593,9 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -533,7 +610,9 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -542,13 +621,15 @@ const SideMenubar = () => {
                       </NavLink>
                     </li>
 
-                     <li>
+                    <li>
                       <NavLink
                         to="active-deactivate-company"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -584,7 +665,9 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -599,7 +682,9 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -608,13 +693,15 @@ const SideMenubar = () => {
                       </NavLink>
                     </li>
 
-                     <li>
+                    <li>
                       <NavLink
                         to="active-deactivate-vendor"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -650,7 +737,9 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -665,7 +754,9 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -674,13 +765,15 @@ const SideMenubar = () => {
                       </NavLink>
                     </li>
 
-                     <li>
+                    <li>
                       <NavLink
                         to="debit-not"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -695,7 +788,9 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -703,11 +798,10 @@ const SideMenubar = () => {
                         Show Debit Not History
                       </NavLink>
                     </li>
-                    
                   </ul>
                 )}
               </li>
-                <li className="border-b border-gray-300">
+              <li className="border-b border-gray-300">
                 <div
                   className="flex items-center justify-between px-5 py-3 cursor-pointer 
                   text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 border-transparent transition-all"
@@ -730,7 +824,9 @@ const SideMenubar = () => {
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
@@ -739,51 +835,24 @@ const SideMenubar = () => {
                       </NavLink>
                     </li>
 
-                    {/* <li>
+                    <li>
                       <NavLink
-                        to="show-purchase-orders"
+                        to="po-payment-details"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
                            border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
                            }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        Show Purchase Orders
+                        <span className="flex items-center gap-3 text-sm font-medium">
+                          PO Payment Details
+                        </span>
                       </NavLink>
-                    </li> */}
-
-                     {/* <li>
-                      <NavLink
-                        to="debit-not"
-                        className={({ isActive }) =>
-                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-                           }`
-                        }
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Debit Not
-                      </NavLink>
-                    </li> */}
-
-                    {/* <li>
-                      <NavLink
-                        to="show-debit-not"
-                        className={({ isActive }) =>
-                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-                           }`
-                        }
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Show Debit Not History
-                      </NavLink>
-                    </li> */}
-                    
+                    </li>
                   </ul>
                 )}
               </li>
@@ -791,11 +860,9 @@ const SideMenubar = () => {
           )}
         </ul>
 
-        
-
         {/* Logout */}
         <div className="p-4 border-t border-gray-400 mt-auto">
-          {(user.role === "Purchase") && (
+          {user.role === "Purchase" && (
             <>
               <li>
                 <NavLink
@@ -803,7 +870,9 @@ const SideMenubar = () => {
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
