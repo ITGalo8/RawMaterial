@@ -22,7 +22,8 @@ const PoPaymentDetails = () => {
           request.vendorName?.toLowerCase().includes(searchLower) ||
           request.companyName?.toLowerCase().includes(searchLower) ||
           request.paymentRequestId?.toLowerCase().includes(searchLower) ||
-          request.requestedAmount?.toString().includes(searchTerm)
+          request.requestedAmount?.toString().includes(searchTerm) ||
+          request.currency?.toLowerCase().includes(searchLower)
         );
       });
       setFilteredData(filtered);
@@ -35,8 +36,8 @@ const PoPaymentDetails = () => {
     try {
       setLoading(true);
       const response = await Api.get("/purchase/purchase-orders/payments/show");
-        setData(response?.data?.data || []);
-        setFilteredData(response?.data?.data || []);
+      setData(response?.data?.data || []);
+      setFilteredData(response?.data?.data || []);
     } catch (err) {
       setError("Failed to connect to server");
       console.error("API Error:", err);
@@ -63,8 +64,43 @@ const PoPaymentDetails = () => {
     });
   };
 
-  const formatAmount = (amount) =>
-    `₹ ${Number(amount).toLocaleString("en-IN")}`;
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      USD: "$",
+      INR: "₹",
+      EUR: "€",
+      GBP: "£",
+      JPY: "¥",
+      CAD: "C$",
+      AUD: "A$",
+      CNY: "¥",
+      // Add more currency codes as needed
+    };
+    return currencySymbols[currencyCode?.toUpperCase()] || currencyCode || "$";
+  };
+
+  const formatAmount = (amount, currencyCode) => {
+    const symbol = getCurrencySymbol(currencyCode);
+    
+    // For USD, use standard US formatting
+    if (currencyCode?.toUpperCase() === 'USD') {
+      return `${symbol}${Number(amount).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+    
+    // For INR, use Indian formatting
+    if (currencyCode?.toUpperCase() === 'INR') {
+      return `${symbol} ${Number(amount).toLocaleString("en-IN")}`;
+    }
+    
+    // Default formatting for other currencies
+    return `${symbol}${Number(amount).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  };
 
   const getVerificationStatus = (verification) => {
     if (verification.status === true) return "Approved";
@@ -119,7 +155,7 @@ const PoPaymentDetails = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search by PO, Vendor, Company, Amount..."
+              placeholder="Search by PO, Vendor, Company, Amount, Currency..."
               value={searchTerm}
               onChange={handleSearchChange}
               className="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -191,9 +227,6 @@ const PoPaymentDetails = () => {
               {filteredData.map((request) => (
                 <React.Fragment key={request.paymentRequestId}>
                   <tr className="border-t hover:bg-gray-50 text-sm transition-colors">
-                    {/* <td className="px-6 py-4 font-mono text-xs">
-                      {request.paymentRequestId.substring(0, 8)}...
-                    </td> */}
                     <td className="px-6 py-4 font-medium">
                       {request.poNumber}
                     </td>
@@ -203,8 +236,13 @@ const PoPaymentDetails = () => {
                     <td className="px-6 py-4">
                       {request.vendorName}
                     </td>
-                    <td className="px-6 py-4 font-bold text-blue-700">
-                      {formatAmount(request.requestedAmount)}
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-blue-700">
+                        {formatAmount(request.requestedAmount, request.currency)}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {request.currency}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-gray-600">
                       {formatDate(request.createdAt)}
@@ -235,10 +273,16 @@ const PoPaymentDetails = () => {
                     <tr className="bg-gray-50">
                       <td colSpan="8" className="px-6 py-4">
                         <div className="ml-4 pl-4 border-l-2 border-blue-200">
-                          <h4 className="font-medium text-gray-700 mb-4">
-                            Verification Details
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="flex justify-between items-start mb-4">
+                            <h4 className="font-medium text-gray-700">
+                              Payment Request Details
+                            </h4>
+                            <div className="text-sm text-gray-500">
+                              Requested by: <span className="font-medium">{request.requestedBy}</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+
                             {/* Docs Verification */}
                             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                               <h5 className="font-semibold text-gray-800 mb-3">Document Verification</h5>

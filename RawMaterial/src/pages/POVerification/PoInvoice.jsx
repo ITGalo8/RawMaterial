@@ -31,6 +31,7 @@ const PoInvoice = () => {
     hasBill: "all",
     company: "all",
     vendor: "all",
+    currency: "all",
   });
   const [searchInput, setSearchInput] = useState("");
   const [stats, setStats] = useState({
@@ -111,6 +112,7 @@ const PoInvoice = () => {
       );
     if (filters.company !== "all") active.push(`Company: ${filters.company}`);
     if (filters.vendor !== "all") active.push(`Vendor: ${filters.vendor}`);
+    if (filters.currency !== "all") active.push(`Currency: ${filters.currency}`);
     setActiveFilters(active);
   }, [filters]);
 
@@ -126,6 +128,7 @@ const PoInvoice = () => {
           po.poNumber?.toLowerCase().includes(searchLower) ||
           po.companyName?.toLowerCase().includes(searchLower) ||
           po.vendorName?.toLowerCase().includes(searchLower) ||
+          po.currency?.toLowerCase().includes(searchLower) ||
           po.items?.some((item) =>
             item.itemName?.toLowerCase().includes(searchLower)
           )
@@ -149,11 +152,16 @@ const PoInvoice = () => {
       filtered = filtered.filter((po) => po.vendorName === filters.vendor);
     }
 
+    // Currency filter
+    if (filters.currency !== "all") {
+      filtered = filtered.filter((po) => po.currency === filters.currency);
+    }
+
     setFilteredOrders(filtered);
     setCurrentPage(1); // Reset to first page when filters change
   }, [filters, purchaseOrders]);
 
-  // Get unique companies and vendors for filters
+  // Get unique companies, vendors, and currencies for filters
   const companies = useMemo(
     () => [
       ...new Set(purchaseOrders.map((po) => po.companyName).filter(Boolean)),
@@ -164,6 +172,13 @@ const PoInvoice = () => {
   const vendors = useMemo(
     () => [
       ...new Set(purchaseOrders.map((po) => po.vendorName).filter(Boolean)),
+    ],
+    [purchaseOrders]
+  );
+
+  const currencies = useMemo(
+    () => [
+      ...new Set(purchaseOrders.map((po) => po.currency).filter(Boolean)),
     ],
     [purchaseOrders]
   );
@@ -235,6 +250,7 @@ const PoInvoice = () => {
       hasBill: "all",
       company: "all",
       vendor: "all",
+      currency: "all",
     });
     setSearchInput("");
   };
@@ -250,6 +266,8 @@ const PoInvoice = () => {
       setFilters((prev) => ({ ...prev, company: "all" }));
     } else if (filterToRemove.startsWith("Vendor:")) {
       setFilters((prev) => ({ ...prev, vendor: "all" }));
+    } else if (filterToRemove.startsWith("Currency:")) {
+      setFilters((prev) => ({ ...prev, currency: "all" }));
     }
   };
 
@@ -263,15 +281,55 @@ const PoInvoice = () => {
     });
   };
 
-  // Format currency
-  const formatCurrency = (amount) => {
-    if (!amount && amount !== 0) return "₹0";
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+  // Get currency symbol
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      USD: "$",
+      INR: "₹",
+      EUR: "€",
+      GBP: "£",
+      JPY: "¥",
+      CAD: "C$",
+      AUD: "A$",
+      CNY: "¥",
+      // Add more currency codes as needed
+    };
+    return currencySymbols[currencyCode?.toUpperCase()] || currencyCode || "₹";
+  };
+
+  // Format currency with appropriate symbol and formatting
+  const formatCurrency = (amount, currencyCode = "INR") => {
+    const symbol = getCurrencySymbol(currencyCode);
+    
+    // For USD, use US formatting
+    if (currencyCode?.toUpperCase() === 'USD') {
+      return `${symbol}${Number(amount).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+    
+    // For INR, use Indian formatting
+    if (currencyCode?.toUpperCase() === 'INR') {
+      return `${symbol} ${Number(amount).toLocaleString("en-IN", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      })}`;
+    }
+    
+    // For CNY (Chinese Yuan), use Chinese formatting
+    if (currencyCode?.toUpperCase() === 'CNY') {
+      return `${symbol}${Number(amount).toLocaleString("zh-CN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+    
+    // Default formatting for other currencies
+    return `${symbol}${Number(amount).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
   };
 
   // Check screen size for mobile view
@@ -380,7 +438,7 @@ const PoInvoice = () => {
           <h3 className="text-lg font-medium text-gray-800">Filters</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -390,7 +448,7 @@ const PoInvoice = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search PO, Company, Vendor..."
+                placeholder="Search PO, Company, Vendor, Currency..."
                 className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -462,6 +520,31 @@ const PoInvoice = () => {
                 {vendors.map((vendor, index) => (
                   <option key={index} value={vendor}>
                     {vendor}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Currency Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Currency
+            </label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <select
+                className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={filters.currency}
+                onChange={(e) =>
+                  setFilters({ ...filters, currency: e.target.value })
+                }
+                aria-label="Filter by currency"
+              >
+                <option value="all">All Currencies</option>
+                {currencies.map((currency, index) => (
+                  <option key={index} value={currency}>
+                    {currency} ({getCurrencySymbol(currency)})
                   </option>
                 ))}
               </select>
@@ -630,16 +713,19 @@ const PoInvoice = () => {
                   <div className="mb-3">
                     <div className="text-xs text-gray-500">Amount</div>
                     <div className="font-bold text-lg">
-                      {formatCurrency(po.grandTotal)}
+                      {formatCurrency(po.grandTotal, po.currency)}
                     </div>
                     <div className="text-sm">
                       <span className="text-green-600">
-                        Paid: {formatCurrency(po.totalPaid)}
+                        Paid: {formatCurrency(po.totalPaid, po.currency)}
                       </span>
                       <span className="mx-2">•</span>
                       <span className="text-orange-600">
-                        Due: {formatCurrency(po.remainingAmount)}
+                        Due: {formatCurrency(po.remainingAmount, po.currency)}
                       </span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Currency: {po.currency} ({getCurrencySymbol(po.currency)})
                     </div>
                   </div>
 
@@ -906,67 +992,20 @@ const PoInvoice = () => {
                           </div>
                         </td>
 
-                        {/* Items */}
-                        {/* <td className="px-6 py-4">
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="text-sm text-gray-900 max-w-xs truncate">
-                                  {po.items[0]?.itemName || 'No items'}
-                                  {po.items[0] && (
-                                    <span className="text-gray-500 ml-2">
-                                      ({po.items[0].quantity} {po.items[0].unit})
-                                    </span>
-                                  )}
-                                </div>
-                                {po.items.length > 1 && (
-                                  <button
-                                    onClick={() => toggleItemsExpansion(po.poId)}
-                                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center mt-1"
-                                    aria-expanded={expandedItems[po.poId]}
-                                  >
-                                    {expandedItems[po.poId] ? (
-                                      <>
-                                        <ChevronUp size={14} className="mr-1" />
-                                        Hide {po.items.length - 1} more items
-                                      </>
-                                    ) : (
-                                      <>
-                                        <ChevronDown size={14} className="mr-1" />
-                                        Show {po.items.length - 1} more items
-                                      </>
-                                    )}
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {expandedItems[po.poId] && po.items.length > 1 && (
-                              <div className="mt-2 pl-4 border-l-2 border-gray-200">
-                                {po.items.slice(1).map((item, index) => (
-                                  <div key={index} className="text-sm text-gray-700 py-1">
-                                    {item.itemName}
-                                    <span className="text-gray-500 ml-2">
-                                      ({item.quantity} {item.unit})
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </td> */}
-
                         {/* Amount */}
                         <td className="px-6 py-4">
                           <div>
                             <div className="text-sm font-semibold text-gray-900">
-                              {formatCurrency(po.grandTotal)}
+                              {formatCurrency(po.grandTotal, po.currency)}
                             </div>
                             <div className="text-sm text-green-600">
-                              Paid: {formatCurrency(po.totalPaid)}
+                              Paid: {formatCurrency(po.totalPaid, po.currency)}
                             </div>
                             <div className="text-sm text-orange-600">
-                              Due: {formatCurrency(po.remainingAmount)}
+                              Due: {formatCurrency(po.remainingAmount, po.currency)}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Currency: {po.currency} ({getCurrencySymbol(po.currency)})
                             </div>
                           </div>
                         </td>

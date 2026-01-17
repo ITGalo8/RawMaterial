@@ -70,18 +70,13 @@ const PaymentRequest = () => {
     }
   }, [amount, baseAmount, lastChanged]);
 
-  /* ===============================
-     Reset when payment type changes
-  =============================== */
   useEffect(() => {
     setPercentage("");
     setAmount("");
     setLastChanged("");
   }, [billpaymentType]);
 
-  /* ===============================
-     Submit
-  =============================== */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
