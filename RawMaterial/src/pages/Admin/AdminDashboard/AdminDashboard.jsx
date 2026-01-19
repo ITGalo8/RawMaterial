@@ -169,24 +169,6 @@ const AdminDashboard = () => {
     }).format(amount);
   };
 
-  const getStatusBadge = (status) => {
-    if (!status) return null;
-    
-    const statusStyles = {
-      APPROVED: 'bg-green-100 text-green-800',
-      REJECTED: 'bg-red-100 text-red-800',
-      PENDING: 'bg-yellow-100 text-yellow-800'
-    };
-
-    const style = statusStyles[status] || 'bg-gray-100 text-gray-800';
-
-    return (
-      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${style}`}>
-        {status}
-      </span>
-    );
-  };
-
   // Calculate pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -538,11 +520,11 @@ const AdminDashboard = () => {
                       Amount
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
+                      Bill Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
-                    </th>
+                    </th> */}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Requested By
                     </th>
@@ -582,9 +564,9 @@ const AdminDashboard = () => {
                           {request.billpaymentType.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      {/* <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(request.status)}
-                      </td>
+                      </td> */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {request.paymentRequestedBy}
                       </td>

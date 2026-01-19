@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-import Api from "../../auth/Api";
+import { 
+  fetchPaymentRequestsApi, 
+  updatePaymentRequestStatusApi 
+} from "../../config/apiPaths";
 
 const PaymentRequestDetails = () => {
   const [paymentRequests, setPaymentRequests] = useState([]);
@@ -12,28 +15,37 @@ const PaymentRequestDetails = () => {
     direction: "desc",
   });
   const [processingRequest, setProcessingRequest] = useState(null);
+  const [role, setRole] = useState("");
 
   useEffect(() => {
-    fetchPaymentRequests();
+    const userRole = localStorage.getItem("roleName");
+    setRole(userRole || "");
   }, []);
 
   const fetchPaymentRequests = async () => {
+    console.log("fetch payment function call");
     try {
       setLoading(true);
       setError(null);
-      const response = await Api.get(
-        `/verification-dept/purchase-orders/payments/requests/show`
-      );
+
+      const userRole = localStorage.getItem("roleName");
+      const response = await fetchPaymentRequestsApi(userRole);
+      console.log("Response ->: ", response);
+
       setPaymentRequests(response?.data?.data || []);
     } catch (error) {
+      console.log("error for fetch payment ->", error);
       setError(
-        error?.response?.data?.message || "Failed to fetch payment requests"
+        error?.response?.data?.message || "Failed to fetch payment requests",
       );
-      console.error("Error fetching payment requests:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchPaymentRequests();
+  }, []);
 
   // Sort function
   const sortedRequests = React.useMemo(() => {
@@ -55,12 +67,10 @@ const PaymentRequestDetails = () => {
   // Filter and search logic
   const filteredRequests = sortedRequests.filter((request) => {
     const matchesSearch =
-      request.poNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.vendorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.payementRequestedBy
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      (request.poNumber?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (request.vendorName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (request.companyName?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (request.paymentRequestedBy?.toLowerCase() || "").includes(searchTerm.toLowerCase());
 
     const matchesFilter =
       filterType === "all" || request.billpaymentType === filterType;
@@ -79,18 +89,23 @@ const PaymentRequestDetails = () => {
 
   // Format date
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
 
-  // Format currency
   const formatCurrency = (amount, currency) => {
+    if (!amount) return "$0.00";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: currency || "USD",
@@ -99,7 +114,6 @@ const PaymentRequestDetails = () => {
     }).format(amount);
   };
 
-  // Get sort indicator
   const getSortIndicator = (key) => {
     if (sortConfig.key === key) {
       return sortConfig.direction === "asc" ? "↑" : "↓";
@@ -107,81 +121,100 @@ const PaymentRequestDetails = () => {
     return "↕";
   };
 
-  // Calculate statistics
   const stats = {
     total: paymentRequests.length,
     totalAmount: paymentRequests.reduce(
-      (sum, req) => sum + req.requestedAmount,
-      0
+      (sum, req) => sum + (req.requestedAmount || 0),
+      0,
     ),
     advanceCount: paymentRequests.filter(
-      (req) => req.billpaymentType === "Advance_Payment"
+      (req) => req.billpaymentType === "Advance_Payment",
     ).length,
     partialCount: paymentRequests.filter(
-      (req) => req.billpaymentType === "Partial_Payment"
+      (req) => req.billpaymentType === "Partial_Payment",
     ).length,
-    uniqueVendors: [...new Set(paymentRequests.map((req) => req.vendorName))]
+    uniqueVendors: [...new Set(paymentRequests.map((req) => req.vendorName).filter(Boolean))]
       .length,
-    uniquePOs: [...new Set(paymentRequests.map((req) => req.poNumber))].length,
+    uniquePOs: [...new Set(paymentRequests.map((req) => req.poNumber).filter(Boolean))].length,
   };
 
   // Handle approve payment request
-  const handleApprove = async (requestId, poNumber) => {
-    const remarks = window.prompt(`Enter remarks for approving ${poNumber}:`, "Docs are verified");
-    if (remarks === null) return; // User cancelled
-    
-    if (window.confirm(`Are you sure you want to approve payment request for ${poNumber}?`)) {
+  const handleApprove = async (requestId, poNumber,status) => {
+    const remarks = window.prompt(
+      `Enter remarks for approving ${poNumber}:`,
+      "Docs are verified"
+    );
+    if (remarks === null) return;
+
+    if (
+      window.confirm(
+        `Are you sure you want to approve payment request for ${poNumber}?`
+      )
+    ) {
       try {
         setProcessingRequest(requestId);
-        
-        await Api.patch(
-          `/verification-dept/purchase-orders/payments/requests/status`,
-          {
-            paymentRequestId: requestId,
-            status: "APPROVED",
-            remarks: remarks || "Docs are verified"
-          }
-        );
+        const userRole = localStorage.getItem("roleName");
+        let updateStatus ;
+        if(status === "Reject"){
+          updateStatus = "REJECTED";
+        }else{
+          updateStatus = userRole === "Accounts" ? "PAID" : "Approved";
+        }
+        await updatePaymentRequestStatusApi({
+          role: userRole,
+          paymentRequestId: requestId,
+          status:updateStatus,
+          remarks: remarks || "",
+        });
 
         alert(`Payment request for ${poNumber} approved successfully!`);
-        fetchPaymentRequests(); // Refresh data
+        fetchPaymentRequests();
       } catch (error) {
-        const errorMessage = error?.response?.data?.message || "Failed to approve payment request";
-        alert(errorMessage);
-        console.error("Error approving payment request:", error);
+        alert(
+          error?.response?.data?.message ||
+            "Failed to approve payment request"
+        );
+        console.error(error);
       } finally {
         setProcessingRequest(null);
       }
     }
   };
 
-  // Handle reject payment request
   const handleReject = async (requestId, poNumber) => {
-    const remarks = window.prompt(`Enter reason for rejecting ${poNumber}:`);
+    const remarks = window.prompt(
+      `Enter reason for rejecting ${poNumber}:`
+    );
+
     if (!remarks) {
       alert("Rejection reason is required");
       return;
     }
 
-    if (window.confirm(`Are you sure you want to reject payment request for ${poNumber}?`)) {
+    if (
+      window.confirm(
+        `Are you sure you want to reject payment request for ${poNumber}?`
+      )
+    ) {
       try {
         setProcessingRequest(requestId);
         
-        await Api.patch(
-          `/verification-dept/purchase-orders/payments/requests/status`,
-          {
-            paymentRequestId: requestId,
-            status: "REJECTED",
-            remarks: remarks
-          }
-        );
+        const userRole = localStorage.getItem("roleName");
+        await updatePaymentRequestStatusApi({
+          role: userRole,
+          paymentRequestId: requestId,
+          status: "REJECTED",
+          remarks,
+        });
 
         alert(`Payment request for ${poNumber} rejected successfully!`);
-        fetchPaymentRequests(); // Refresh data
+        fetchPaymentRequests();
       } catch (error) {
-        const errorMessage = error?.response?.data?.message || "Failed to reject payment request";
-        alert(errorMessage);
-        console.error("Error rejecting payment request:", error);
+        alert(
+          error?.response?.data?.message ||
+            "Failed to reject payment request"
+        );
+        console.error(error);
       } finally {
         setProcessingRequest(null);
       }
@@ -240,7 +273,7 @@ const PaymentRequestDetails = () => {
                 disabled={processingRequest}
               >
                 <svg
-                  className={`h-4 w-4 mr-2 ${processingRequest ? 'animate-spin' : ''}`}
+                  className={`h-4 w-4 mr-2 ${processingRequest ? "animate-spin" : ""}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -496,7 +529,7 @@ const PaymentRequestDetails = () => {
                             </div>
                             <div className="ml-3">
                               <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                                {request.poNumber}
+                                {request.poNumber || "N/A"}
                               </div>
                             </div>
                           </div>
@@ -522,7 +555,7 @@ const PaymentRequestDetails = () => {
                                 />
                               </svg>
                               <span className="font-medium text-gray-900">
-                                {request.vendorName}
+                                {request.vendorName || "N/A"}
                               </span>
                             </div>
                           </div>
@@ -542,7 +575,7 @@ const PaymentRequestDetails = () => {
                                 />
                               </svg>
                               <span className="truncate">
-                                {request.companyName}
+                                {request.companyName || "N/A"}
                               </span>
                             </div>
                           </div>
@@ -570,23 +603,24 @@ const PaymentRequestDetails = () => {
                               <span className="text-lg font-bold text-gray-900">
                                 {formatCurrency(
                                   request.requestedAmount,
-                                  request.currency
+                                  request.currency,
                                 )}
                               </span>
                               <div className="text-xs text-gray-500">
-                                {request.currency}
+                                {request.currency || "USD"}
                               </div>
                             </div>
                           </div>
                           <div>
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-                                                            ${
-                                                              request.billpaymentType ===
-                                                              "Advance_Payment"
-                                                                ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
-                                                                : "bg-blue-50 text-blue-700 border border-blue-200"
-                                                            }`}
+                              ${
+                                request.billpaymentType === "Advance_Payment"
+                                  ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                                  : request.billpaymentType === "Partial_Payment"
+                                  ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                  : "bg-gray-50 text-gray-700 border border-gray-200"
+                              }`}
                             >
                               <svg
                                 className="h-3 w-3 mr-1"
@@ -601,7 +635,7 @@ const PaymentRequestDetails = () => {
                                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                                 />
                               </svg>
-                              {request.billpaymentType.replace("_", " ")}
+                              {request.billpaymentType ? request.billpaymentType.replace("_", " ") : "Unknown"}
                             </span>
                           </div>
                         </div>
@@ -626,7 +660,7 @@ const PaymentRequestDetails = () => {
                                 />
                               </svg>
                               <span className="font-medium text-gray-700">
-                                {request.payementRequestedBy}
+                                {request.paymentRequestedBy || "N/A"}
                               </span>
                             </div>
                           </div>
@@ -658,19 +692,39 @@ const PaymentRequestDetails = () => {
                             onClick={() =>
                               handleApprove(
                                 request.paymentRequestId,
-                                request.poNumber
+                                request.poNumber,
+                                "Approved"
                               )
                             }
-                            disabled={processingRequest === request.paymentRequestId}
+                            disabled={
+                              processingRequest === request.paymentRequestId
+                            }
                             className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition flex-1 sm:flex-none ${
-                              processingRequest === request.paymentRequestId ? 'opacity-70 cursor-not-allowed' : ''
+                              processingRequest === request.paymentRequestId
+                                ? "opacity-70 cursor-not-allowed"
+                                : ""
                             }`}
                           >
                             {processingRequest === request.paymentRequestId ? (
                               <>
-                                <svg className="animate-spin h-4 w-4 mr-2 text-white" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-2 text-white"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  />
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  />
                                 </svg>
                                 Processing...
                               </>
@@ -695,21 +749,41 @@ const PaymentRequestDetails = () => {
                           </button>
                           <button
                             onClick={() =>
-                              handleReject(
+                              handleApprove(
                                 request.paymentRequestId,
-                                request.poNumber
+                                request.poNumber,
+                                "Reject"
                               )
                             }
-                            disabled={processingRequest === request.paymentRequestId}
+                            disabled={
+                              processingRequest === request.paymentRequestId
+                            }
                             className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition flex-1 sm:flex-none ${
-                              processingRequest === request.paymentRequestId ? 'opacity-70 cursor-not-allowed' : ''
+                              processingRequest === request.paymentRequestId
+                                ? "opacity-70 cursor-not-allowed"
+                                : ""
                             }`}
                           >
                             {processingRequest === request.paymentRequestId ? (
                               <>
-                                <svg className="animate-spin h-4 w-4 mr-2 text-white" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-2 text-white"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  />
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  />
                                 </svg>
                                 Processing...
                               </>
@@ -746,7 +820,7 @@ const PaymentRequestDetails = () => {
                 <div className="text-sm text-gray-600 mb-2 md:mb-0">
                   Showing{" "}
                   <span className="font-medium">
-                    {Math.min(filteredRequests.length, 10)}
+                    {filteredRequests.length}
                   </span>{" "}
                   of{" "}
                   <span className="font-medium">{filteredRequests.length}</span>{" "}
@@ -760,7 +834,6 @@ const PaymentRequestDetails = () => {
                   )}
                 </div>
                 <div className="flex items-center space-x-4">
-
                   <div className="flex items-center space-x-2">
                     <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                       <svg

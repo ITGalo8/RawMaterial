@@ -421,7 +421,11 @@ const SideMenubar = () => {
                   PO Invoice
                 </NavLink>
               </li>
+            </>
+          )}
 
+          {(user.role === "Verification" || user.role === "Accounts") && (
+            <>
               <li>
                 <NavLink
                   to="payment-request-details"
@@ -435,8 +439,31 @@ const SideMenubar = () => {
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <MdOutlinePayment className="text-lg" />
+                  <IoStorefrontSharp className="text-lg" />
                   Payment Request Details
+                </NavLink>
+              </li>
+            </>
+          )}
+
+
+          {(user.role === "Accounts") && (
+            <>
+              <li>
+                <NavLink
+                  to="account-details"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <IoStorefrontSharp className="text-lg" />
+                  Bank Account Details
                 </NavLink>
               </li>
             </>

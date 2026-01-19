@@ -40,7 +40,7 @@ import ChangePassword from "./pages/Purchase/ChangePassword";
 import InstallationStock from "./pages/Purchase/InstallationStock";
 import SingleOut from "./pages/LineWorker/StoreKeeper/SingleOut/SingleOut";
 import PoStockReceiving from "./pages/LineWorker/StoreKeeper/PoStockReceiving/PoStockReceiving";
-import ReceivedPurchaseStock from './pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock';
+import ReceivedPurchaseStock from "./pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock";
 import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/DirectItemIssueHistory";
 import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
@@ -49,7 +49,7 @@ import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
 import PoVerification from "./pages/POVerification/PoVerification";
 import PoInvoice from "./pages/POVerification/PoInvoice";
 import PaymentRequestDetails from "./pages/POVerification/PaymentRequestDetails";
-
+import AccountDetails from "./pages/Accounts/AccountDetails";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -76,30 +76,30 @@ const getRedirectPath = (role) => {
   if (role === "Store") return "/store-keeper";
   if (role === "Purchase") return "/purchase-dashboard";
   if (role === "Verification") return "/po-verification-dashboard";
+  if (role === "Accounts") return "/payment-request-details";
 
   if (
-      [
-        "SFG Work",
-        "Assemble",
-        // "Disassemble",
-        "Stamping",
-        "Winding",
-        "Winding Connection",
-      ].includes(role)
-    ) {
+    [
+      "SFG Work",
+      "Assemble",
+      // "Disassemble",
+      "Stamping",
+      "Winding",
+      "Winding Connection",
+    ].includes(role)
+  ) {
     return "/Item-Request";
   }
-  
 
   if (["SFG Work", "Disassemble"].includes(role)) {
     return "/service-process-request";
   }
- 
+
   if (["Store", "Purchase"].includes(role)) {
     return "/raw-material-stock";
   }
 
-  if(role==="Testing") return "/pending-process";
+  if (role === "Testing") return "/pending-process";
   return "/login";
 };
 
@@ -114,7 +114,13 @@ const AppRoutes = () => {
       {/* Login Route */}
       <Route
         path="/login"
-        element={!user ? <Login /> : <Navigate to={getRedirectPath(user.role)} replace />}
+        element={
+          !user ? (
+            <Login />
+          ) : (
+            <Navigate to={getRedirectPath(user.role)} replace />
+          )
+        }
       />
 
       <Route path="/" element={<Layout />}>
@@ -187,7 +193,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="stock-update-history"
           element={
@@ -270,7 +276,7 @@ const AppRoutes = () => {
           }
         />
 
-         <Route
+        <Route
           path="reusable-Items"
           element={
             <ProtectedRoute allowedRoles={["Disassemble"]}>
@@ -352,7 +358,7 @@ const AppRoutes = () => {
           }
         />
 
-         <Route
+        <Route
           path="debit-not"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
@@ -361,7 +367,7 @@ const AppRoutes = () => {
           }
         />
 
-         <Route
+        <Route
           path="add-raw-material"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
@@ -388,7 +394,7 @@ const AppRoutes = () => {
           }
         />
 
-         <Route
+        <Route
           path="active-deactivate-company"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
@@ -397,7 +403,7 @@ const AppRoutes = () => {
           }
         />
 
-         <Route
+        <Route
           path="item-details"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
@@ -405,7 +411,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-         <Route
+        <Route
           path="installation-stock"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
@@ -467,12 +473,20 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="payment-request-details"
           element={
-            <ProtectedRoute allowedRoles={["Verification"]}>
+            <ProtectedRoute allowedRoles={["Verification", "Accounts"]}>
               <PaymentRequestDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="account-details"
+          element={
+            <ProtectedRoute allowedRoles={["Accounts"]}>
+              <AccountDetails />
             </ProtectedRoute>
           }
         />
@@ -529,18 +543,13 @@ const AppRoutes = () => {
         <Route
           path="raw-material-stock"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                "Store",
-                "Purchase",
-              ]}
-            >
+            <ProtectedRoute allowedRoles={["Store", "Purchase"]}>
               <RawMaterialStock />
             </ProtectedRoute>
           }
         />
 
-         <Route
+        <Route
           path="single-out"
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
@@ -548,9 +557,8 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        
 
-         <Route
+        <Route
           path="user-Item-stock"
           element={
             <ProtectedRoute
