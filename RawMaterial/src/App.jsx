@@ -48,7 +48,7 @@ import POVerificationDashboard from "./pages/POVerification/POVerificationDashbo
 import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
 import PoVerification from "./pages/POVerification/PoVerification";
 import PoInvoice from "./pages/POVerification/PoInvoice";
-import PaymentRequestDetails from "./pages/POVerification/PaymentRequestDetails";
+import PaymentRequestDetails from './pages/POVerification/PaymentRequestDetails'
 import AccountDetails from "./pages/Accounts/AccountDetails";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
