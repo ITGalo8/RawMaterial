@@ -45,9 +45,9 @@ import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/Dir
 import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
 import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
-import PoVerification from './pages/POVerification/PoVerification';
-import PoInvoice from "./pages/POVerification/PoInvoice";
-import PaymentRequestDetails from './pages/POVerification/PaymentRequestDetails'
+import PoVerification from './pages/Verification/PoVerification';
+import PoInvoice from "./pages/Verification/PoInvoice";
+import PaymentRequestDetails from './pages/Verification/PaymentRequestDetails'
 import AccountDetails from "./pages/Accounts/AccountDetails";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
