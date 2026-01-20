@@ -44,9 +44,8 @@ import ReceivedPurchaseStock from "./pages/LineWorker/StoreKeeper/PoStockReceivi
 import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/DirectItemIssueHistory";
 import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
-import POVerificationDashboard from "./pages/POVerification/POVerificationDashboard";
 import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
-import PoVerification from "./pages/POVerification/PoVerification";
+import PoVerification from './pages/POVerification/PoVerification';
 import PoInvoice from "./pages/POVerification/PoInvoice";
 import PaymentRequestDetails from './pages/POVerification/PaymentRequestDetails'
 import AccountDetails from "./pages/Accounts/AccountDetails";
@@ -75,7 +74,7 @@ const getRedirectPath = (role) => {
   }
   if (role === "Store") return "/store-keeper";
   if (role === "Purchase") return "/purchase-dashboard";
-  if (role === "Verification") return "/po-verification-dashboard";
+  if (role === "Verification") return "/po-invoice";
   if (role === "Accounts") return "/payment-request-details";
 
   if (
@@ -443,15 +442,6 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <PoPaymentDetails />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="po-verification-dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["Verification"]}>
-              <POVerificationDashboard />
             </ProtectedRoute>
           }
         />

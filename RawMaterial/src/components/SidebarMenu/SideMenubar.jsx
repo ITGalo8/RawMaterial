@@ -66,7 +66,6 @@ const SideMenubar = () => {
 
   return (
     <>
-      {/* Mobile Menu Toggle Button */}
       <button
         className="lg:hidden fixed top-4 left-4 z-50 bg-yellow-400 text-black p-2 rounded-md shadow-lg"
         onClick={toggleMobileMenu}
@@ -74,7 +73,6 @@ const SideMenubar = () => {
         {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
       </button>
 
-      {/* Overlay for mobile */}
       {mobileMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -82,7 +80,6 @@ const SideMenubar = () => {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`w-64 text-white h-screen fixed left-0 top-0 overflow-y-auto flex flex-col 
           bg-gradient-to-b from-[#F9EA76] to-[#FFF9DD] z-40
@@ -93,7 +90,6 @@ const SideMenubar = () => {
               : "-translate-x-full lg:translate-x-0"
           }`}
       >
-        {/* User Profile */}
         <div className="bg-gray-700 border-b border-gray-600 p-4">
           <div className="flex items-center p-2 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
             <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mr-3">
@@ -110,9 +106,7 @@ const SideMenubar = () => {
           </div>
         </div>
 
-        {/* Menu List */}
         <ul className="flex-1 py-5 overflow-y-auto">
-          {/* Line Worker Item Request */}
           {lineWorkerRoles.includes(user.role) && (
             <li>
               <NavLink
@@ -132,7 +126,7 @@ const SideMenubar = () => {
               </NavLink>
             </li>
           )}
-          {/* Line Worker Item Request */}
+
           {lineWorkerRoles.includes(user.role) && (
             <li>
               <NavLink
@@ -368,7 +362,7 @@ const SideMenubar = () => {
 
           {user.role === "Verification" && (
             <>
-              <li>
+              {/* <li>
                 <NavLink
                   to="po-verification-dashboard"
                   className={({ isActive }) =>
@@ -384,7 +378,7 @@ const SideMenubar = () => {
                   <MdDashboard className="text-lg" />
                   Dashboard
                 </NavLink>
-              </li>
+              </li> */}
 
               {/* <li>
                 <NavLink
@@ -446,8 +440,7 @@ const SideMenubar = () => {
             </>
           )}
 
-
-          {(user.role === "Accounts") && (
+          {user.role === "Accounts" && (
             <>
               <li>
                 <NavLink
