@@ -456,7 +456,7 @@ const SideMenubar = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <IoStorefrontSharp className="text-lg" />
-                  Bank Account Details
+                  Vendor Details
                 </NavLink>
               </li>
             </>

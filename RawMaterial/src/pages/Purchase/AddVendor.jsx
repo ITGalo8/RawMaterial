@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Api from "../../auth/Api";
 import {
   BuildingOffice2Icon,
@@ -16,10 +16,16 @@ import {
   MagnifyingGlassIcon,
   InformationCircleIcon,
   UserIcon,
+  PaperClipIcon,
+  XMarkIcon,
+  PhotoIcon,
+  DocumentIcon,
 } from "@heroicons/react/24/outline";
 import {
   BuildingOffice2Icon as BuildingOffice2Solid,
   CheckCircleIcon as CheckCircleSolid,
+  DocumentIcon as DocumentIconSolid,
+  PhotoIcon as PhotoIconSolid,
 } from "@heroicons/react/24/solid";
 import Button from "../../components/Button/Button";
 
@@ -30,7 +36,6 @@ const AddVendor = () => {
     address: "",
     city: "",
     state: "",
-    pincode: "",
     country: "",
     contactPerson: "",
     contactNumber: "",
@@ -38,23 +43,58 @@ const AddVendor = () => {
     email: "",
     currency: "",
     zipCode: "",
+    vendorAadhaar: "",
+    vendorPanCard: "",
+    bankName: "",
+    accountHolder: "",
+    accountNumber: "",
+    ifscCode: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
+  const [currencySearch, setCurrencySearch] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [detectingState, setDetectingState] = useState(false);
   const [countries, setCountries] = useState([]);
+  const [currencies, setCurrencies] = useState([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCurrency, setLoadingCurrency] = useState(false);
 
-  const dropdownRef = useRef(null);
-  const searchInputRef = useRef(null);
+  // File states
+  const [aadhaarFile, setAadhaarFile] = useState(null);
+  const [panCardFile, setPanCardFile] = useState(null);
+  const [uploadingFiles, setUploadingFiles] = useState({
+    aadhaar: false,
+    pancard: false
+  });
+  const [fileErrors, setFileErrors] = useState({
+    aadhaar: "",
+    pancard: ""
+  });
 
-  // Fetch countries on component mount
+  const dropdownRef = useRef(null);
+  const currencyDropdownRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const currencySearchInputRef = useRef(null);
+  const pincodeTimeoutRef = useRef(null);
+  const aadhaarFileInputRef = useRef(null);
+  const panCardFileInputRef = useRef(null);
+
+  // Track if city/state was auto-filled from pincode
+  const [autoFilledFields, setAutoFilledFields] = useState({
+    city: false,
+    state: false
+  });
+
+  // Track last valid pincode to avoid refetching same data
+  const [lastFetchedPincode, setLastFetchedPincode] = useState("");
+
+  // Fetch countries and currencies on component mount
   useEffect(() => {
     const fetchCountries = async () => {
       setLoadingCountries(true);
@@ -62,42 +102,144 @@ const AddVendor = () => {
         const response = await Api.get(`/common/countries`);
         if (response.data?.success) {
           setCountries(response.data.countries || []);
+        } else {
+          // Fallback to default countries if API fails
+          setCountries([
+            "India",
+            "United States",
+            "United Kingdom",
+            "Canada",
+            "Australia",
+            "Germany",
+            "France",
+            "Japan",
+            "China",
+            "Singapore",
+            "United Arab Emirates",
+            "Saudi Arabia"
+          ]);
         }
       } catch (error) {
         console.log(
           "Error fetching countries: ",
-          error?.response?.data?.message || error?.message
+          error?.response?.data?.message || error?.message,
         );
         setError("Failed to load countries. Please refresh the page.");
+        // Fallback to default countries
+        setCountries([
+          "India",
+          "United States",
+          "United Kingdom",
+          "Canada",
+          "Australia",
+          "Germany",
+          "France",
+          "Japan",
+          "China",
+          "Singapore"
+        ]);
       } finally {
         setLoadingCountries(false);
       }
     };
 
+    const fetchAllCurrencies = async () => {
+      try {
+        const response = await Api.get(`/common/currencies`);
+        if (response.data?.success) {
+          setCurrencies(response.data.currencies || []);
+        } else {
+          // Fallback to default currencies if API fails
+          setCurrencies([
+            "INR - Indian Rupee",
+            "USD - US Dollar",
+            "EUR - Euro",
+            "GBP - British Pound",
+            "JPY - Japanese Yen",
+            "AUD - Australian Dollar",
+            "CAD - Canadian Dollar",
+            "SGD - Singapore Dollar",
+            "AED - UAE Dirham"
+          ]);
+        }
+      } catch (error) {
+        console.log(
+          "Error fetching currencies: ",
+          error?.response?.data?.message || error?.message,
+        );
+        // If API fails, use a default list of common currencies
+        setCurrencies([
+          "USD - US Dollar",
+          "EUR - Euro",
+          "GBP - British Pound",
+          "INR - Indian Rupee",
+          "JPY - Japanese Yen",
+          "AUD - Australian Dollar",
+          "CAD - Canadian Dollar",
+          "CHF - Swiss Franc",
+          "CNY - Chinese Yuan",
+          "SGD - Singapore Dollar",
+          "AED - UAE Dirham",
+          "SAR - Saudi Riyal",
+          "MYR - Malaysian Ringgit",
+          "THB - Thai Baht",
+          "IDR - Indonesian Rupiah",
+          "KRW - South Korean Won",
+          "PHP - Philippine Peso",
+          "VND - Vietnamese Dong",
+          "BDT - Bangladeshi Taka",
+          "PKR - Pakistani Rupee",
+          "LKR - Sri Lankan Rupee",
+          "NPR - Nepalese Rupee",
+          "MMK - Myanmar Kyat",
+          "BRL - Brazilian Real",
+          "RUB - Russian Ruble",
+          "ZAR - South African Rand",
+          "NGN - Nigerian Naira",
+          "EGP - Egyptian Pound",
+          "KES - Kenyan Shilling",
+          "ETB - Ethiopian Birr"
+        ]);
+      }
+    };
+
     fetchCountries();
+    fetchAllCurrencies();
   }, []);
 
-  // Fetch currency when country changes
+  // Fetch default currency when country changes
   useEffect(() => {
     const fetchCurrency = async () => {
       if (companyData.country) {
         setLoadingCurrency(true);
         try {
           const response = await Api.get(
-            `/common/currency/${encodeURIComponent(companyData.country)}`
+            `/common/currency/${encodeURIComponent(companyData.country)}`,
           );
           if (response.data?.success) {
             setCompanyData((prev) => ({
               ...prev,
               currency: response.data.currency || "",
             }));
+          } else {
+            // Fallback to default currency
+            const defaultCurrency = getDefaultCurrency(companyData.country);
+            setCompanyData((prev) => ({
+              ...prev,
+              currency: defaultCurrency,
+            }));
           }
         } catch (error) {
           console.log(
             "Error fetching currency: ",
-            error?.response?.data?.message || error?.message
+            error?.response?.data?.message || error?.message,
           );
-          // Don't set error state here as it's not critical
+          // Set default currency based on country
+          const defaultCurrency = getDefaultCurrency(companyData.country);
+          setCompanyData((prev) => ({
+            ...prev,
+            currency: defaultCurrency,
+          }));
         } finally {
           setLoadingCurrency(false);
         }
@@ -107,12 +249,142 @@ const AddVendor = () => {
     fetchCurrency();
   }, [companyData.country]);
 
+  // Helper function to get default currency for a country
+  const getDefaultCurrency = (country) => {
+    const currencyMap = {
+      "India": "INR - Indian Rupee",
+      "United States": "USD - US Dollar",
+      "United Kingdom": "GBP - British Pound",
+      "Germany": "EUR - Euro",
+      "France": "EUR - Euro",
+      "Italy": "EUR - Euro",
+      "Spain": "EUR - Euro",
+      "Canada": "CAD - Canadian Dollar",
+      "Australia": "AUD - Australian Dollar",
+      "Japan": "JPY - Japanese Yen",
+      "China": "CNY - Chinese Yuan",
+      "Singapore": "SGD - Singapore Dollar",
+      "United Arab Emirates": "AED - UAE Dirham",
+      "Saudi Arabia": "SAR - Saudi Riyal",
+      "Malaysia": "MYR - Malaysian Ringgit",
+      "Thailand": "THB - Thai Baht",
+      "Indonesia": "IDR - Indonesian Rupiah",
+      "South Korea": "KRW - South Korean Won",
+      "Philippines": "PHP - Philippine Peso",
+      "Vietnam": "VND - Vietnamese Dong",
+      "Bangladesh": "BDT - Bangladeshi Taka",
+      "Pakistan": "PKR - Pakistani Rupee",
+      "Sri Lanka": "LKR - Sri Lankan Rupee",
+      "Nepal": "NPR - Nepalese Rupee",
+      "Myanmar": "MMK - Myanmar Kyat",
+      "Brazil": "BRL - Brazilian Real",
+      "Russia": "RUB - Russian Ruble",
+      "South Africa": "ZAR - South African Rand",
+      "Nigeria": "NGN - Nigerian Naira",
+      "Egypt": "EGP - Egyptian Pound",
+      "Kenya": "KES - Kenyan Shilling",
+      "Ethiopia": "ETB - Ethiopian Birr"
+    };
+    
+    return currencyMap[country] || "USD - US Dollar";
+  };
+
+  // Function to fetch pincode details (only for India)
+  const fetchPincodeDetails = useCallback(async (pincode) => {
+    // Don't fetch if we already fetched this pincode
+    if (pincode === lastFetchedPincode) return;
+    
+    setDetectingState(true);
+    try {
+      const response = await Api.get(`/common/address/pincode/${pincode}`);
+      if (response.data?.success) {
+        const { city, state } = response.data.data;
+        
+        setCompanyData(prev => {
+          // Create new object to avoid mutating state
+          const newData = { ...prev };
+          
+          // Only update city if it's currently empty OR was auto-filled previously
+          if (autoFilledFields.city || prev.city === "") {
+            newData.city = city;
+          }
+          
+          // Only update state if it's currently empty OR was auto-filled previously
+          if (autoFilledFields.state || prev.state === "") {
+            newData.state = state;
+          }
+          
+          return newData;
+        });
+        
+        // Mark as auto-filled if we updated them
+        setAutoFilledFields({
+          city: autoFilledFields.city || companyData.city === "",
+          state: autoFilledFields.state || companyData.state === ""
+        });
+        
+        // Store this pincode as last fetched
+        setLastFetchedPincode(pincode);
+      }
+    } catch (error) {
+      console.log(
+        "Error fetching pincode details: ",
+        error?.response?.data?.message || error?.message,
+      );
+      // Reset last fetched pincode on error
+      setLastFetchedPincode("");
+    } finally {
+      setDetectingState(false);
+    }
+  }, [autoFilledFields, companyData.city, companyData.state, lastFetchedPincode]);
+
+  // Handle zipCode/pincode change with debouncing (only for India)
+  useEffect(() => {
+    // Clear any existing timeout
+    if (pincodeTimeoutRef.current) {
+      clearTimeout(pincodeTimeoutRef.current);
+    }
+
+    // Only fetch if it's India and zipCode is exactly 6 digits
+    if (
+      companyData.zipCode.length === 6 && 
+      companyData.country.toLowerCase() === "india" &&
+      companyData.zipCode !== lastFetchedPincode
+    ) {
+      // Set a new timeout
+      pincodeTimeoutRef.current = setTimeout(() => {
+        fetchPincodeDetails(companyData.zipCode);
+      }, 800); // 800ms debounce
+    } else if (companyData.zipCode.length !== 6 && companyData.country.toLowerCase() === "india") {
+      // Reset auto-filled status if pincode is not 6 digits for India
+      setAutoFilledFields({
+        city: false,
+        state: false
+      });
+      setLastFetchedPincode("");
+    }
+
+    // Cleanup function
+    return () => {
+      if (pincodeTimeoutRef.current) {
+        clearTimeout(pincodeTimeoutRef.current);
+      }
+    };
+  }, [companyData.zipCode, companyData.country, fetchPincodeDetails, lastFetchedPincode]);
+
   const filteredCountries = useMemo(() => {
     if (!countrySearch) return countries;
     return countries.filter((country) =>
-      country.toLowerCase().includes(countrySearch.toLowerCase())
+      country.toLowerCase().includes(countrySearch.toLowerCase()),
     );
   }, [countries, countrySearch]);
+
+  const filteredCurrencies = useMemo(() => {
+    if (!currencySearch) return currencies;
+    return currencies.filter((currency) =>
+      currency.toLowerCase().includes(currencySearch.toLowerCase()),
+    );
+  }, [currencies, currencySearch]);
 
   useEffect(() => {
     if (message) {
@@ -123,36 +395,56 @@ const AddVendor = () => {
     }
   }, [message]);
 
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (showCountryDropdown && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showCountryDropdown]);
+
+  useEffect(() => {
+    if (showCurrencyDropdown && currencySearchInputRef.current) {
+      currencySearchInputRef.current.focus();
+    }
+  }, [showCurrencyDropdown]);
+
+  // Handle click outside for both dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close country dropdown
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowCountryDropdown(false);
         setCountrySearch("");
       }
+      
+      // Close currency dropdown
+      if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target)) {
+        setShowCurrencyDropdown(false);
+        setCurrencySearch("");
+      }
     };
 
     const handleEscapeKey = (event) => {
-      if (event.key === "Escape" && showCountryDropdown) {
-        setShowCountryDropdown(false);
-        setCountrySearch("");
+      if (event.key === "Escape") {
+        if (showCountryDropdown) {
+          setShowCountryDropdown(false);
+          setCountrySearch("");
+        }
+        if (showCurrencyDropdown) {
+          setShowCurrencyDropdown(false);
+          setCurrencySearch("");
+        }
       }
     };
 
-    if (showCountryDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscapeKey);
-      if (searchInputRef.current) {
-        setTimeout(() => {
-          searchInputRef.current?.focus();
-        }, 100);
-      }
-    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscapeKey);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEscapeKey);
     };
-  }, [showCountryDropdown]);
+  }, [showCountryDropdown, showCurrencyDropdown]);
 
   const formatGSTNumber = (value) => {
     const cleaned = value.toUpperCase().replace(/[^0-9A-Z]/g, "");
@@ -166,6 +458,27 @@ const AddVendor = () => {
 
   const formatEmail = (value) => {
     return value.replace(/\s/g, "");
+  };
+
+  // File validation
+  const validateFile = (file, type) => {
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validPdfType = 'application/pdf';
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!file) {
+      return "File is required";
+    }
+
+    if (file.size > maxSize) {
+      return "File size must be less than 5MB";
+    }
+
+    if (!validImageTypes.includes(file.type) && file.type !== validPdfType) {
+      return "Only JPG, PNG, GIF, WEBP images or PDF files are allowed";
+    }
+
+    return "";
   };
 
   const validateForm = () => {
@@ -188,6 +501,58 @@ const AddVendor = () => {
     if (!companyData.city.trim()) errors.city = "City is required";
     if (!companyData.state.trim()) errors.state = "State is required";
     if (!companyData.country.trim()) errors.country = "Country is required";
+    if (!companyData.currency.trim()) errors.currency = "Currency is required";
+    
+    // Validate zipCode based on country
+    if (companyData.country.toLowerCase() === "india") {
+      // For India, validate as 6-digit pincode if provided
+      if (companyData.zipCode && companyData.zipCode.length !== 6) {
+        errors.zipCode = "Pincode must be 6 digits for India";
+      }
+    } else if (companyData.zipCode) {
+      // For other countries, just ensure it's not empty if provided
+      if (!companyData.zipCode.trim()) {
+        errors.zipCode = "Postal code is required if entered";
+      }
+    }
+
+    // Validate contact number
+    if (!companyData.contactNumber.trim()) {
+      errors.contactNumber = "Contact number is required";
+    } else if (!/^\d{10,15}$/.test(companyData.contactNumber)) {
+      errors.contactNumber = "Contact number must be 10-15 digits";
+    }
+
+    // Validate Aadhaar format (if provided)
+    if (companyData.vendorAadhaar && !/^\d{12}$/.test(companyData.vendorAadhaar)) {
+      errors.vendorAadhaar = "Aadhaar must be 12 digits";
+    }
+
+    // Validate PAN format (if provided)
+    if (companyData.vendorPanCard && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(companyData.vendorPanCard)) {
+      errors.vendorPanCard = "Invalid PAN format (e.g., ABCDE1234F)";
+    }
+
+    // Validate IFSC format (if provided)
+    if (companyData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(companyData.ifscCode)) {
+      errors.ifscCode = "Invalid IFSC code format";
+    }
+
+    // Validate account number (if provided)
+    if (companyData.accountNumber && !/^\d{9,18}$/.test(companyData.accountNumber)) {
+      errors.accountNumber = "Account number must be 9-18 digits";
+    }
+
+    // Validate Aadhaar file if Aadhaar number is provided
+    if (companyData.vendorAadhaar && !aadhaarFile) {
+      errors.aadhaarFile = "Aadhaar document is required when Aadhaar number is provided";
+    }
+
+    // Validate PAN file if PAN number is provided
+    if (companyData.vendorPanCard && !panCardFile) {
+      errors.panCardFile = "PAN card document is required when PAN number is provided";
+    }
+    
     return errors;
   };
 
@@ -199,14 +564,30 @@ const AddVendor = () => {
       processedValue = formatGSTNumber(value);
     } else if (name === "contactNumber" || name === "alternateNumber") {
       processedValue = formatPhoneNumber(value);
-    } else if (name === "pincode") {
-      processedValue = value.replace(/[^0-9]/g, "");
     } else if (name === "zipCode") {
-      processedValue = value.replace(/[^0-9]/g, "");
+      // For India, restrict to 6 digits only
+      if (companyData.country.toLowerCase() === "india") {
+        processedValue = value.replace(/[^0-9]/g, "").slice(0, 6);
+      } else {
+        // For other countries, allow alphanumeric and spaces
+        processedValue = value.toUpperCase().slice(0, 20);
+      }
+      // Reset last fetched pincode when user starts typing new pincode (India only)
+      if (processedValue !== lastFetchedPincode && companyData.country.toLowerCase() === "india") {
+        setLastFetchedPincode("");
+      }
     } else if (name === "email") {
       processedValue = formatEmail(value);
     } else if (name === "contactPerson") {
       processedValue = value.replace(/[^a-zA-Z\s.'-]/g, "");
+    } else if (name === "vendorAadhaar") {
+      processedValue = value.replace(/[^0-9]/g, "").slice(0, 12);
+    } else if (name === "vendorPanCard") {
+      processedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
+    } else if (name === "accountNumber") {
+      processedValue = value.replace(/[^0-9]/g, "").slice(0, 18);
+    } else if (name === "ifscCode") {
+      processedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11);
     }
 
     setCompanyData((prevState) => ({
@@ -214,27 +595,172 @@ const AddVendor = () => {
       [name]: processedValue,
     }));
 
+    // When user manually edits city or state, mark them as manually edited
+    if (name === "city" || name === "state") {
+      setAutoFilledFields(prev => ({
+        ...prev,
+        [name]: false
+      }));
+      // Reset last fetched pincode since user is overriding (India only)
+      if (companyData.country.toLowerCase() === "india") {
+        setLastFetchedPincode("");
+      }
+    }
+
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({
         ...prev,
         [name]: "",
       }));
     }
+
+    // Clear file errors when corresponding field is cleared
+    if (name === "vendorAadhaar" && !processedValue) {
+      setFileErrors(prev => ({ ...prev, aadhaar: "" }));
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.aadhaarFile;
+        return newErrors;
+      });
+    }
+    if (name === "vendorPanCard" && !processedValue) {
+      setFileErrors(prev => ({ ...prev, pancard: "" }));
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.panCardFile;
+        return newErrors;
+      });
+    }
+  };
+
+  // Handle file selection
+  const handleFileSelect = (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const error = validateFile(file, type);
+    if (error) {
+      setFileErrors(prev => ({ ...prev, [type]: error }));
+      return;
+    }
+
+    if (type === "aadhaar") {
+      setAadhaarFile(file);
+      setFileErrors(prev => ({ ...prev, aadhaar: "" }));
+    } else if (type === "pancard") {
+      setPanCardFile(file);
+      setFileErrors(prev => ({ ...prev, pancard: "" }));
+    }
+
+    // Clear any field errors for this file
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      if (type === "aadhaar") delete newErrors.aadhaarFile;
+      if (type === "pancard") delete newErrors.panCardFile;
+      return newErrors;
+    });
+  };
+
+  // Remove file
+  const handleRemoveFile = (type) => {
+    if (type === "aadhaar") {
+      setAadhaarFile(null);
+      if (aadhaarFileInputRef.current) {
+        aadhaarFileInputRef.current.value = "";
+      }
+      // Clear file error
+      setFileErrors(prev => ({ ...prev, aadhaar: "" }));
+      // Clear field error
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.aadhaarFile;
+        return newErrors;
+      });
+    } else if (type === "pancard") {
+      setPanCardFile(null);
+      if (panCardFileInputRef.current) {
+        panCardFileInputRef.current.value = "";
+      }
+      // Clear file error
+      setFileErrors(prev => ({ ...prev, pancard: "" }));
+      // Clear field error
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.panCardFile;
+        return newErrors;
+      });
+    }
+  };
+
+  // Get file icon based on type
+  const getFileIcon = (file) => {
+    if (!file) return null;
+    
+    if (file.type === 'application/pdf') {
+      return <DocumentIcon className="h-5 w-5 text-red-500" />;
+    } else if (file.type.startsWith('image/')) {
+      return <PhotoIcon className="h-5 w-5 text-blue-500" />;
+    }
+    return <DocumentIcon className="h-5 w-5 text-gray-500" />;
+  };
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleCountrySelect = (country) => {
     setCompanyData((prevState) => ({
       ...prevState,
       country: country,
+      // Clear zipCode when country changes to avoid confusion
+      zipCode: "",
     }));
     setShowCountryDropdown(false);
     setCountrySearch("");
+    
+    // Reset auto-filled fields when country changes
+    setAutoFilledFields({
+      city: false,
+      state: false
+    });
+    setLastFetchedPincode("");
   };
 
   const handleCountryDropdownToggle = () => {
     const newState = !showCountryDropdown;
     setShowCountryDropdown(newState);
     setCountrySearch("");
+  };
+
+  const handleCurrencySelect = (currency) => {
+    setCompanyData((prevState) => ({
+      ...prevState,
+      currency: currency,
+    }));
+    setShowCurrencyDropdown(false);
+    setCurrencySearch("");
+  };
+
+  const handleCurrencyDropdownToggle = () => {
+    const newState = !showCurrencyDropdown;
+    setShowCurrencyDropdown(newState);
+    setCurrencySearch("");
+  };
+
+  // Handle zipCode/pincode blur - trigger immediate fetch (India only)
+  const handleZipCodeBlur = () => {
+    if (
+      companyData.zipCode.length === 6 && 
+      companyData.country.toLowerCase() === "india" &&
+      companyData.zipCode !== lastFetchedPincode
+    ) {
+      fetchPincodeDetails(companyData.zipCode);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -247,30 +773,93 @@ const AddVendor = () => {
       return;
     }
 
+    // Validate files only if corresponding numbers are provided
+    if (companyData.vendorAadhaar && !aadhaarFile) {
+      setFieldErrors(prev => ({ ...prev, aadhaarFile: "Aadhaar document is required when Aadhaar number is provided" }));
+      setError("Please upload Aadhaar document");
+      return;
+    }
+
+    if (companyData.vendorPanCard && !panCardFile) {
+      setFieldErrors(prev => ({ ...prev, panCardFile: "PAN card document is required when PAN number is provided" }));
+      setError("Please upload PAN card document");
+      return;
+    }
+
     setFieldErrors({});
     setLoading(true);
     setMessage("");
     setError("");
 
     try {
-      const response = await Api.post("/purchase/vendors", companyData, {
+      // Create FormData to send files and form data together
+      const formData = new FormData();
+
+      // Add all form fields to FormData
+      Object.keys(companyData).forEach(key => {
+        if (companyData[key] && companyData[key].trim() !== "") {
+          formData.append(key, companyData[key].trim());
+        }
+      });
+
+      // Add files if they exist
+      if (aadhaarFile) {
+        formData.append('aadhaarFile', aadhaarFile);
+      }
+      
+      if (panCardFile) {
+        formData.append('pancardFile', panCardFile);
+      }
+
+      // Log FormData contents for debugging
+      console.log("FormData contents:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+
+      // Send all data including files in one API call
+      const response = await Api.post("/purchase/vendors2", formData, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
       });
 
       if (response.status === 200 || response.status === 201) {
         setMessage("Vendor added successfully!");
-        alert(response?.data?.message)
+        alert(response?.data?.message || "Vendor added successfully!");
         clearForm();
       }
     } catch (err) {
-      console.error("Error adding company:", err);
-      setError(
-        err.response?.data?.message ||
-          err.response?.data?.error ||
-          "Failed to add company. Please try again."
-      );
+      console.error("Error adding vendor:", err);
+      
+      // More detailed error handling
+      if (err.response) {
+        console.error("Response error:", err.response.data);
+        console.error("Response status:", err.response.status);
+        
+        let errorMessage = err.response.data?.message || 
+                          err.response.data?.error || 
+                          `Failed to add vendor. Server responded with: ${err.response.status}`;
+        
+        // Handle validation errors from server
+        if (err.response.data?.errors) {
+          const serverErrors = err.response.data.errors;
+          const fieldErrorObj = {};
+          
+          Object.keys(serverErrors).forEach(key => {
+            fieldErrorObj[key] = serverErrors[key];
+          });
+          
+          setFieldErrors(fieldErrorObj);
+          errorMessage = "Please fix the errors in the form";
+        }
+        
+        setError(errorMessage);
+      } else if (err.request) {
+        setError("No response from server. Please check your network connection.");
+      } else {
+        setError("Error: " + err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -284,7 +873,9 @@ const AddVendor = () => {
       companyData.city.trim() &&
       companyData.state.trim() &&
       companyData.country.trim() &&
-      companyData.contactNumber.trim()
+      companyData.currency.trim() &&
+      companyData.contactNumber.trim() &&
+      /^\d{10,15}$/.test(companyData.contactNumber)
     );
   };
 
@@ -295,7 +886,6 @@ const AddVendor = () => {
       address: "",
       city: "",
       state: "",
-      pincode: "",
       country: "",
       contactPerson: "",
       contactNumber: "",
@@ -303,13 +893,63 @@ const AddVendor = () => {
       email: "",
       currency: "",
       zipCode: "",
+      vendorAadhaar: "",
+      vendorPanCard: "",
+      bankName: "",
+      accountHolder: "",
+      accountNumber: "",
+      ifscCode: "",
     });
+    setAadhaarFile(null);
+    setPanCardFile(null);
     setFieldErrors({});
+    setFileErrors({ aadhaar: "", pancard: "" });
     setError("");
     setMessage("");
     setCountrySearch("");
+    setCurrencySearch("");
     setShowCountryDropdown(false);
+    setShowCurrencyDropdown(false);
+    setAutoFilledFields({
+      city: false,
+      state: false
+    });
+    setLastFetchedPincode("");
+
+    // Clear file inputs
+    if (aadhaarFileInputRef.current) {
+      aadhaarFileInputRef.current.value = "";
+    }
+    if (panCardFileInputRef.current) {
+      panCardFileInputRef.current.value = "";
+    }
   };
+
+  // Get field label and placeholder based on country
+  const getZipCodeFieldInfo = () => {
+    const isIndia = companyData.country.toLowerCase() === "india";
+    
+    return {
+      label: isIndia ? "Pincode" : "Postal/Zip Code",
+      placeholder: isIndia ? "Enter 6-digit pincode" : "Enter postal/zip code",
+      maxLength: isIndia ? 6 : 20,
+      validationText: isIndia ? (
+        companyData.zipCode.length === 6 ? (
+          <p className="text-green-600 text-xs mt-0.5 flex items-center">
+            <CheckCircleIcon className="h-3 w-3 mr-0.5" />
+            Valid pincode format
+          </p>
+        ) : companyData.zipCode.length > 0 ? (
+          <p className="text-red-600 text-xs mt-0.5 flex items-center">
+            <XCircleIcon className="h-3 w-3 mr-0.5" />
+            Pincode must be 6 digits
+          </p>
+        ) : null
+      ) : null
+    };
+  };
+
+  const zipCodeFieldInfo = getZipCodeFieldInfo();
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-3 sm:py-6 sm:px-4 md:px-6">
@@ -476,8 +1116,8 @@ const AddVendor = () => {
                           showCountryDropdown
                             ? "border-blue-500 ring-1 ring-blue-200"
                             : fieldErrors.country
-                            ? "border-red-300 bg-red-50"
-                            : "border-gray-300 hover:border-gray-400"
+                              ? "border-red-300 bg-red-50"
+                              : "border-gray-300 hover:border-gray-400"
                         } ${
                           loadingCountries
                             ? "opacity-50 cursor-not-allowed"
@@ -574,37 +1214,124 @@ const AddVendor = () => {
                     </div>
                   </div>
 
-                  {/* Currency */}
-                  <div className="md:col-span-1">
-                    <label
-                      htmlFor="currency"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
-                    >
+                  {/* Currency Dropdown */}
+                  <div className="md:col-span-1 relative" ref={currencyDropdownRef}>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       <span className="flex items-center">
                         <CurrencyDollarIcon className="h-3 w-3 mr-1 text-gray-400" />
-                        Currency <span className="text-red-500 ml-0.5"></span>
+                        Currency <span className="text-red-500 ml-0.5">*</span>
                         {loadingCurrency && (
                           <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-blue-500" />
                         )}
                       </span>
                     </label>
                     <div className="relative">
-                      <input
-                        type="text"
-                        id="currency"
-                        name="currency"
-                        value={companyData.currency}
-                        onChange={handleChange}
-                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm hover:border-gray-400 bg-white"
-                        placeholder={
+                      <div
+                        className={`w-full px-3 py-2 border rounded-md bg-white cursor-pointer flex justify-between items-center transition-colors text-sm ${
+                          showCurrencyDropdown
+                            ? "border-blue-500 ring-1 ring-blue-200"
+                            : fieldErrors.currency
+                              ? "border-red-300 bg-red-50"
+                              : "border-gray-300 hover:border-gray-400"
+                        } ${
                           loadingCurrency
-                            ? "Loading..."
-                            : "Currency will auto-fill"
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          !loadingCurrency && handleCurrencyDropdownToggle()
                         }
-                        readOnly={loadingCurrency}
-                      />
-                      <CurrencyDollarIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                        tabIndex={loadingCurrency ? -1 : 0}
+                        role="button"
+                        aria-expanded={showCurrencyDropdown}
+                        aria-haspopup="listbox"
+                        aria-disabled={loadingCurrency}
+                      >
+                        <span className="truncate flex items-center">
+                          <CurrencyDollarIcon className="h-4 w-4 text-gray-400 mr-1.5" />
+                          {companyData.currency ||
+                            (loadingCurrency
+                              ? "Loading currency..."
+                              : "Select currency")}
+                        </span>
+                        <span className="text-gray-400 ml-1 text-xs">
+                          {loadingCurrency ? (
+                            <ArrowPathIcon className="h-3 w-3 animate-spin" />
+                          ) : showCurrencyDropdown ? (
+                            "▲"
+                          ) : (
+                            "▼"
+                          )}
+                        </span>
+                      </div>
+                      {fieldErrors.currency && (
+                        <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                          <XCircleIcon className="h-3 w-3 mr-0.5" />
+                          {fieldErrors.currency}
+                        </span>
+                      )}
+
+                      {showCurrencyDropdown && !loadingCurrency && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm overflow-hidden">
+                          <div className="p-2 border-b border-gray-200 bg-gray-50">
+                            <div className="relative">
+                              <input
+                                ref={currencySearchInputRef}
+                                type="text"
+                                placeholder="Search currencies..."
+                                value={currencySearch}
+                                onChange={(e) =>
+                                  setCurrencySearch(e.target.value)
+                                }
+                                className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+                              />
+                              <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                            </div>
+                          </div>
+                          <div className="max-h-48 overflow-y-auto">
+                            {filteredCurrencies.length > 0 ? (
+                              filteredCurrencies.map((currency) => (
+                                <div
+                                  key={currency}
+                                  className={`px-3 py-2 cursor-pointer transition-colors flex items-center text-sm ${
+                                    companyData.currency === currency
+                                      ? "bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500"
+                                      : "text-gray-700 hover:bg-gray-50"
+                                  }`}
+                                  onClick={() => handleCurrencySelect(currency)}
+                                  role="option"
+                                  aria-selected={
+                                    companyData.currency === currency
+                                  }
+                                >
+                                  {companyData.currency === currency && (
+                                    <CheckCircleIcon className="h-4 w-4 text-blue-500 mr-2" />
+                                  )}
+                                  <span
+                                    className={
+                                      companyData.currency === currency
+                                        ? "ml-0"
+                                        : ""
+                                    }
+                                  >
+                                    {currency}
+                                  </span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-3 py-2 text-gray-500 text-center text-sm">
+                                No currencies found
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
+                    {companyData.country && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Default currency for {companyData.country}. Click to select different currency.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -671,6 +1398,11 @@ const AddVendor = () => {
                       className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
                     >
                       City <span className="text-red-500">*</span>
+                      {autoFilledFields.city && (
+                        <span className="ml-1 text-xs text-green-600">
+                          (Auto-filled)
+                        </span>
+                      )}
                     </label>
                     <input
                       type="text"
@@ -683,7 +1415,7 @@ const AddVendor = () => {
                         fieldErrors.city
                           ? "border-red-300 bg-red-50"
                           : "border-gray-300 hover:border-gray-400"
-                      }`}
+                      } ${autoFilledFields.city ? 'bg-green-50' : ''}`}
                       placeholder="Enter city"
                     />
                     {fieldErrors.city && (
@@ -701,6 +1433,11 @@ const AddVendor = () => {
                       className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
                     >
                       State <span className="text-red-500">*</span>
+                      {autoFilledFields.state && (
+                        <span className="ml-1 text-xs text-green-600">
+                          (Auto-filled)
+                        </span>
+                      )}
                     </label>
                     <input
                       type="text"
@@ -713,7 +1450,7 @@ const AddVendor = () => {
                         fieldErrors.state
                           ? "border-red-300 bg-red-50"
                           : "border-gray-300 hover:border-gray-400"
-                      }`}
+                      } ${autoFilledFields.state ? 'bg-green-50' : ''}`}
                       placeholder="Enter state"
                     />
                     {fieldErrors.state && (
@@ -724,56 +1461,26 @@ const AddVendor = () => {
                     )}
                   </div>
 
-                  {/* Pincode */}
+                  {/* ZipCode/Pincode Field (Single Field) */}
                   <div className="sm:col-span-1">
                     <label
-                      htmlFor="pincode"
+                      htmlFor="zipCode"
                       className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
                     >
                       <span className="flex items-center justify-between">
-                        Pincode <span className="text-red-500"></span>
-                        {detectingState && (
+                        {zipCodeFieldInfo.label} <span className="text-red-500"></span>
+                        {detectingState && companyData.country.toLowerCase() === "india" && (
                           <span className="text-xs text-blue-600 flex items-center">
                             <ArrowPathIcon className="h-3 w-3 mr-0.5 animate-spin" />
                             Detecting...
                           </span>
                         )}
                       </span>
-                    </label>
-                    <input
-                      type="text"
-                      id="pincode"
-                      name="pincode"
-                      value={companyData.pincode}
-                      onChange={handleChange}
-                      className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
-                        fieldErrors.pincode
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300 hover:border-gray-400"
-                      }`}
-                      placeholder="postal code"
-                      maxLength="6"
-                    />
-                    {fieldErrors.pincode && (
-                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
-                        <XCircleIcon className="h-3 w-3 mr-0.5" />
-                        {fieldErrors.pincode}
-                      </span>
-                    )}
-                    {!fieldErrors.pincode &&
-                      companyData.pincode.length === 6 && (
-                        <p className="text-green-600 text-xs mt-0.5 flex items-center">
-                          <CheckCircleIcon className="h-3 w-3 mr-0.5" />
-                          Valid pincode format
-                        </p>
+                      {companyData.country.toLowerCase() === "india" && (
+                        <span className="text-xs text-gray-500 block mt-0.5">
+                          Enter 6-digit Indian pincode for auto-fill
+                        </span>
                       )}
-                  </div>
-                  <div className="sm:col-span-1">
-                    <label
-                      htmlFor="zipCode"
-                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
-                    >
-                      ZipCode <span className="text-red-500"></span>
                     </label>
                     <input
                       type="text"
@@ -781,12 +1488,14 @@ const AddVendor = () => {
                       name="zipCode"
                       value={companyData.zipCode}
                       onChange={handleChange}
+                      onBlur={handleZipCodeBlur}
                       className={`w-full px-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
                         fieldErrors.zipCode
                           ? "border-red-300 bg-red-50"
                           : "border-gray-300 hover:border-gray-400"
                       }`}
-                      placeholder="Enter Zip Code"
+                      placeholder={zipCodeFieldInfo.placeholder}
+                      maxLength={zipCodeFieldInfo.maxLength}
                     />
                     {fieldErrors.zipCode && (
                       <span className="text-red-600 text-xs mt-0.5 flex items-center">
@@ -794,6 +1503,7 @@ const AddVendor = () => {
                         {fieldErrors.zipCode}
                       </span>
                     )}
+                    {zipCodeFieldInfo.validationText}
                   </div>
                 </div>
               </div>
@@ -877,10 +1587,59 @@ const AddVendor = () => {
                             ? "border-red-300 bg-red-50"
                             : "border-gray-300 hover:border-gray-400"
                         }`}
-                        placeholder="contact number"
+                        placeholder="Enter contact number"
+                        maxLength="15"
                       />
                       <PhoneIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
                     </div>
+                    {fieldErrors.contactNumber && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.contactNumber}
+                      </span>
+                    )}
+                    {companyData.contactNumber.length >= 10 && !fieldErrors.contactNumber && (
+                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
+                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
+                        Valid contact number
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Alternate Number */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label
+                      htmlFor="alternateNumber"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      <span className="flex items-center">
+                        <PhoneIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        Alternate Number
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        id="alternateNumber"
+                        name="alternateNumber"
+                        value={companyData.alternateNumber}
+                        onChange={handleChange}
+                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                          fieldErrors.alternateNumber
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        placeholder="Enter alternate number"
+                        maxLength="15"
+                      />
+                      <PhoneIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    {fieldErrors.alternateNumber && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.alternateNumber}
+                      </span>
+                    )}
                   </div>
 
                   {/* Email Address */}
@@ -928,6 +1687,411 @@ const AddVendor = () => {
                 </div>
               </div>
 
+              {/* Bank Account Information Section */}
+              <div>
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-orange-100 rounded-md flex items-center justify-center mr-2">
+                    <CurrencyDollarIcon className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      Bank Account Information
+                    </h3>
+                    <p className="text-gray-500 text-xs">
+                      Bank details and ID documents
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {/* Vendor Aadhaar */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label
+                      htmlFor="vendorAadhaar"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      <span className="flex items-center">
+                        <UserIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        Vendor Aadhaar
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="vendorAadhaar"
+                        name="vendorAadhaar"
+                        value={companyData.vendorAadhaar || ""}
+                        onChange={handleChange}
+                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                          fieldErrors.vendorAadhaar
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        placeholder="Enter 12-digit Aadhaar"
+                        maxLength="12"
+                      />
+                      <UserIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    {fieldErrors.vendorAadhaar && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.vendorAadhaar}
+                      </span>
+                    )}
+                    {companyData.vendorAadhaar.length === 12 && !fieldErrors.vendorAadhaar && (
+                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
+                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
+                        Valid Aadhaar format
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Aadhaar Document Upload */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      <span className="flex items-center">
+                        <PaperClipIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        Aadhaar Document{" "}
+                        {companyData.vendorAadhaar && (
+                          <span className="text-red-500 ml-0.5">*</span>
+                        )}
+                        {uploadingFiles.aadhaar && (
+                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-blue-500" />
+                        )}
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        ref={aadhaarFileInputRef}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
+                        onChange={(e) => handleFileSelect(e, "aadhaar")}
+                        className="hidden"
+                        id="aadhaarFile"
+                      />
+                      <label
+                        htmlFor="aadhaarFile"
+                        className={`w-full px-3 py-2 border rounded-md cursor-pointer flex items-center justify-center transition-colors text-sm ${
+                          fieldErrors.aadhaarFile || fileErrors.aadhaar
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400 bg-white"
+                        } ${uploadingFiles.aadhaar ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        <PaperClipIcon className="h-4 w-4 text-gray-400 mr-2" />
+                        <span className="text-gray-600">
+                          {uploadingFiles.aadhaar
+                            ? "Uploading..."
+                            : aadhaarFile
+                              ? "Change file"
+                              : "Upload Aadhaar"}
+                        </span>
+                      </label>
+                      {(fieldErrors.aadhaarFile || fileErrors.aadhaar) && (
+                        <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                          <XCircleIcon className="h-3 w-3 mr-0.5" />
+                          {fieldErrors.aadhaarFile || fileErrors.aadhaar}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Selected Aadhaar File Preview */}
+                    {aadhaarFile && (
+                      <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-md flex items-center justify-between">
+                        <div className="flex items-center">
+                          {getFileIcon(aadhaarFile)}
+                          <div className="ml-2">
+                            <p className="text-xs font-medium text-gray-700 truncate max-w-[180px]">
+                              {aadhaarFile.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(aadhaarFile.size)}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile("aadhaar")}
+                          className="text-red-500 hover:text-red-700 ml-2"
+                          disabled={uploadingFiles.aadhaar}
+                        >
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Vendor PanCard */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label
+                      htmlFor="vendorPanCard"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      <span className="flex items-center">
+                        <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        Vendor PanCard
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="vendorPanCard"
+                        name="vendorPanCard"
+                        value={companyData.vendorPanCard || ""}
+                        onChange={handleChange}
+                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                          fieldErrors.vendorPanCard
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        placeholder="Enter PAN number (e.g., ABCDE1234F)"
+                        maxLength="10"
+                      />
+                      <DocumentTextIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    {fieldErrors.vendorPanCard && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.vendorPanCard}
+                      </span>
+                    )}
+                    {companyData.vendorPanCard.length === 10 && !fieldErrors.vendorPanCard && (
+                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
+                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
+                        Valid PAN format
+                      </p>
+                    )}
+                  </div>
+
+                  {/* PAN Card Document Upload */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                      <span className="flex items-center">
+                        <PaperClipIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        PAN Card Document{" "}
+                        {companyData.vendorPanCard && (
+                          <span className="text-red-500 ml-0.5">*</span>
+                        )}
+                        {uploadingFiles.pancard && (
+                          <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-blue-500" />
+                        )}
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        ref={panCardFileInputRef}
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
+                        onChange={(e) => handleFileSelect(e, "pancard")}
+                        className="hidden"
+                        id="panCardFile"
+                      />
+                      <label
+                        htmlFor="panCardFile"
+                        className={`w-full px-3 py-2 border rounded-md cursor-pointer flex items-center justify-center transition-colors text-sm ${
+                          fieldErrors.panCardFile || fileErrors.pancard
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400 bg-white"
+                        } ${uploadingFiles.pancard ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        <PaperClipIcon className="h-4 w-4 text-gray-400 mr-2" />
+                        <span className="text-gray-600">
+                          {uploadingFiles.pancard
+                            ? "Uploading..."
+                            : panCardFile
+                              ? "Change file"
+                              : "Upload PAN Card"}
+                        </span>
+                      </label>
+                      {(fieldErrors.panCardFile || fileErrors.pancard) && (
+                        <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                          <XCircleIcon className="h-3 w-3 mr-0.5" />
+                          {fieldErrors.panCardFile || fileErrors.pancard}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Selected PAN Card File Preview */}
+                    {panCardFile && (
+                      <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-md flex items-center justify-between">
+                        <div className="flex items-center">
+                          {getFileIcon(panCardFile)}
+                          <div className="ml-2">
+                            <p className="text-xs font-medium text-gray-700 truncate max-w-[180px]">
+                              {panCardFile.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(panCardFile.size)}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveFile("pancard")}
+                          className="text-red-500 hover:text-red-700 ml-2"
+                          disabled={uploadingFiles.pancard}
+                        >
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bank Name */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label
+                      htmlFor="bankName"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      <span className="flex items-center">
+                        <BuildingOffice2Icon className="h-3 w-3 mr-1 text-gray-400" />
+                        Bank Name
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="bankName"
+                        name="bankName"
+                        value={companyData.bankName || ""}
+                        onChange={handleChange}
+                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                          fieldErrors.bankName
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        placeholder="Enter bank name"
+                      />
+                      <BuildingOffice2Icon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    {fieldErrors.bankName && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.bankName}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Account Holder Name */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label
+                      htmlFor="accountHolder"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      <span className="flex items-center">
+                        <UserIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        Account Holder Name
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="accountHolder"
+                        name="accountHolder"
+                        value={companyData.accountHolder || ""}
+                        onChange={handleChange}
+                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                          fieldErrors.accountHolder
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        placeholder="Enter account holder name"
+                      />
+                      <UserIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    {fieldErrors.accountHolder && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.accountHolder}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Account Number */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label
+                      htmlFor="accountNumber"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      <span className="flex items-center">
+                        <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        Account Number
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="accountNumber"
+                        name="accountNumber"
+                        value={companyData.accountNumber || ""}
+                        onChange={handleChange}
+                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                          fieldErrors.accountNumber
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        placeholder="Enter account number"
+                        maxLength="18"
+                      />
+                      <DocumentTextIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    {fieldErrors.accountNumber && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.accountNumber}
+                      </span>
+                    )}
+                    {companyData.accountNumber.length >= 9 && !fieldErrors.accountNumber && (
+                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
+                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
+                        Valid account number format
+                      </p>
+                    )}
+                  </div>
+
+                  {/* IFSC Code */}
+                  <div className="md:col-span-2 lg:col-span-1">
+                    <label
+                      htmlFor="ifscCode"
+                      className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+                    >
+                      <span className="flex items-center">
+                        <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
+                        IFSC Code
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="ifscCode"
+                        name="ifscCode"
+                        value={companyData.ifscCode || ""}
+                        onChange={handleChange}
+                        className={`w-full pl-8 pr-3 py-2 border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-sm ${
+                          fieldErrors.ifscCode
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
+                        }`}
+                        placeholder="Enter IFSC code (e.g., SBIN0001234)"
+                        maxLength="11"
+                      />
+                      <DocumentTextIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+                    </div>
+                    {fieldErrors.ifscCode && (
+                      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+                        <XCircleIcon className="h-3 w-3 mr-0.5" />
+                        {fieldErrors.ifscCode}
+                      </span>
+                    )}
+                    {companyData.ifscCode.length === 11 && !fieldErrors.ifscCode && (
+                      <p className="text-green-600 text-xs mt-0.5 flex items-center">
+                        <CheckCircleIcon className="h-3 w-3 mr-0.5" />
+                        Valid IFSC format
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Form Actions */}
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0">
@@ -946,12 +2110,12 @@ const AddVendor = () => {
                     </span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full bg-yellow-400 text-dark  sm:w-auto">
                     <Button
                       type="submit"
                       title={loading ? "Adding Vendor..." : "Add Vendor"}
                       disabled={loading || !isFormValid()}
-                      variant="default"
+                      variant="primary"
                       className="px-4 py-2 rounded-md font-medium flex items-center justify-center text-sm"
                       onClick={null}
                     >
@@ -971,7 +2135,7 @@ const AddVendor = () => {
         </div>
 
         {/* Info Footer */}
-        <div className="mt-6 text-center text-gray-500">
+        {/* <div className="mt-6 text-center text-gray-500">
           <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-1.5 sm:gap-3">
             <span className="flex items-center text-xs">
               <CheckCircleIcon className="h-3 w-3 text-green-500 mr-1" />
@@ -987,8 +2151,23 @@ const AddVendor = () => {
               <DocumentTextIcon className="h-3 w-3 text-purple-500 mr-1" />
               GST validation included
             </span>
+            <span className="hidden sm:inline text-xs">•</span>
+            <span className="flex items-center text-xs">
+              <MapPinIcon className="h-3 w-3 text-green-500 mr-1" />
+              Auto-detects city/state from pincode (India)
+            </span>
+            <span className="hidden sm:inline text-xs">•</span>
+            <span className="flex items-center text-xs">
+              <CurrencyDollarIcon className="h-3 w-3 text-yellow-500 mr-1" />
+              Custom currency selection available
+            </span>
+            <span className="hidden sm:inline text-xs">•</span>
+            <span className="flex items-center text-xs">
+              <PaperClipIcon className="h-3 w-3 text-orange-500 mr-1" />
+              Supports JPG, PNG, GIF, WEBP & PDF files (max 5MB)
+            </span>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

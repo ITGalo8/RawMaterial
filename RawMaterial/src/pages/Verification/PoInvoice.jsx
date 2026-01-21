@@ -1054,7 +1054,7 @@ const PoInvoice = () => {
                             </span>
 
                             {/* Payment Progress */}
-                            <div className="w-32 bg-gray-200 rounded-full h-2">
+                            {/* <div className="w-32 bg-gray-200 rounded-full h-2">
                               <div
                                 className="bg-green-600 h-2 rounded-full transition-all duration-300"
                                 style={{
@@ -1071,7 +1071,7 @@ const PoInvoice = () => {
                                 1
                               )}
                               % Paid
-                            </div>
+                            </div> */}
                           </div>
                         </td>
 

@@ -49,7 +49,7 @@ const AccountDetails = () => {
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-gray-500">GST</p>
+                <p className="text-gray-500">GST Number</p>
                 <p>{vendor.gstNumber || "-"}</p>
               </div>
               <div>
@@ -58,10 +58,10 @@ const AccountDetails = () => {
               </div>
               <div>
                 <p className="text-gray-500">Person</p>
-                <p>{vendor.contactPerson || "-"}</p>
+                <p>{vendor.accountHolder || "-"}</p>
               </div>
               <div>
-                <p className="text-gray-500">Bank</p>
+                <p className="text-gray-500">Bank Name</p>
                 <p>{vendor.bankName || "-"}</p>
               </div>
             </div>
@@ -74,10 +74,10 @@ const AccountDetails = () => {
             <tr>
               {[
                 "Vendor",
-                "GST",
+                "GST Number",
                 "Contact No",
-                "Contact Person",
-                "Bank",
+                "Account Holder Name",
+                "Bank Name",
                 "Account No",
                 "IFSC",
               ].map((head) => (
@@ -100,7 +100,7 @@ const AccountDetails = () => {
                   {vendor.contactNumber || "-"}
                 </td>
                 <td className="px-4 py-3 text-sm">
-                  {vendor.contactPerson || "-"}
+                  {vendor.accountHolder || "-"}
                 </td>
                 <td className="px-4 py-3 text-sm">{vendor.bankName || "-"}</td>
                 <td className="px-4 py-3 text-sm">
