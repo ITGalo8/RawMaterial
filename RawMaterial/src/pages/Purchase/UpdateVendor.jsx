@@ -71,7 +71,7 @@ const UpdateVendor = () => {
     setDetailsLoading(true);
 
     try {
-      const response = await Api.get(`/purchase/vendors/${companyId}`);
+      const response = await Api.get(`/purchase/vendors2/${companyId}`);
       setCompanyDetails(response?.data?.data);
     } finally {
       setDetailsLoading(false);
@@ -185,7 +185,7 @@ const UpdateVendor = () => {
 
       // Make the PUT request with FormData
       const response = await Api.put(
-        `/purchase/vendors/${selectedCompany}`,
+        `/purchase/vendors2/${selectedCompany}`,
         formData,
         {
           headers: {
@@ -198,7 +198,7 @@ const UpdateVendor = () => {
 
       // Refresh vendor details
       const updatedResponse = await Api.get(
-        `/purchase/vendors/${selectedCompany}`,
+        `/purchase/vendors2/${selectedCompany}`,
       );
       setCompanyDetails(updatedResponse?.data?.data);
 

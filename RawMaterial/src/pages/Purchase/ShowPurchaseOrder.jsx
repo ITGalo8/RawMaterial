@@ -62,7 +62,7 @@
 
 //   const [unitTypes, setUnitTypes] = useState([]);
 //   const [unitsLoading, setUnitsLoading] = useState(false);
-  
+
 //   // Search states
 //   const [vendor, setVendor] = useState("");
 //   const [item, setItem] = useState("");
@@ -552,7 +552,7 @@
 //         status: orderDetails?.status || "",
 //         warehouseName: orderDetails.warehouseName || "",
 //         warehouseId: orderDetails.warehouseId || "",
-//         expectedDeliveryDate: orderDetails?.expectedDeliveryDate ? 
+//         expectedDeliveryDate: orderDetails?.expectedDeliveryDate ?
 //           orderDetails.expectedDeliveryDate.split("T")[0] : "",
 //       });
 
@@ -614,7 +614,7 @@
 //       status: orderDetails.status || "",
 //       warehouseName: orderDetails.warehouseName || "",
 //       warehouseId: orderDetails.warehouseId || "",
-//       expectedDeliveryDate: orderDetails.expectedDeliveryDate ? 
+//       expectedDeliveryDate: orderDetails.expectedDeliveryDate ?
 //         orderDetails.expectedDeliveryDate.split("T")[0] : "",
 //     });
 
@@ -801,7 +801,7 @@
 //     // First, update the form data with the selected item information immediately
 //     setFormData((prev) => {
 //       const newItems = [...prev.items];
-      
+
 //       // Update the item with information from the dropdown
 //       newItems[index] = {
 //         ...newItems[index],
@@ -829,11 +829,11 @@
 //     // Now fetch detailed item information from API
 //     try {
 //       const itemDetailsResponse = await fetchItemDetails(selectedItem.id);
-      
+
 //       if (itemDetailsResponse && itemDetailsResponse.success) {
 //         const detailedItem = itemDetailsResponse.item;
 //         console.log("Item details from API:", detailedItem);
-        
+
 //         // Update form with API details - but preserve HSN from dropdown
 //         setFormData((prev) => {
 //           const newItems = [...prev.items];
@@ -2417,7 +2417,7 @@
 //                           </span>
 //                         )}
 //                       </h3>
-                      
+
 //                     </div>
 
 //                     <div className="space-y-6">
@@ -2738,7 +2738,7 @@
 //                             />
 //                           </div>
 //                         </div>
-                        
+
 //                       ))}
 //                       <button
 //                         type="button"
@@ -2938,287 +2938,16 @@
 
 // export default ShowPurchaseOrder;
 
-
 import React, { useState, useEffect } from "react";
 import Api from "../../auth/Api";
 import { useNavigate } from "react-router-dom";
 import NormalInput from "../../components/InputField/NormalInput";
-import showData from "../../utils/axios/getMethod";
 import TableHeading from "../../components/table/TableHeading";
 import ButtonWithIcon from "../../components/Button/ButtonWithIcon";
 import { HiPencilAlt, HiSearch } from "react-icons/hi";
-import { MdCancelPresentation } from "react-icons/md";
+import { MdCancelPresentation, MdEmail } from "react-icons/md";
 import { AiOutlineSync } from "react-icons/ai";
 import { FaCloudDownloadAlt } from "react-icons/fa";
-
-// AdvancedPagination Component moved outside
-const AdvancedPagination = ({
-  currentPage,
-  totalItems,
-  itemsPerPage,
-  onPageChange,
-  onItemsPerPageChange,
-  itemsPerPageOptions = [5, 10, 20, 50]
-}) => {
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const handlePageClick = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      onPageChange(page);
-    }
-  };
-
-  const handleItemsPerPageChange = (e) => {
-    const newItemsPerPage = parseInt(e.target.value);
-    onItemsPerPageChange(newItemsPerPage);
-    onPageChange(1);
-  };
-
-  const getDisplayRange = () => {
-    const start = (currentPage - 1) * itemsPerPage + 1;
-    const end = Math.min(currentPage * itemsPerPage, totalItems);
-    return { start, end };
-  };
-
-  const { start, end } = getDisplayRange();
-  
-  const renderPageButtons = () => {
-    const buttons = [];
-    const maxVisible = 5;
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-
-    if (endPage - startPage + 1 < maxVisible) {
-      startPage = Math.max(1, endPage - maxVisible + 1);
-    }
-
-    if (currentPage > 1) {
-      buttons.push(
-        <button
-          key="first"
-          onClick={() => handlePageClick(1)}
-          className="flex items-center justify-center h-10 px-4 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700"
-          title="First Page"
-        >
-          First
-        </button>
-      );
-      buttons.push(
-        <button
-          key="prev"
-          onClick={() => handlePageClick(currentPage - 1)}
-          className="flex items-center justify-center h-10 px-4 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700"
-          title="Previous Page"
-        >
-          <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Prev
-        </button>
-      );
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      buttons.push(
-        <button
-          key={i}
-          onClick={() => handlePageClick(i)}
-          className={`
-            flex items-center justify-center h-10 px-4 text-sm font-medium border border-gray-300
-            ${currentPage === i
-              ? 'text-blue-600 bg-blue-50 border-blue-300 hover:bg-blue-100 hover:text-blue-700'
-              : 'text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700'
-            }
-          `}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    if (currentPage < totalPages) {
-      buttons.push(
-        <button
-          key="next"
-          onClick={() => handlePageClick(currentPage + 1)}
-          className="flex items-center justify-center h-10 px-4 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700"
-          title="Next Page"
-        >
-          Next
-          <svg className="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      );
-      buttons.push(
-        <button
-          key="last"
-          onClick={() => handlePageClick(totalPages)}
-          className="flex items-center justify-center h-10 px-4 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700"
-          title="Last Page"
-        >
-          Last
-        </button>
-      );
-    }
-
-    return buttons;
-  };
-
-  if (totalItems === 0) return null;
-
-  return (
-    <div className="flex flex-col items-center justify-between gap-4 px-4 py-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row sm:px-6">
-      <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-700">
-          Showing <span className="font-semibold">{start}</span> to <span className="font-semibold">{end}</span> of{" "}
-          <span className="font-semibold">{totalItems}</span> results
-        </span>
-      </div>
-      
-      <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
-        <div className="flex items-center space-x-2">
-          <label htmlFor="itemsPerPage" className="text-sm font-medium text-gray-700">
-            Show:
-          </label>
-          <select
-            id="itemsPerPage"
-            value={itemsPerPage}
-            onChange={handleItemsPerPageChange}
-            className="block w-20 px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {itemsPerPageOptions.map(option => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <nav className="flex items-center space-x-1">
-          {renderPageButtons()}
-        </nav>
-        
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-700">Go to:</span>
-          <div className="relative">
-            <input
-              type="number"
-              min="1"
-              max={totalPages}
-              defaultValue={currentPage}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  const page = parseInt(e.target.value);
-                  if (page >= 1 && page <= totalPages) {
-                    handlePageClick(page);
-                  }
-                }
-              }}
-              className="w-20 px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <span className="text-sm text-gray-500">/ {totalPages}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Simple Pagination Component (for the top)
-const SimplePagination = ({
-  currentPage,
-  totalItems,
-  itemsPerPage,
-  onPageChange,
-  onItemsPerPageChange,
-  itemsPerPageOptions = [5, 10, 20, 50]
-}) => {
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  const handlePageClick = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      onPageChange(page);
-    }
-  };
-
-  const handleItemsPerPageChange = (e) => {
-    const newItemsPerPage = parseInt(e.target.value);
-    onItemsPerPageChange(newItemsPerPage);
-    onPageChange(1);
-  };
-
-  const getDisplayRange = () => {
-    const start = (currentPage - 1) * itemsPerPage + 1;
-    const end = Math.min(currentPage * itemsPerPage, totalItems);
-    return { start, end };
-  };
-
-  const { start, end } = getDisplayRange();
-
-  if (totalItems === 0) return null;
-
-  return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-lg mb-4">
-      <div className="flex items-center space-x-2">
-        <span className="text-sm text-gray-700">
-          Showing <span className="font-semibold">{start}</span> to <span className="font-semibold">{end}</span> of{" "}
-          <span className="font-semibold">{totalItems}</span> results
-        </span>
-      </div>
-      
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          <label htmlFor="top-itemsPerPage" className="text-sm font-medium text-gray-700">
-            Show:
-          </label>
-          <select
-            id="top-itemsPerPage"
-            value={itemsPerPage}
-            onChange={handleItemsPerPageChange}
-            className="block w-20 px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {itemsPerPageOptions.map(option => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => handlePageClick(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`px-3 py-2 text-sm font-medium border border-gray-300 rounded-md ${
-              currentPage === 1
-                ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                : 'text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900'
-            }`}
-          >
-            Previous
-          </button>
-          
-          <span className="text-sm text-gray-700">
-            Page <span className="font-semibold">{currentPage}</span> of <span className="font-semibold">{totalPages}</span>
-          </span>
-          
-          <button
-            onClick={() => handlePageClick(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`px-3 py-2 text-sm font-medium border border-gray-300 rounded-md ${
-              currentPage === totalPages
-                ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
-                : 'text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900'
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const ShowPurchaseOrder = () => {
   // State variables
@@ -3230,6 +2959,7 @@ const ShowPurchaseOrder = () => {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState("");
   const [selectedOrder, setSelectedOrder] = useState("");
   const [showUpdateForm, setShowUpdateForm] = useState(false);
@@ -3243,16 +2973,13 @@ const ShowPurchaseOrder = () => {
   const [vendorsList, setVendorsList] = useState([]);
   const [vendorsLoading, setVendorsLoading] = useState(false);
   const [loadingItems, setLoadingItems] = useState({});
-  
-  // Pagination state
+  const navigate = useNavigate();
+
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
-  
-  // Table loading state
-  const [tableLoading, setTableLoading] = useState(true);
-  
-  const navigate = useNavigate();
+  const [totalPages, setTotalPages] = useState(1);
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -3294,7 +3021,7 @@ const ShowPurchaseOrder = () => {
     formData.gstType === "IGST_ITEMWISE" ||
     formData.gstType === "LGST_ITEMWISE";
 
-  // Status options with colors
+  // Status options with colors - UPDATED WITH ALL STATUSES FROM API
   const statusOptions = [
     { value: "Draft", label: "Draft", color: "bg-gray-100 text-gray-800" },
     { value: "Sent", label: "Sent", color: "bg-blue-100 text-blue-800" },
@@ -3322,6 +3049,11 @@ const ShowPurchaseOrder = () => {
       value: "Update Order",
       label: "Update Order",
       color: "bg-amber-100 text-amber-800",
+    },
+    {
+      value: "PartiallyReceived",
+      label: "Partially Received",
+      color: "bg-orange-100 text-orange-800",
     },
   ];
 
@@ -3363,9 +3095,7 @@ const ShowPurchaseOrder = () => {
   const fetchCompanies = async () => {
     setLoading(true);
     try {
-      console.log("Fetching companies...");
       const response = await Api.get("/purchase/companies");
-      console.log("Companies response:", response.data);
       setCompanies(response.data.data || []);
     } catch (error) {
       console.error("Error fetching companies:", error);
@@ -3430,7 +3160,7 @@ const ShowPurchaseOrder = () => {
     setItemsLoading(true);
     try {
       const response = await Api.get("/purchase/items");
-      console.log("Items from API:", response.data.items);
+      console.log("Items from API:", response.data.items); // Debug log
       setItems(response.data.items || []);
     } catch (error) {
       console.error("Error fetching items:", error);
@@ -3511,11 +3241,88 @@ const ShowPurchaseOrder = () => {
 
   // ==================== Business Logic Functions ====================
 
+  // Handle Send Email
+  const handleSendEmail = async (poId, poNumber) => {
+    if (!poId) {
+      alert("Please select a purchase order first");
+      return;
+    }
+
+    const isConfirmed = window.confirm(
+      `Are you sure you want to send Purchase Order ${poNumber} via email?\n` +
+      `This will send the PO to the vendor's email address.`
+    );
+
+    if (!isConfirmed) return;
+
+    setEmailLoading(true);
+    try {
+      const response = await Api.post(
+        `/purchase/purchase-orders/send2/${poId}`
+      );
+
+      if (response.data.success) {
+        alert("Purchase order sent via email successfully!");
+        
+        // Update local state to reflect email sent status
+        if (selectedOrderDetails && selectedOrderDetails.id === poId) {
+          setSelectedOrderDetails({
+            ...selectedOrderDetails,
+            status: "Sent",
+          });
+        }
+
+        // Refresh the orders list
+        poSearch(currentPage);
+      } else {
+        alert(
+          "Failed to send purchase order via email: " +
+            (response.data.message || "Unknown error")
+        );
+      }
+    } catch (error) {
+      console.error("Error sending purchase order via email:", error);
+
+      if (error.response) {
+        if (error.response.status === 400) {
+          alert(
+            `Cannot send purchase order: ${
+              error.response.data.message ||
+              "Order may be in a state that cannot be sent."
+            }`
+          );
+        } else if (error.response.status === 404) {
+          alert("Purchase order not found");
+        } else {
+          alert(
+            `Error sending purchase order: ${error.response.status} ${
+              error.response.data.message || "Unknown error"
+            }`
+          );
+        }
+      } else if (error.request) {
+        alert("Network error. Please check your connection and try again.");
+      } else {
+        alert("Error sending purchase order. Please try again.");
+      }
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   // Check if order can be cancelled (based on status)
   const canCancelOrder = (orderDetails) => {
     if (!orderDetails) return false;
     const cancelableStatuses = ["Draft", "Sent", "Approved", "Update Order"];
     return cancelableStatuses.includes(orderDetails.status);
+  };
+
+  // Check if order can be sent via email (based on status)
+  const canSendEmail = (orderDetails) => {
+    if (!orderDetails) return false;
+    // Allow sending email for Draft status, you can add other statuses if needed
+    const sendableStatuses = ["Draft", "Approved", "Update Order"];
+    return sendableStatuses.includes(orderDetails.status);
   };
 
   // Handle Cancel Purchase Order
@@ -4274,6 +4081,7 @@ const ShowPurchaseOrder = () => {
   const handleCompanyChange = (companyId) => {
     setSelectedCompany(companyId);
     fetchPurchaseOrders(companyId);
+    setCurrentPage(1); // Reset to first page when company changes
   };
 
   // Handle order selection change
@@ -4340,26 +4148,16 @@ const ShowPurchaseOrder = () => {
     return statusOption ? statusOption.label : status;
   };
 
-  // Search function for POs
+  // Search function for POs with pagination - FIXED VERSION
   const poSearch = async (page = 1) => {
-    console.log("Searching with params:", {
-      poNumber,
-      selectedCompany,
-      vendor,
-      item,
-      page,
-      itemsPerPage
-    });
-    
-    setTableLoading(true);
-    
+    setSrcBtnDisabled(true);
     const API_URL = "/purchase/purchase-orders/show?";
     let queryParams = [];
+    
+    // Add search parameters
     if (poNumber) queryParams.push(`poNumber=${encodeURIComponent(poNumber)}`);
     if (selectedCompany)
-      queryParams.push(
-        `company=${encodeURIComponent(selectedCompany)}`
-      );
+      queryParams.push(`company=${encodeURIComponent(selectedCompany)}`);
     if (vendor) queryParams.push(`vendor=${encodeURIComponent(vendor)}`);
     if (item) queryParams.push(`itemName=${encodeURIComponent(item)}`);
     
@@ -4368,38 +4166,67 @@ const ShowPurchaseOrder = () => {
     queryParams.push(`limit=${itemsPerPage}`);
     
     const finalURL = API_URL + queryParams.join("&");
-    console.log("API URL:", finalURL);
     
     try {
-      const response = await showData(finalURL);
-      console.log("API Response:", response);
+      const response = await Api.get(finalURL);
       
-      if (response && response.success) {
-        console.log("Data received:", response.data);
-        console.log("Total items:", response.total);
-        setPoListing(response.data || []);
-        setTotalItems(response.total || response.data?.length || 0);
-        setCurrentPage(page);
-      } else {
-        console.log("API response not successful:", response);
-        setPoListing([]);
-        setTotalItems(0);
+      if (response && response.data && response.data.success) {
+        // Map the API data to match your component structure
+        const mappedData = response.data.data.map(po => ({
+          id: po.id,
+          poNumber: po.poNumber,
+          poDate: po.poDate,
+          companyName: po.companyName,
+          vendorName: po.vendorName,
+          items: po.items || [],
+          status: po.status,
+          expectedDeliveryDate: po.expectedDeliveryDate,
+          currency: po.currency,
+          foreignGrandTotal: po.foreignGrandTotal,
+          grandTotal: po.grandTotal,
+          displayGrandTotal: po.displayGrandTotal,
+          // Add item count
+          itemCount: Array.isArray(po.items) ? po.items.length : 0,
+        }));
         
-        // Show alert to user
-        if (response?.message) {
-          alert(`Error: ${response.message}`);
-        }
+        setPoListing(mappedData);
+        setTotalItems(response.data.pagination?.total || 0);
+        setTotalPages(response.data.pagination?.totalPages || 1);
+        setCurrentPage(page);
       }
     } catch (error) {
-      console.error("Error in poSearch:", error);
+      console.error("Error fetching purchase orders:", error);
+      alert("Error loading purchase orders");
       setPoListing([]);
-      setTotalItems(0);
-      
-      // Show error to user
-      alert(`Network error: ${error.message}. Please check your connection.`);
     } finally {
-      setTableLoading(false);
+      setSrcBtnDisabled(false);
     }
+  };
+
+  // Handle page change
+  const handlePageChange = (page) => {
+    poSearch(page);
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (e) => {
+    const newItemsPerPage = parseInt(e.target.value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page
+    poSearch(1); // Re-fetch with new limit
+  };
+
+  // Calculate pagination range
+  const getPaginationRange = () => {
+    const totalPageNumbers = 5;
+    const startPage = Math.max(1, currentPage - Math.floor(totalPageNumbers / 2));
+    const endPage = Math.min(totalPages, startPage + totalPageNumbers - 1);
+    
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
   };
 
   // Table headings
@@ -4417,21 +4244,11 @@ const ShowPurchaseOrder = () => {
 
   // Initialize component
   useEffect(() => {
-    const initializeData = async () => {
-      console.log("Initializing component...");
-      await fetchCompanies();
-      await fetchWarehouses();
-      await fetchUnits();
-      await fetchVendors();
-      
-      // Search for all purchase orders (empty search)
-      setTimeout(() => {
-        console.log("Running initial search...");
-        poSearch(1);
-      }, 500);
-    };
-    
-    initializeData();
+    fetchCompanies();
+    fetchWarehouses();
+    fetchUnits();
+    fetchVendors();
+    poSearch(1);
   }, []);
 
   // Effect to set exchange rate to 1 when currency is INR
@@ -4460,10 +4277,9 @@ const ShowPurchaseOrder = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      
       <div className="max-w-7xl mx-auto py-4">
         {/* Hero Section */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-2">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             View Purchase Order
           </h1>
@@ -4473,7 +4289,7 @@ const ShowPurchaseOrder = () => {
         </div>
 
         {/* Search Section */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-3">
           <NormalInput
             label="PO Number"
             value={poNumber}
@@ -4493,9 +4309,9 @@ const ShowPurchaseOrder = () => {
                 className="p-2 border rounded-md border-gray-300 bg-white"
                 disabled={loading}
               >
-                <option value="">Select Company</option>
+                <option value=""> Select Company </option>
                 {companies.map((company) => (
-                  <option key={company.id} value={company.companyName}>
+                  <option key={company.id} value={company.id}>
                     {company.companyName}
                   </option>
                 ))}
@@ -4523,98 +4339,96 @@ const ShowPurchaseOrder = () => {
             name="item"
             className="p-2"
           />
-          
-          {/* Search button */}
           <ButtonWithIcon
             icon={<HiSearch />}
             onClick={() => poSearch(1)}
             className="rounded-md h-10 mt-6 w-12 bg-yellow-400 hover:bg-yellow-500 text-dark text-xl px-3"
             disabled={srcBtnDisabled}
-            title="Search"
           />
-          
-          {/* Reset button */}
-          <button
-            onClick={() => {
-              setPoNumber("");
-              setSelectedCompany("");
-              setVendor("");
-              setItem("");
-              poSearch(1);
-            }}
-            className="rounded-md h-10 mt-6 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium"
-            title="Clear Search"
-          >
-            Clear
-          </button>
         </div>
 
-        {/* Top Pagination - Show only when there's data */}
-        {!tableLoading && poListing.length > 0 && (
-          <SimplePagination
-            currentPage={currentPage}
-            totalItems={totalItems}
-            itemsPerPage={itemsPerPage}
-            onPageChange={(page) => {
-              setCurrentPage(page);
-              poSearch(page);
-            }}
-            onItemsPerPageChange={(newItemsPerPage) => {
-              setItemsPerPage(newItemsPerPage);
-              setCurrentPage(1);
-              poSearch(1);
-            }}
-          />
-        )}
+        {/* Pagination Controls */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center space-x-4 mb-3 md:mb-0">
+            <div className="text-sm text-gray-700">
+              Showing <span className="font-semibold">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+              <span className="font-semibold">
+                {Math.min(currentPage * itemsPerPage, totalItems)}
+              </span> of{" "}
+              <span className="font-semibold">{totalItems}</span> Purchase Orders
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <label className="text-sm text-gray-600">Items per page:</label>
+              <select
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+                className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            {getPaginationRange().map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1.5 min-w-[40px] border rounded-md transition-colors ${
+                  currentPage === page
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "border-gray-300 hover:bg-gray-50 text-gray-700"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <div className="text-sm text-gray-600 ml-4">
+              Page <span className="font-semibold">{currentPage}</span> of{" "}
+              <span className="font-semibold">{totalPages}</span>
+            </div>
+          </div>
+        </div>
 
         {/* PO list */}
         <div>
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-scroll text-center">
             <TableHeading list={PO_Table_Heading} />
             <tbody>
-              {tableLoading ? (
+              {poListing.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-8">
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                      <p className="text-gray-600">Loading purchase orders...</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : poListing.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="text-center py-8">
-                    <div className="flex flex-col items-center justify-center">
-                      <svg
-                        className="w-16 h-16 text-gray-300 mb-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <p className="text-gray-500 text-lg font-medium mb-2">
-                        No Purchase Orders Found
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        Try adjusting your search criteria or create a new purchase order.
-                      </p>
-                      <button
-                        onClick={() => poSearch(1)}
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                      >
-                        Refresh
-                      </button>
-                    </div>
+                  <td colSpan={9} className="text-center py-4 text-gray-500">
+                    No Purchase Orders found.
                   </td>
                 </tr>
               ) : (
-                poListing?.map((po, index) => (
+                poListing.map((po, index) => (
                   <tr key={po.id} className="border-b hover:bg-gray-100">
                     <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
                       {(currentPage - 1) * itemsPerPage + index + 1}
@@ -4632,10 +4446,10 @@ const ShowPurchaseOrder = () => {
                       {po?.vendorName || "N/A"}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
-                      {po?.items?.length || "0"}
+                      {po.itemCount || "0"}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
-                      {po?.expectedDeliveryDate?.split("T")[0] || "N/A"}
+                      {po?.expectedDeliveryDate ? po.expectedDeliveryDate.split("T")[0] : "N/A"}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       <span
@@ -4670,6 +4484,16 @@ const ShowPurchaseOrder = () => {
                         icon={<AiOutlineSync />}
                         className="p-2 text-white rounded-md bg-violet-500 hover:bg-violet-800"
                       />
+                      {/* Email Button - Only show if order can be sent */}
+                      {canSendEmail(po) && (
+                        <ButtonWithIcon
+                          onClick={() => handleSendEmail(po.id, po?.poNumber)}
+                          disabled={emailLoading}
+                          icon={<MdEmail />}
+                          className="p-2 text-white rounded-md bg-teal-500 hover:bg-teal-700"
+                          // title="Send via Email"
+                        />
+                      )}
                       <ButtonWithIcon
                         onClick={() => handleDownload(po.id,po?.poNumber)}
                         disabled={downloadLoading}
@@ -4682,24 +4506,49 @@ const ShowPurchaseOrder = () => {
               )}
             </tbody>
           </table>
-          
-          {/* Bottom Pagination - Show only when there's data */}
-          {!tableLoading && poListing.length > 0 && (
-            <AdvancedPagination
-              currentPage={currentPage}
-              totalItems={totalItems}
-              itemsPerPage={itemsPerPage}
-              onPageChange={(page) => {
-                setCurrentPage(page);
-                poSearch(page);
-              }}
-              onItemsPerPageChange={(newItemsPerPage) => {
-                setItemsPerPage(newItemsPerPage);
-                setCurrentPage(1);
-                poSearch(1);
-              }}
-            />
-          )}
+        </div>
+
+        {/* Bottom Pagination Controls */}
+        <div className="flex justify-center mt-6">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+            >
+              <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+
+            <div className="flex space-x-1">
+              {getPaginationRange().map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-1.5 min-w-[40px] border rounded-md transition-colors ${
+                    currentPage === page
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "border-gray-300 hover:bg-gray-50 text-gray-700"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+            >
+              Next
+              <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Order Details Section */}
@@ -4812,6 +4661,39 @@ const ShowPurchaseOrder = () => {
                             Update Order
                           </button>
                         )}
+
+                      {/* Email Button - Only show if order can be sent */}
+                      {canSendEmail(selectedOrderDetails) && (
+                        <button
+                          className="px-5 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-all duration-200 font-medium flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => handleSendEmail(selectedOrderDetails.id, selectedOrderDetails.poNumber)}
+                          disabled={emailLoading}
+                        >
+                          {emailLoading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                className="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                />
+                              </svg>
+                              Send Email
+                            </>
+                          )}
+                        </button>
+                      )}
 
                       {/* ReOrder Button - Always visible for all statuses except maybe "Update Order" */}
                       {selectedOrderDetails.status !== "Update Order" && (
@@ -5248,6 +5130,7 @@ const ShowPurchaseOrder = () => {
           </div>
         )}
 
+        {/* Empty States */}
         {selectedCompany && !selectedOrder && purchaseOrders.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
             <div className="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -5921,7 +5804,7 @@ const ShowPurchaseOrder = () => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                                   step="0.01"
                                   min="0"
                                   max="100"
