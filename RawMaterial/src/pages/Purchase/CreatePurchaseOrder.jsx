@@ -5,13 +5,10 @@ import { removeStartingZero } from "../../utils/number/removeStartingZero";
 
 const CreatePurchaseOrder = () => {
   const location = useLocation();
-
   const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState("");
-
   const [vendorsList, setVendorsList] = useState([]);
   const [selectedVendor, setSelectedVendor] = useState("");
-
   const [selectedGstType, setSelectedGstType] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
   const [deliveryTerms, setDeliveryTerms] = useState("");
@@ -35,7 +32,7 @@ const CreatePurchaseOrder = () => {
       selectedUnit: "",
       rate: "",
       quantity: "",
-      gstRate: "",
+      gstRate: "", 
       amount: "",
       taxableAmount: 0,
       gstAmount: 0,
@@ -58,21 +55,12 @@ const CreatePurchaseOrder = () => {
   const [isItemListLoaded, setIsItemListLoaded] = useState(false);
   const [skipCalculation, setSkipCalculation] = useState({});
   const [showOtherCharges, setShowOtherCharges] = useState(false);
-
-  // Add state for tracking loading status for individual items
   const [loadingItems, setLoadingItems] = useState({});
-
-  // Add state for tracking if HSN code should be editable
   const [editableHsn, setEditableHsn] = useState({});
-
-  // Make unitTypes state modifiable - start as empty array
   const [unitTypes, setUnitTypes] = useState([]);
-
-  // Add state for dropdown visibility and search query
-  const [openItemDropdown, setOpenItemDropdown] = useState(null); // Track which item dropdown is open
-  const [searchQuery, setSearchQuery] = useState({}); // Store search query per item
+  const [openItemDropdown, setOpenItemDropdown] = useState(null);
+  const [searchQuery, setSearchQuery] = useState({});
   const dropdownRefs = useRef({});
-
   const currencyOptions = [
     { value: "INR", label: "INR" },
     { value: "USD", label: "USD" },
@@ -113,8 +101,6 @@ const CreatePurchaseOrder = () => {
     return rateMatch ? parseFloat(rateMatch[1]) : 0;
   };
 
-  
-
   // Fetch units from API
   const fetchUnits = async () => {
     try {
@@ -141,7 +127,7 @@ const CreatePurchaseOrder = () => {
       .map((item) => item.selectedUnit)
       .filter(
         (unit) =>
-          unit && unit.trim() && !unitTypes.some((u) => u.value === unit)
+          unit && unit.trim() && !unitTypes.some((u) => u.value === unit),
       )
       .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
 
@@ -261,7 +247,7 @@ const CreatePurchaseOrder = () => {
           amount: charge.amount || "",
         }));
         setOtherCharges(mappedCharges);
-        setShowOtherCharges(true)
+        setShowOtherCharges(true);
       }
     }
   }, [location.state]);
@@ -278,7 +264,7 @@ const CreatePurchaseOrder = () => {
         // First try by ID
         if (item.itemId || item.id) {
           foundItem = itemList.find(
-            (i) => String(i.id) === String(item.itemId || item.id)
+            (i) => String(i.id) === String(item.itemId || item.id),
           );
         }
 
@@ -288,7 +274,7 @@ const CreatePurchaseOrder = () => {
             (i) =>
               i.name.toLowerCase().includes(item.itemName.toLowerCase()) ||
               (item.itemName &&
-                i.name.toLowerCase() === item.itemName.toLowerCase())
+                i.name.toLowerCase() === item.itemName.toLowerCase()),
           );
         }
 
@@ -409,7 +395,7 @@ const CreatePurchaseOrder = () => {
           return { ...charge, [field]: value };
         }
         return charge;
-      })
+      }),
     );
   };
 
@@ -425,7 +411,7 @@ const CreatePurchaseOrder = () => {
     const amountValid = amount !== "" && !isNaN(a) && a > 0;
 
     const validCount = [rateValid, quantityValid, amountValid].filter(
-      Boolean
+      Boolean,
     ).length;
 
     // Only calculate if we have exactly 2 valid values
@@ -504,7 +490,7 @@ const CreatePurchaseOrder = () => {
             };
           }
           return item;
-        })
+        }),
       );
 
       // Reset editable HSN state for this item
@@ -642,12 +628,12 @@ const CreatePurchaseOrder = () => {
                   };
                 }
                 return item;
-              })
+              }),
             );
 
             // Show notification if data was fetched from API
             console.log(
-              `Item ${id}: Loaded from ${response.data.source} - unit="${detailedItem.unit}", description="${detailedItem.description}", HSN="${detailedItem.hsnCode}"`
+              `Item ${id}: Loaded from ${response.data.source} - unit="${detailedItem.unit}", description="${detailedItem.description}", HSN="${detailedItem.hsnCode}"`,
             );
           }
         } catch (apiError) {
@@ -673,7 +659,7 @@ const CreatePurchaseOrder = () => {
             };
           }
           return item;
-        })
+        }),
       );
 
       // Set HSN as editable
@@ -699,7 +685,7 @@ const CreatePurchaseOrder = () => {
           return { ...item, hsnCode: value };
         }
         return item;
-      })
+      }),
     );
   };
 
@@ -772,7 +758,7 @@ const CreatePurchaseOrder = () => {
           return updatedItem;
         }
         return item;
-      })
+      }),
     );
   };
 
@@ -789,7 +775,7 @@ const CreatePurchaseOrder = () => {
             totalAmount: calculatedAmounts.totalAmount,
             gstRate: calculatedAmounts.gstRate,
           };
-        })
+        }),
       );
     }
   }, [selectedGstType]);
@@ -814,7 +800,7 @@ const CreatePurchaseOrder = () => {
         (item.hsnCode &&
           item.hsnCode.toLowerCase().includes(query.toLowerCase())) ||
         (item.modelNumber &&
-          item.modelNumber.toLowerCase().includes(query.toLowerCase()))
+          item.modelNumber.toLowerCase().includes(query.toLowerCase())),
     );
   };
 
@@ -887,7 +873,7 @@ const CreatePurchaseOrder = () => {
         totalAmount: acc.totalAmount + (parseFloat(item.totalAmount) || 0),
       };
     },
-    { amount: 0, taxableAmount: 0, gstAmount: 0, totalAmount: 0 }
+    { amount: 0, taxableAmount: 0, gstAmount: 0, totalAmount: 0 },
   );
 
   const otherChargesTotal = otherCharges.reduce((total, charge) => {
@@ -913,7 +899,7 @@ const CreatePurchaseOrder = () => {
         {},
         {
           responseType: "blob",
-        }
+        },
       );
 
       // Create a blob from the response
@@ -950,7 +936,7 @@ const CreatePurchaseOrder = () => {
       console.error("Error downloading purchase order:", error);
       alert(
         "Error downloading purchase order: " +
-          (error?.response?.data?.message || error?.message)
+          (error?.response?.data?.message || error?.message),
       );
       setDownloadLoading(false);
     }
@@ -983,7 +969,7 @@ const CreatePurchaseOrder = () => {
 
     // Check if any item is missing HSN code
     const itemsWithoutHsn = itemDetails.filter(
-      (item) => !item.hsnCode || item.hsnCode.trim() === ""
+      (item) => !item.hsnCode || item.hsnCode.trim() === "",
     );
 
     if (itemsWithoutHsn.length > 0) {
@@ -993,7 +979,7 @@ const CreatePurchaseOrder = () => {
 
     const invalidItems = itemDetails.filter(
       (item) =>
-        !item.selectedItem || !item.hsnCode || !item.rate || !item.quantity
+        !item.selectedItem || !item.hsnCode || !item.rate || !item.quantity,
     );
 
     if (invalidItems.length > 0) {
@@ -1017,7 +1003,7 @@ const CreatePurchaseOrder = () => {
         warehouseId: selectedWarehouse,
         items: itemDetails.map((item) => {
           const selectedItemData = itemList.find(
-            (i) => i.id === item.selectedItem
+            (i) => i.id === item.selectedItem,
           );
           const itemData = {
             id: item.selectedItem,
@@ -1048,16 +1034,16 @@ const CreatePurchaseOrder = () => {
 
       const response = await Api.post(
         "/purchase/purchase-orders/create",
-        purchaseOrderData
+        purchaseOrderData,
       );
 
       if (response.data.success) {
         const poId = response.data.data.id;
         const poNumber = response.data.data.poNumber;
         alert("Purchase Order created successfully!");
-        
+
         const shouldDownload = window.confirm(
-          "Do you want to download the purchase order PDF?"
+          "Do you want to download the purchase order PDF?",
         );
         if (shouldDownload) {
           await handleDownload(poId);
@@ -1070,7 +1056,7 @@ const CreatePurchaseOrder = () => {
       console.log("Error creating purchase order:", error);
       alert(
         "Error creating purchase order: " +
-          (error?.response?.data?.message || error?.message)
+          (error?.response?.data?.message || error?.message),
       );
     }
   };
@@ -1132,7 +1118,6 @@ const CreatePurchaseOrder = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-      
         {(processingReorder || downloadLoading) && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-xl shadow-lg">
@@ -1540,7 +1525,7 @@ const CreatePurchaseOrder = () => {
                           {item.selectedItem
                             ? (() => {
                                 const selected = itemList.find(
-                                  (i) => i.id === item.selectedItem
+                                  (i) => i.id === item.selectedItem,
                                 );
                                 return selected
                                   ? selected.name
@@ -1635,7 +1620,7 @@ const CreatePurchaseOrder = () => {
                                   onClick={() =>
                                     handleItemSelectFromDropdown(
                                       item.id,
-                                      itemOption.id
+                                      itemOption.id,
                                     )
                                   }
                                   className={`w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-100 focus:outline-none border-b border-gray-100 last:border-b-0 ${
@@ -1746,7 +1731,7 @@ const CreatePurchaseOrder = () => {
                           updateItemDetail(
                             item.id,
                             "selectedUnit",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         disabled={loadingItems[item.id]}
@@ -1927,7 +1912,7 @@ const CreatePurchaseOrder = () => {
                           updateItemDetail(
                             item.id,
                             "modelNumber",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
@@ -2028,7 +2013,7 @@ const CreatePurchaseOrder = () => {
                               updateItemDetail(
                                 item.id,
                                 "gstRate",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
@@ -2259,7 +2244,7 @@ const CreatePurchaseOrder = () => {
                             updateOtherCharge(
                               charge.id,
                               "amount",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
