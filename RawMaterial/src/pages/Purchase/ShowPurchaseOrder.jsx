@@ -3258,7 +3258,7 @@ const ShowPurchaseOrder = () => {
     setEmailLoading(true);
     try {
       const response = await Api.post(
-        `/purchase/purchase-orders/send2/${poId}`
+        `/purchase/purchase-orders/send/${poId}`
       );
 
       if (response.data.success) {
