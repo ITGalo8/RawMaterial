@@ -4276,7 +4276,7 @@ const ShowPurchaseOrder = () => {
       selectedOrderDetails.currency === "AED");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="h-full w-full bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto py-4">
         {/* Hero Section */}
         <div className="text-center mb-2">
