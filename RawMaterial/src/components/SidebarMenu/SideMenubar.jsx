@@ -784,7 +784,7 @@ const SideMenubar = () => {
                         Show Purchase Orders
                       </NavLink>
                     </li>
-
+{/* 
                     <li>
                       <NavLink
                         to="debit-not"
@@ -800,9 +800,9 @@ const SideMenubar = () => {
                       >
                         Debit Not
                       </NavLink>
-                    </li>
+                    </li> */}
 
-                    <li>
+                    {/* <li>
                       <NavLink
                         to="show-debit-not"
                         className={({ isActive }) =>
@@ -817,7 +817,25 @@ const SideMenubar = () => {
                       >
                         Show Debit Not History
                       </NavLink>
+                    </li> */}
+
+                      <li>
+                      <NavLink
+                        to="po-order-details"
+                        className={({ isActive }) =>
+                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${
+                             isActive
+                               ? "bg-yellow-300 text-black border-yellow-600"
+                               : ""
+                           }`
+                        }
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        PO Order Details
+                      </NavLink>
                     </li>
+                    
                   </ul>
                 )}
               </li>

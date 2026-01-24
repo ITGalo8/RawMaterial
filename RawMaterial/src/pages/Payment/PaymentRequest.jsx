@@ -16,9 +16,6 @@ const PaymentRequest = () => {
   const subTotal = Number(poData?.subTotal || 0);
   const pendingAmount = Number(poData?.pendingAmount || 0);
 
-  /* ===============================
-     Decide calculation base
-  =============================== */
   const getBaseAmount = () => {
     if (billpaymentType === "Advance_Payment") return subTotal;
     if (billpaymentType === "Partial_Payment") return pendingAmount;
@@ -28,15 +25,8 @@ const PaymentRequest = () => {
 
   const baseAmount = getBaseAmount();
 
-  /* ===============================
-     Percentage → Amount
-  =============================== */
   useEffect(() => {
-    if (
-      lastChanged === "percentage" &&
-      percentage !== "" &&
-      baseAmount > 0
-    ) {
+    if (lastChanged === "percentage" && percentage !== "" && baseAmount > 0) {
       const pct = Number(percentage);
 
       if (pct <= 0 || pct > 100) {
@@ -45,19 +35,21 @@ const PaymentRequest = () => {
       }
 
       const calculatedAmount = ((baseAmount * pct) / 100).toFixed(2);
-      setAmount(calculatedAmount);
+      console.log("Calculated Amount", calculatedAmount);
+
+      const decimalPart = calculatedAmount - Math.floor(calculatedAmount);
+      console.log("Decimal Value", decimalPart);
+
+      const roundedValue =
+        decimalPart > 0.5
+          ? Math.ceil(calculatedAmount)
+          : Math.floor(calculatedAmount);
+      setAmount(roundedValue);
     }
   }, [percentage, baseAmount, lastChanged]);
 
-  /* ===============================
-     Amount → Percentage
-  =============================== */
   useEffect(() => {
-    if (
-      lastChanged === "amount" &&
-      amount !== "" &&
-      baseAmount > 0
-    ) {
+    if (lastChanged === "amount" && amount !== "" && baseAmount > 0) {
       const amt = Number(amount);
 
       if (amt <= 0 || amt > baseAmount) {
@@ -75,7 +67,6 @@ const PaymentRequest = () => {
     setAmount("");
     setLastChanged("");
   }, [billpaymentType]);
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,10 +91,7 @@ const PaymentRequest = () => {
 
     try {
       setLoading(true);
-      await Api.post(
-        "/purchase/purchase-orders/payments/request",
-        payload
-      );
+      await Api.post("/purchase/purchase-orders/payments/request", payload);
       alert("Payment request sent successfully");
       navigate(-1);
     } catch (error) {
@@ -117,13 +105,11 @@ const PaymentRequest = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-5xl rounded-lg shadow-md p-6">
-
         <h2 className="text-xl font-semibold mb-6 text-gray-800">
           Payment Request
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-
           {/* Row 1 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -223,7 +209,7 @@ const PaymentRequest = () => {
               />
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Amount
               </label>
@@ -233,6 +219,32 @@ const PaymentRequest = () => {
                 onChange={(e) => {
                   setAmount(e.target.value);
                   setLastChanged("amount");
+                }}
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div> */}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Amount
+              </label>
+
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+
+                  if (!isNaN(value)) {
+                    const decimalPart = value - Math.floor(value);
+                    console.log("Decimal Value", decimalPart);
+
+                    const roundedValue =
+                      decimalPart > 0.5 ? Math.ceil(value) : Math.floor(value);
+
+                    setAmount(roundedValue);
+                    setLastChanged("amount");
+                  }
                 }}
                 className="w-full px-3 py-2 border rounded-md"
               />
@@ -249,7 +261,6 @@ const PaymentRequest = () => {
               {loading ? "Submitting..." : "Submit Payment Request"}
             </button>
           </div>
-
         </form>
       </div>
     </div>

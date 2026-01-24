@@ -32,7 +32,6 @@ import RequestItemHistory from "./pages/LineWorker/getRequestsByUser/RequestItem
 import UserStock from "./pages/LineWorker/UserStock/UserStock";
 import ActiveDeactivateVendor from "./pages/Purchase/ActiveDeactivateVendor";
 import ActiveDeactivateCompany from "./pages/Purchase/ActiveDeactivateCompany";
-import DebitNot from "./pages/Purchase/DebitNot";
 import AddRawMaterial from "./pages/Purchase/AddRawMaterial";
 import ShowDebitNot from "./pages/Purchase/ShowDebitNot";
 import ItemDetails from "./pages/Purchase/ItemDetails";
@@ -49,6 +48,7 @@ import PoVerification from './pages/Verification/PoVerification';
 import PoInvoice from "./pages/Verification/PoInvoice";
 import PaymentRequestDetails from './pages/Verification/PaymentRequestDetails'
 import AccountDetails from "./pages/Accounts/AccountDetails";
+import PoOrderDetails from "./pages/Purchase/PoOrderDetails";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -358,10 +358,10 @@ const AppRoutes = () => {
         />
 
         <Route
-          path="debit-not"
+          path="po-order-details"
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
-              <DebitNot />
+              <PoOrderDetails />
             </ProtectedRoute>
           }
         />
