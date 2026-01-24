@@ -832,7 +832,7 @@ const SideMenubar = () => {
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        PO Order Details
+                        PO Received Details
                       </NavLink>
                     </li>
                     

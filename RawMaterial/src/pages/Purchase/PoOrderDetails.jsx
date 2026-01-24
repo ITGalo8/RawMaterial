@@ -59,8 +59,8 @@ const PoOrderDetails = () => {
       switch (searchFilter) {
         case "poNumber":
           return po.poNumber.toLowerCase().includes(term);
-        case "company":
-          return po.companyName.toLowerCase().includes(term);
+        // case "company":
+        //   return po.companyName.toLowerCase().includes(term);
         case "vendor":
           return po.vendorName.toLowerCase().includes(term);
         case "status":
@@ -71,20 +71,22 @@ const PoOrderDetails = () => {
             po.poNumber.toLowerCase().includes(term) ||
             po.companyName.toLowerCase().includes(term) ||
             po.vendorName.toLowerCase().includes(term) ||
-            po.warehouseName.toLowerCase().includes(term) ||
+            po.warehouseName?.toLowerCase().includes(term) ||
             po.status.toLowerCase().includes(term) ||
             po.items.some(
               (item) =>
                 item.itemName.toLowerCase().includes(term) ||
                 item.modelNumber?.toLowerCase().includes(term) ||
-                item.hsnCode?.toLowerCase().includes(term),
+                item.hsnCode?.toLowerCase().includes(term)
             )
           );
       }
     });
 
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
-    setCurrentPage(1);
+    if (currentPage > Math.ceil(filtered.length / itemsPerPage)) {
+      setCurrentPage(1);
+    }
     return filtered;
   }, [
     stockReceived,
@@ -130,8 +132,23 @@ const PoOrderDetails = () => {
         return "bg-yellow-100 text-yellow-800";
       case "FullyReceived":
         return "bg-green-100 text-green-800";
+      case "Received":
+        return "bg-emerald-100 text-emerald-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case "PartiallyReceived":
+        return "Partially Received";
+      case "FullyReceived":
+        return "Fully Received";
+      case "Received":
+        return "Received";
+      default:
+        return status;
     }
   };
 
@@ -144,19 +161,27 @@ const PoOrderDetails = () => {
   };
 
   const getStatusCounts = () => {
-    const counts = { Draft: 0, PartiallyReceived: 0, FullyReceived: 0 };
-    stockReceived.forEach(
-      (po) => counts[po.status] !== undefined && counts[po.status]++,
-    );
+    const counts = { 
+      Draft: 0, 
+      PartiallyReceived: 0, 
+      FullyReceived: 0,
+      Received: 0
+    };
+    stockReceived.forEach((po) => {
+      if (counts[po.status] !== undefined) {
+        counts[po.status]++;
+      }
+    });
     return counts;
   };
 
   const getApprovalCounts = () => {
     const counts = { Pending: 0, Approved: 0, Rejected: 0 };
-    stockReceived.forEach(
-      (po) =>
-        counts[po.approvalStatus] !== undefined && counts[po.approvalStatus]++,
-    );
+    stockReceived.forEach((po) => {
+      if (counts[po.approvalStatus] !== undefined) {
+        counts[po.approvalStatus]++;
+      }
+    });
     return counts;
   };
 
@@ -234,6 +259,50 @@ const PoOrderDetails = () => {
               </div>
             </div>
 
+            {/* Search Filter Dropdown */}
+            <div className="w-full md:w-40">
+              <select
+                className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+              >
+                <option value="all">All Fields</option>
+                <option value="poNumber">PO Number</option>
+                {/* <option value="company">Company</option> */}
+                <option value="vendor">Vendor</option>
+                <option value="status">Status</option>
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="w-full md:w-48">
+              <select
+                className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Statuses</option>
+                <option value="Draft">Draft ({statusCounts.Draft})</option>
+                <option value="PartiallyReceived">Partially Received ({statusCounts.PartiallyReceived})</option>
+                <option value="FullyReceived">Fully Received ({statusCounts.FullyReceived})</option>
+                <option value="Received">Received ({statusCounts.Received})</option>
+              </select>
+            </div>
+
+            {/* Approval Status Filter */}
+            <div className="w-full md:w-48">
+              <select
+                className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={approvalFilter}
+                onChange={(e) => setApprovalFilter(e.target.value)}
+              >
+                <option value="all">All Approvals</option>
+                <option value="Pending">Pending ({approvalCounts.Pending})</option>
+                <option value="Approved">Approved ({approvalCounts.Approved})</option>
+                <option value="Rejected">Rejected ({approvalCounts.Rejected})</option>
+              </select>
+            </div>
+
             {/* Items Per Page */}
             <div className="w-full md:w-32">
               <select
@@ -252,6 +321,15 @@ const PoOrderDetails = () => {
               </select>
             </div>
 
+            {/* Advanced Filters Toggle */}
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <Filter className="h-4 w-4 mr-1" />
+              {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+
             {/* Clear Filters */}
             {(searchTerm ||
               statusFilter !== "all" ||
@@ -264,6 +342,57 @@ const PoOrderDetails = () => {
               </button>
             )}
           </div>
+
+          {/* Advanced Filters */}
+          {showAdvancedFilters && (
+            <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  PO Date Range
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="date"
+                    className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="From"
+                  />
+                  <input
+                    type="date"
+                    className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="To"
+                  />
+                </div>
+              </div>
+              {/* <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Total Amount Range
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Min Amount"
+                  />
+                  <input
+                    type="number"
+                    className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Max Amount"
+                  />
+                </div>
+              </div> */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Warehouse
+                </label>
+                <select className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  <option value="">All Warehouses</option>
+                  <option value="Main">Main Warehouse</option>
+                  <option value="East">East Warehouse</option>
+                  <option value="West">West Warehouse</option>
+                </select>
+              </div>
+            </div>
+          )}
 
           <div className="mt-3 flex justify-between items-center">
             <p className="text-xs text-gray-600">
@@ -288,6 +417,7 @@ const PoOrderDetails = () => {
           </div>
         </div>
 
+
         {/* POs Table */}
         {filteredData.length === 0 ? (
           <div className="bg-white rounded shadow p-6 text-center">
@@ -297,6 +427,14 @@ const PoOrderDetails = () => {
               <p className="text-gray-400 text-sm mt-1">
                 Try adjusting your search or filters
               </p>
+            )}
+            {(statusFilter !== "all" || approvalFilter !== "all") && (
+              <button
+                onClick={clearFilters}
+                className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+              >
+                Clear All Filters
+              </button>
             )}
           </div>
         ) : (
@@ -308,7 +446,7 @@ const PoOrderDetails = () => {
                     <tr>
                       {[
                         "PO Details",
-                        "Company",
+                        // "Company",
                         "Vendor",
                         "Warehouse Name",
                         "Status",
@@ -329,36 +467,50 @@ const PoOrderDetails = () => {
                       <React.Fragment key={po.id}>
                         <tr className="hover:bg-gray-50">
                           <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900">
-                            {po.poNumber}
+                            <div>{po.poNumber}</div>
+                            <div className="text-xs text-gray-500">
+                              {po.poDate ? new Date(po.poDate).toLocaleDateString() : 'N/A'}
+                            </div>
                           </td>
-                          <td className="px-4 py-2 whitespace-nowrap text-gray-900">
+                          {/* <td className="px-4 py-2 whitespace-nowrap text-gray-900">
                             {po.companyName}
-                          </td>
+                          </td> */}
                           <td className="px-4 py-2 whitespace-nowrap text-gray-900">
                             {po.vendorName}
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap text-gray-900">
-                            {po.warehouseName}
+                            {po.warehouseName || 'N/A'}
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap">
                             <span
                               className={`px-2 py-0.5 text-xs font-semibold rounded-full ${getStatusBadgeClass(po.status)}`}
                             >
-                              {po.status}
+                              {getStatusDisplay(po.status)}
                             </span>
+                            {po.approvalStatus && po.approvalStatus !== 'Pending' && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                {po.approvalStatus}
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap text-gray-500">
                             {po.items.length} item(s)
+                            {/* <div className="text-xs text-gray-500">
+                              Total: {po.items.reduce((sum, item) => sum + item.quantity, 0).toLocaleString()} units
+                            </div> */}
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap">
-                            <button
-                              onClick={() => toggleRowExpand(po.id)}
-                              className="text-blue-600 hover:text-blue-900 text-sm"
-                            >
-                              {expandedRows.has(po.id)
-                                ? "Hide Items"
-                                : "View Items"}
-                            </button>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => toggleRowExpand(po.id)}
+                                className="text-blue-600 hover:text-blue-900 text-sm"
+                              >
+                                {expandedRows.has(po.id)
+                                  ? "Hide Items"
+                                  : "View Items"}
+                              </button>
+                              
+                            </div>
                           </td>
                         </tr>
                         {expandedRows.has(po.id) && (
@@ -376,6 +528,7 @@ const PoOrderDetails = () => {
                                         "Ordered",
                                         "Received",
                                         "Pending",
+                                        "Status",
                                       ].map((header) => (
                                         <th
                                           key={header}
@@ -387,34 +540,51 @@ const PoOrderDetails = () => {
                                     </tr>
                                   </thead>
                                   <tbody className="bg-white divide-y divide-gray-200">
-                                    {po.items.map((item) => (
-                                      <tr
-                                        key={item.id}
-                                        className="hover:bg-gray-50"
-                                      >
-                                        <td className="px-3 py-1.5 text-gray-900">
-                                          {item.itemName}
-                                        </td>
-                                        <td className="px-3 py-1.5 text-gray-500">
-                                          {item.hsnCode}
-                                        </td>
-                                        <td className="px-3 py-1.5 text-gray-500">
-                                          {item.modelNumber || "N/A"}
-                                        </td>
-                                        <td className="px-3 py-1.5 text-gray-500">
-                                          {item.unit}
-                                        </td>
-                                        <td className="px-3 py-1.5 text-gray-900 font-medium">
-                                          {item.quantity}
-                                        </td>
-                                        <td className="px-3 py-1.5 text-green-600 font-medium">
-                                          {item.receivedQty}
-                                        </td>
-                                        <td className="px-3 py-1.5 text-orange-600 font-medium">
-                                          {item.pendingQty}
-                                        </td>
-                                      </tr>
-                                    ))}
+                                    {po.items.map((item) => {
+                                      const isFullyReceived = item.receivedQty >= item.quantity;
+                                      const isPartiallyReceived = item.receivedQty > 0 && item.receivedQty < item.quantity;
+                                      const isNotReceived = item.receivedQty === 0;
+                                      
+                                      return (
+                                        <tr
+                                          key={item.id}
+                                          className="hover:bg-gray-50"
+                                        >
+                                          <td className="px-3 py-1.5 text-gray-900">
+                                            {item.itemName}
+                                          </td>
+                                          <td className="px-3 py-1.5 text-gray-500">
+                                            {item.hsnCode || "N/A"}
+                                          </td>
+                                          <td className="px-3 py-1.5 text-gray-500">
+                                            {item.modelNumber || "N/A"}
+                                          </td>
+                                          <td className="px-3 py-1.5 text-gray-500">
+                                            {item.unit}
+                                          </td>
+                                          <td className="px-3 py-1.5 text-gray-900 font-medium">
+                                            {item.quantity.toLocaleString()}
+                                          </td>
+                                          <td className={`px-3 py-1.5 ${isFullyReceived ? 'text-green-600' : isPartiallyReceived ? 'text-yellow-600' : 'text-gray-500'} font-medium`}>
+                                            {item.receivedQty.toLocaleString()}
+                                          </td>
+                                          <td className={`px-3 py-1.5 ${item.pendingQty > 0 ? 'text-orange-600' : 'text-green-600'} font-medium`}>
+                                            {item.pendingQty.toLocaleString()}
+                                          </td>
+                                          <td className="px-3 py-1.5">
+                                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                              isFullyReceived 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : isPartiallyReceived 
+                                                ? 'bg-yellow-100 text-yellow-800' 
+                                                : 'bg-gray-100 text-gray-800'
+                                            }`}>
+                                              {isFullyReceived ? 'Fully Received' : isPartiallyReceived ? 'Partially Received' : 'Not Received'}
+                                            </span>
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
                                   </tbody>
                                 </table>
                               </div>
