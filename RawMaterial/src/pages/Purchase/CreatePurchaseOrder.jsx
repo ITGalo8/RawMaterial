@@ -550,6 +550,7 @@ const CreatePurchaseOrder = () => {
         try {
           const response = await Api.get(`/purchase/items/details/${itemId}`);
 
+
           if (response.data.success) {
             const detailedItem = response.data.item;
 
@@ -1510,6 +1511,7 @@ const CreatePurchaseOrder = () => {
                             Loading...
                           </span>
                         )}
+                        
                       </label>
 
                       {/* Custom Dropdown Button */}
@@ -1533,6 +1535,8 @@ const CreatePurchaseOrder = () => {
                               })()
                             : "-- Choose Item --"}
                         </span>
+
+                        {/* {console.log("Item selected ", item.selectedItem)} */}
                         <svg
                           className={`w-5 h-5 text-gray-400 transform transition-transform ${
                             openItemDropdown === item.id ? "rotate-180" : ""
