@@ -290,7 +290,7 @@ const PoOrderDetails = () => {
             </div>
 
             {/* Approval Status Filter */}
-            <div className="w-full md:w-48">
+            {/* <div className="w-full md:w-48">
               <select
                 className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 value={approvalFilter}
@@ -301,7 +301,7 @@ const PoOrderDetails = () => {
                 <option value="Approved">Approved ({approvalCounts.Approved})</option>
                 <option value="Rejected">Rejected ({approvalCounts.Rejected})</option>
               </select>
-            </div>
+            </div> */}
 
             {/* Items Per Page */}
             <div className="w-full md:w-32">
