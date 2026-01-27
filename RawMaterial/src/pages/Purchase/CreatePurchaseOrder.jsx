@@ -890,8 +890,9 @@ const CreatePurchaseOrder = () => {
       itemTotals.taxableAmount + itemTotals.gstAmount + otherChargesTotal,
   };
 
-  const handleDownload = async (poId) => {
+  const handleDownload = async (poId, poName) => {
     if (!poId) return;
+    console.log("Downloading purchase order:", poName);
 
     setDownloadLoading(true);
     try {
@@ -915,7 +916,8 @@ const CreatePurchaseOrder = () => {
 
       // Get filename from content-disposition header or use default
       const contentDisposition = response.headers["content-disposition"];
-      let fileName = `${poId}.pdf`;
+      let fileName = `${poName}.pdf`;
+      
 
       if (contentDisposition) {
         const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
@@ -924,6 +926,8 @@ const CreatePurchaseOrder = () => {
         }
       }
 
+      console.log("Content-Disposition header:", fileName);
+      
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
@@ -1047,7 +1051,7 @@ const CreatePurchaseOrder = () => {
           "Do you want to download the purchase order PDF?",
         );
         if (shouldDownload) {
-          await handleDownload(poId);
+          await handleDownload(poId, poNumber);
         }
         handleReset();
       } else {

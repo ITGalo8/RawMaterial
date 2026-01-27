@@ -262,6 +262,7 @@ const AddCompany = () => {
 
       if (response.status === 200 || response.status === 201) {
         setMessage('Company added successfully!');
+        alert('Company added successfully!', response?.data?.message);
         setCompanyData({
           name: '',
           companyCode: '',
@@ -646,7 +647,7 @@ const AddCompany = () => {
             <div className="pt-6 border-t">
               <button 
                 type="submit" 
-                className="w-full md:w-auto px-8 py-3 bg-yellow-400 text-dark font-medium rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-dark-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center"
+                className="w-full md:w-auto px-8 py-3 bg-yellow-400 text-dark font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-dark-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center"
                 disabled={loading || !isFormValid()}
               >
                 {loading ? (
