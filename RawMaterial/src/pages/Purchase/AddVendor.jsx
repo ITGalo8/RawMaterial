@@ -794,7 +794,7 @@ const AddVendor = () => {
       }
 
       // Send all data including files in one API call
-      const response = await Api.post("/purchase/vendors2", formData, {
+      const response = await Api.post("/purchase/vendors", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
