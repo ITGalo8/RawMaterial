@@ -29,6 +29,7 @@ const SideMenubar = () => {
     Payment: false,
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const changePasswordRoles = ["Purchase", "Verification", "Admin", "Accounts"];
 
   const { user, logout } = useUser();
 
@@ -580,8 +581,8 @@ const SideMenubar = () => {
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <FaCogs className="text-lg" />
-                Admin Dashboard
+                <MdOutlinePayment className="text-lg" />
+                Payment Approval
               </NavLink>
             </li>
           )}
@@ -784,7 +785,7 @@ const SideMenubar = () => {
                         Show Purchase Orders
                       </NavLink>
                     </li>
-{/* 
+                    {/* 
                     <li>
                       <NavLink
                         to="debit-not"
@@ -819,7 +820,7 @@ const SideMenubar = () => {
                       </NavLink>
                     </li> */}
 
-                      <li>
+                    <li>
                       <NavLink
                         to="po-order-details"
                         className={({ isActive }) =>
@@ -835,7 +836,6 @@ const SideMenubar = () => {
                         PO Received Details
                       </NavLink>
                     </li>
-                    
                   </ul>
                 )}
               </li>
@@ -886,9 +886,7 @@ const SideMenubar = () => {
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <span className="flex items-center gap-3 text-sm font-medium">
-                          PO Payment Details
-                        </span>
+                        PO Payment Details
                       </NavLink>
                     </li>
                   </ul>
@@ -900,26 +898,22 @@ const SideMenubar = () => {
 
         {/* Logout */}
         <div className="p-4 border-t border-gray-400 mt-auto">
-          {user.role === "Purchase" && (
-            <>
-              <li>
-                <NavLink
-                  to="change-password"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FaCogs className="text-lg" />
-                  Change Password
-                </NavLink>
-              </li>
-            </>
+          {changePasswordRoles.includes(user.role) && (
+            <li>
+              <NavLink
+                to="change-password"
+                className={({ isActive }) =>
+                  `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+         border-l-4 border-transparent transition-all gap-3 ${
+           isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+         }`
+                }
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <FaCogs className="text-lg" />
+                Change Password
+              </NavLink>
+            </li>
           )}
           <button
             className="w-full bg-red-500 text-white border-none py-2 px-4 rounded 

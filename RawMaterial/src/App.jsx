@@ -297,7 +297,7 @@ const AppRoutes = () => {
         <Route
           path="change-password"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Verification", "Accounts", "Admin"]}>
               <ChangePassword />
             </ProtectedRoute>
           }

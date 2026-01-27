@@ -1102,7 +1102,7 @@ const PaymentPending = () => {
       <div className="w-full mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Payment Pending</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Payment Pending Details</h1>
           <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">
             Manage purchase orders with pending payments
           </p>
@@ -1482,7 +1482,7 @@ const PaymentPending = () => {
                                 onClick={() => toggleRowExpand(po.poId)}
                                 className="inline-flex items-center text-blue-600 hover:text-blue-900 text-sm"
                               >
-                                <Eye className="h-4 w-4 mr-1" />
+                                {/* <Eye className="h-4 w-4 mr-1" /> */}
                                 {expandedRows.has(po.poId)
                                   ? "Hide Items"
                                   : "View Items"}
@@ -1492,7 +1492,7 @@ const PaymentPending = () => {
                                   onClick={() => handleMakePayment(po)}
                                   className="inline-flex items-center text-green-600 hover:text-green-900 text-sm"
                                 >
-                                  <DollarSign className="h-4 w-4 mr-1" />
+                                  {/* <DollarSign className="h-4 w-4 mr-1" /> */}
                                   Make Payment
                                 </button>
                               )}
