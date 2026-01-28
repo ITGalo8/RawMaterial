@@ -44,9 +44,9 @@ import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/Dir
 import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
 import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
-import PoVerification from './pages/Verification/PoVerification';
+import PoVerification from "./pages/Verification/PoVerification";
 import PoInvoice from "./pages/Verification/PoInvoice";
-import PaymentRequestDetails from './pages/Verification/PaymentRequestDetails'
+import PaymentRequestDetails from "./pages/Verification/PaymentRequestDetails";
 import AccountDetails from "./pages/Accounts/AccountDetails";
 import PoOrderDetails from "./pages/Purchase/PoOrderDetails";
 
@@ -76,6 +76,7 @@ const getRedirectPath = (role) => {
   if (role === "Purchase") return "/purchase-dashboard";
   if (role === "Verification") return "/po-invoice";
   if (role === "Accounts") return "/payment-request-details";
+   if (role === "Production") return "/po-order-details";
 
   if (
     [
@@ -160,7 +161,7 @@ const AppRoutes = () => {
         <Route
           path="user-stock-data"
           element={
-            <ProtectedRoute allowedRoles={["Store"]}>
+            <ProtectedRoute allowedRoles={["Store", "Production"]}>
               <UserStockData />
             </ProtectedRoute>
           }
@@ -187,7 +188,7 @@ const AppRoutes = () => {
         <Route
           path="store-tracking"
           element={
-            <ProtectedRoute allowedRoles={["Store"]}>
+            <ProtectedRoute allowedRoles={["Store", "Production"]}>
               <StoreTracking />
             </ProtectedRoute>
           }
@@ -214,7 +215,7 @@ const AppRoutes = () => {
         <Route
           path="direct-item-issue-history"
           element={
-            <ProtectedRoute allowedRoles={["Store"]}>
+            <ProtectedRoute allowedRoles={["Store", "Production"]}>
               <DirectItemIssueHistory />
             </ProtectedRoute>
           }
@@ -297,7 +298,9 @@ const AppRoutes = () => {
         <Route
           path="change-password"
           element={
-            <ProtectedRoute allowedRoles={["Purchase", "Verification", "Accounts", "Admin"]}>
+            <ProtectedRoute
+              allowedRoles={["Purchase", "Verification", "Accounts", "Admin"]}
+            >
               <ChangePassword />
             </ProtectedRoute>
           }
@@ -360,7 +363,7 @@ const AppRoutes = () => {
         <Route
           path="po-order-details"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Production"]}>
               <PoOrderDetails />
             </ProtectedRoute>
           }
@@ -533,7 +536,7 @@ const AppRoutes = () => {
         <Route
           path="raw-material-stock"
           element={
-            <ProtectedRoute allowedRoles={["Store", "Purchase"]}>
+            <ProtectedRoute allowedRoles={["Store", "Purchase", "Production"]}>
               <RawMaterialStock />
             </ProtectedRoute>
           }

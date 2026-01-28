@@ -7,8 +7,6 @@ import GaloEnergy from "../../assets/GaloEnergy.jpg";
 import InputField from "../../components/InputField/InputField";
 import Button from "../../components/Button/Button";
 
-
-
 axios.defaults.withCredentials = true;
 
 const Login = () => {
@@ -58,9 +56,8 @@ const Login = () => {
       localStorage.setItem("warehouseId", userData.warehouseId);
 
       // 🔹 Set axios auth header
-      axios.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${userData.accessToken}`;
+      axios.defaults.headers.common["Authorization"] =
+        `Bearer ${userData.accessToken}`;
 
       // 🔹 Save in context
       login(user, userData.accessToken);
@@ -99,7 +96,7 @@ const Login = () => {
       }
     } catch (err) {
       setError(
-        err?.response?.data?.message || "Login failed. Please try again."
+        err?.response?.data?.message || "Login failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -120,7 +117,6 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-yellow-200 to-white px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 md:p-8">
-        
         {/* Logo */}
         <div className="text-center mb-8">
           <img
@@ -135,19 +131,13 @@ const Login = () => {
 
         {/* Heading */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Welcome Back
-          </h2>
-          <p className="text-gray-500 text-sm mt-1">
-            Login to continue
-          </p>
+          <h2 className="text-2xl font-semibold text-gray-800">Welcome Back</h2>
+          <p className="text-gray-500 text-sm mt-1">Login to continue</p>
         </div>
 
         {/* Error */}
         {error && (
-          <p className="text-red-500 text-sm text-center mb-4">
-            {error}
-          </p>
+          <p className="text-red-500 text-sm text-center mb-4">{error}</p>
         )}
 
         {/* Form */}

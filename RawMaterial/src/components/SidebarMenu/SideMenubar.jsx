@@ -249,43 +249,7 @@ const SideMenubar = () => {
                 </NavLink>
               </li>
 
-              <li>
-                <NavLink
-                  to="store-tracking"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FaClipboardList className="text-lg" />
-                  Process Tracking
-                </NavLink>
-              </li>
-
-              <li>
-                <NavLink
-                  to="user-stock-data"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FaBox className="text-lg" />
-                  User Stock Data
-                </NavLink>
-              </li>
-
-              <li>
+              {/* <li>
                 <NavLink
                   to="direct-item-issue-history"
                   className={({ isActive }) =>
@@ -301,7 +265,7 @@ const SideMenubar = () => {
                   <FaBox className="text-lg" />
                   Direct Item Issue History
                 </NavLink>
-              </li>
+              </li> */}
 
               <li>
                 <NavLink
@@ -320,24 +284,112 @@ const SideMenubar = () => {
                   PO Stock Receiving
                 </NavLink>
               </li>
+            </>
+          )}
 
-              {/* <li>
+          {/* <li>
+            <NavLink
+              to="store-tracking"
+              className={({ isActive }) =>
+                `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
+                     }`
+              }
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <FaClipboardList className="text-lg" />
+              Process Tracking
+            </NavLink>
+          </li> */}
+
+          {(user.role === "Store" || user.role === "Production") && (
+            <>
+              <li>
                 <NavLink
-                  to="stock-update-history"
+                  to="store-tracking"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
-                       isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
                      }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <FaClipboardList className="text-lg" />
-                  Stock Update History
+                  <IoStorefrontSharp className="text-lg" />
+                  Store Tracking
                 </NavLink>
-              </li> */}
+              </li>
             </>
           )}
+
+          {/* <li>
+            <NavLink
+              to="direct-item-issue-history"
+              className={({ isActive }) =>
+                `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
+                     }`
+              }
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <FaBox className="text-lg" />
+              Direct Item Issue History
+            </NavLink>
+          </li> */}
+
+          {(user.role === "Store" || user.role === "Production") && (
+            <>
+              <li>
+                <NavLink
+                  to="user-stock-data"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <IoStorefrontSharp className="text-lg" />
+                  User Stock History
+                </NavLink>
+              </li>
+            </>
+          )}
+
+
+          {(user.role === "Store" || user.role === "Production") && (
+            <>
+              <li>
+                <NavLink
+                  to="direct-item-issue-history"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
+                     }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <IoStorefrontSharp className="text-lg" />
+                  Direct Item Issue History
+                </NavLink>
+              </li>
+            </>
+          )}
+          
 
           {user.role === "Purchase" && (
             <>
@@ -363,42 +415,6 @@ const SideMenubar = () => {
 
           {user.role === "Verification" && (
             <>
-              {/* <li>
-                <NavLink
-                  to="po-verification-dashboard"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <MdDashboard className="text-lg" />
-                  Dashboard
-                </NavLink>
-              </li> */}
-
-              {/* <li>
-                <NavLink
-                  to="po-verification"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <MdDashboard className="text-lg" />
-                  PO Verification
-                </NavLink>
-              </li> */}
-
               <li>
                 <NavLink
                   to="po-invoice"
@@ -463,7 +479,9 @@ const SideMenubar = () => {
             </>
           )}
 
-          {(user.role === "Store" || user.role === "Purchase") && (
+          {(user.role === "Store" ||
+            user.role === "Purchase" ||
+            user.role === "Production") && (
             <>
               <li>
                 <NavLink
@@ -785,57 +803,6 @@ const SideMenubar = () => {
                         Show Purchase Orders
                       </NavLink>
                     </li>
-                    {/* 
-                    <li>
-                      <NavLink
-                        to="debit-not"
-                        className={({ isActive }) =>
-                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
-                        }
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Debit Not
-                      </NavLink>
-                    </li> */}
-
-                    {/* <li>
-                      <NavLink
-                        to="show-debit-not"
-                        className={({ isActive }) =>
-                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
-                        }
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Show Debit Not History
-                      </NavLink>
-                    </li> */}
-
-                    <li>
-                      <NavLink
-                        to="po-order-details"
-                        className={({ isActive }) =>
-                          `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
-                        }
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        PO Received Details
-                      </NavLink>
-                    </li>
                   </ul>
                 )}
               </li>
@@ -893,6 +860,25 @@ const SideMenubar = () => {
                 )}
               </li>
             </>
+          )}
+          {(user.role === "Purchase" || user.role === "Production") && (
+            <li>
+              <NavLink
+                to="po-order-details"
+                className={({ isActive }) =>
+                  `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                   border-l-4 border-transparent transition-all gap-3 ${
+                     isActive
+                       ? "bg-yellow-300 text-black border-yellow-600"
+                       : ""
+                   }`
+                }
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <MdOutlinePayment className="text-lg" />
+                PO Received Details
+              </NavLink>
+            </li>
           )}
         </ul>
 
