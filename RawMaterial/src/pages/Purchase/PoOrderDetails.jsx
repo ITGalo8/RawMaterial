@@ -77,7 +77,7 @@ const PoOrderDetails = () => {
               (item) =>
                 item.itemName.toLowerCase().includes(term) ||
                 item.modelNumber?.toLowerCase().includes(term) ||
-                item.hsnCode?.toLowerCase().includes(term)
+                item.hsnCode?.toLowerCase().includes(term),
             )
           );
       }
@@ -161,11 +161,11 @@ const PoOrderDetails = () => {
   };
 
   const getStatusCounts = () => {
-    const counts = { 
-      Draft: 0, 
-      PartiallyReceived: 0, 
+    const counts = {
+      Draft: 0,
+      PartiallyReceived: 0,
       FullyReceived: 0,
-      Received: 0
+      Received: 0,
     };
     stockReceived.forEach((po) => {
       if (counts[po.status] !== undefined) {
@@ -283,25 +283,17 @@ const PoOrderDetails = () => {
               >
                 <option value="all">All Statuses</option>
                 <option value="Draft">Draft ({statusCounts.Draft})</option>
-                <option value="PartiallyReceived">Partially Received ({statusCounts.PartiallyReceived})</option>
-                <option value="FullyReceived">Fully Received ({statusCounts.FullyReceived})</option>
-                <option value="Received">Received ({statusCounts.Received})</option>
+                <option value="PartiallyReceived">
+                  Partially Received ({statusCounts.PartiallyReceived})
+                </option>
+                <option value="FullyReceived">
+                  Fully Received ({statusCounts.FullyReceived})
+                </option>
+                <option value="Received">
+                  Received ({statusCounts.Received})
+                </option>
               </select>
             </div>
-
-            {/* Approval Status Filter */}
-            {/* <div className="w-full md:w-48">
-              <select
-                className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                value={approvalFilter}
-                onChange={(e) => setApprovalFilter(e.target.value)}
-              >
-                <option value="all">All Approvals</option>
-                <option value="Pending">Pending ({approvalCounts.Pending})</option>
-                <option value="Approved">Approved ({approvalCounts.Approved})</option>
-                <option value="Rejected">Rejected ({approvalCounts.Rejected})</option>
-              </select>
-            </div> */}
 
             {/* Items Per Page */}
             <div className="w-full md:w-32">
@@ -327,7 +319,11 @@ const PoOrderDetails = () => {
               className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <Filter className="h-4 w-4 mr-1" />
-              {showAdvancedFilters ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {showAdvancedFilters ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </button>
 
             {/* Clear Filters */}
@@ -363,23 +359,7 @@ const PoOrderDetails = () => {
                   />
                 </div>
               </div>
-              {/* <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Total Amount Range
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Min Amount"
-                  />
-                  <input
-                    type="number"
-                    className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Max Amount"
-                  />
-                </div>
-              </div> */}
+
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   Warehouse
@@ -416,7 +396,6 @@ const PoOrderDetails = () => {
             </div>
           </div>
         </div>
-
 
         {/* POs Table */}
         {filteredData.length === 0 ? (
@@ -469,7 +448,9 @@ const PoOrderDetails = () => {
                           <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900">
                             <div>{po.poNumber}</div>
                             <div className="text-xs text-gray-500">
-                              {po.poDate ? new Date(po.poDate).toLocaleDateString() : 'N/A'}
+                              {po.poDate
+                                ? new Date(po.poDate).toLocaleDateString()
+                                : "N/A"}
                             </div>
                           </td>
                           {/* <td className="px-4 py-2 whitespace-nowrap text-gray-900">
@@ -479,7 +460,7 @@ const PoOrderDetails = () => {
                             {po.vendorName}
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap text-gray-900">
-                            {po.warehouseName || 'N/A'}
+                            {po.warehouseName || "N/A"}
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap">
                             <span
@@ -487,11 +468,12 @@ const PoOrderDetails = () => {
                             >
                               {getStatusDisplay(po.status)}
                             </span>
-                            {po.approvalStatus && po.approvalStatus !== 'Pending' && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                {po.approvalStatus}
-                              </div>
-                            )}
+                            {po.approvalStatus &&
+                              po.approvalStatus !== "Pending" && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {po.approvalStatus}
+                                </div>
+                              )}
                           </td>
                           <td className="px-4 py-2 whitespace-nowrap text-gray-500">
                             {po.items.length} item(s)
@@ -509,7 +491,6 @@ const PoOrderDetails = () => {
                                   ? "Hide Items"
                                   : "View Items"}
                               </button>
-                              
                             </div>
                           </td>
                         </tr>
@@ -541,10 +522,14 @@ const PoOrderDetails = () => {
                                   </thead>
                                   <tbody className="bg-white divide-y divide-gray-200">
                                     {po.items.map((item) => {
-                                      const isFullyReceived = item.receivedQty >= item.quantity;
-                                      const isPartiallyReceived = item.receivedQty > 0 && item.receivedQty < item.quantity;
-                                      const isNotReceived = item.receivedQty === 0;
-                                      
+                                      const isFullyReceived =
+                                        item.receivedQty >= item.quantity;
+                                      const isPartiallyReceived =
+                                        item.receivedQty > 0 &&
+                                        item.receivedQty < item.quantity;
+                                      const isNotReceived =
+                                        item.receivedQty === 0;
+
                                       return (
                                         <tr
                                           key={item.id}
@@ -565,21 +550,31 @@ const PoOrderDetails = () => {
                                           <td className="px-3 py-1.5 text-gray-900 font-medium">
                                             {item.quantity.toLocaleString()}
                                           </td>
-                                          <td className={`px-3 py-1.5 ${isFullyReceived ? 'text-green-600' : isPartiallyReceived ? 'text-yellow-600' : 'text-gray-500'} font-medium`}>
+                                          <td
+                                            className={`px-3 py-1.5 ${isFullyReceived ? "text-green-600" : isPartiallyReceived ? "text-yellow-600" : "text-gray-500"} font-medium`}
+                                          >
                                             {item.receivedQty.toLocaleString()}
                                           </td>
-                                          <td className={`px-3 py-1.5 ${item.pendingQty > 0 ? 'text-orange-600' : 'text-green-600'} font-medium`}>
+                                          <td
+                                            className={`px-3 py-1.5 ${item.pendingQty > 0 ? "text-orange-600" : "text-green-600"} font-medium`}
+                                          >
                                             {item.pendingQty.toLocaleString()}
                                           </td>
                                           <td className="px-3 py-1.5">
-                                            <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                                              isFullyReceived 
-                                                ? 'bg-green-100 text-green-800' 
-                                                : isPartiallyReceived 
-                                                ? 'bg-yellow-100 text-yellow-800' 
-                                                : 'bg-gray-100 text-gray-800'
-                                            }`}>
-                                              {isFullyReceived ? 'Fully Received' : isPartiallyReceived ? 'Partially Received' : 'Not Received'}
+                                            <span
+                                              className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                                                isFullyReceived
+                                                  ? "bg-green-100 text-green-800"
+                                                  : isPartiallyReceived
+                                                    ? "bg-yellow-100 text-yellow-800"
+                                                    : "bg-gray-100 text-gray-800"
+                                              }`}
+                                            >
+                                              {isFullyReceived
+                                                ? "Fully Received"
+                                                : isPartiallyReceived
+                                                  ? "Partially Received"
+                                                  : "Not Received"}
                                             </span>
                                           </td>
                                         </tr>

@@ -49,6 +49,8 @@ import PoInvoice from "./pages/Verification/PoInvoice";
 import PaymentRequestDetails from "./pages/Verification/PaymentRequestDetails";
 import AccountDetails from "./pages/Accounts/AccountDetails";
 import PoOrderDetails from "./pages/Purchase/PoOrderDetails";
+import AddWarehouse from "./pages/Purchase/AddWarehouse";
+import AddUnit from "./pages/Purchase/AddUnit";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -445,6 +447,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <PoPaymentDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="add-warehouse"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <AddWarehouse />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="add-unit"
+          element={
+            <ProtectedRoute allowedRoles={["Purchase"]}>
+              <AddUnit />
             </ProtectedRoute>
           }
         />
