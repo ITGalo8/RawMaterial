@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Api from '../../auth/Api'
+import Api from "../../auth/Api";
 
 const ApprovalPOInvoice = () => {
   const [approvalData, setApprovalData] = useState([]);
@@ -10,7 +10,7 @@ const ApprovalPOInvoice = () => {
   const [viewItemModal, setViewItemModal] = useState({
     isOpen: false,
     items: [],
-    poNumber: ""
+    poNumber: "",
   });
 
   useEffect(() => {
@@ -54,7 +54,7 @@ const ApprovalPOInvoice = () => {
     if (selectedPOs.size === approvalData.length) {
       setSelectedPOs(new Set());
     } else {
-      setSelectedPOs(new Set(approvalData.map(po => po.poId)));
+      setSelectedPOs(new Set(approvalData.map((po) => po.poId)));
     }
   };
 
@@ -63,7 +63,7 @@ const ApprovalPOInvoice = () => {
     setViewItemModal({
       isOpen: true,
       items,
-      poNumber
+      poNumber,
     });
   };
 
@@ -72,44 +72,48 @@ const ApprovalPOInvoice = () => {
     setViewItemModal({
       isOpen: false,
       items: [],
-      poNumber: ""
+      poNumber: "",
     });
   };
 
   // Handle single approval/decline
   const handleApprovalAction = async (poId, status) => {
-    if (!window.confirm(`Are you sure you want to ${status.toLowerCase()} this PO?`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to ${status.toLowerCase()} this PO?`,
+      )
+    ) {
       return;
     }
 
-    setActionLoading(prev => ({ ...prev, [poId]: true }));
-    
+    setActionLoading((prev) => ({ ...prev, [poId]: true }));
+
     try {
-      const response = await Api.put('/admin/poApprovalAction', {
+      const response = await Api.put("/admin/poApprovalAction", {
         poId,
-        status: status.toUpperCase()
+        status: status.toUpperCase(),
       });
 
       if (response.data.success) {
         alert(`PO ${status.toLowerCase()} successfully!`);
-        
+
         // Remove the approved/declined PO from the list
-        setApprovalData(prev => prev.filter(po => po.poId !== poId));
+        setApprovalData((prev) => prev.filter((po) => po.poId !== poId));
         // Remove from selected if it was selected
         const newSelected = new Set(selectedPOs);
         newSelected.delete(poId);
         setSelectedPOs(newSelected);
       } else {
-        throw new Error(response.data.message || 'Action failed');
+        throw new Error(response.data.message || "Action failed");
       }
     } catch (error) {
       console.error(`Error ${status.toLowerCase()}ing PO:`, error);
       alert(
         `Failed to ${status.toLowerCase()} PO: ` +
-        (error?.response?.data?.message || error?.message || 'Unknown error')
+          (error?.response?.data?.message || error?.message || "Unknown error"),
       );
     } finally {
-      setActionLoading(prev => ({ ...prev, [poId]: false }));
+      setActionLoading((prev) => ({ ...prev, [poId]: false }));
     }
   };
 
@@ -120,7 +124,11 @@ const ApprovalPOInvoice = () => {
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to ${status.toLowerCase()} ${selectedPOs.size} selected PO(s)?`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to ${status.toLowerCase()} ${selectedPOs.size} selected PO(s)?`,
+      )
+    ) {
       return;
     }
 
@@ -129,38 +137,39 @@ const ApprovalPOInvoice = () => {
     const selectedArray = Array.from(selectedPOs);
 
     // Create promises for all selected POs
-    selectedArray.forEach(poId => {
+    selectedArray.forEach((poId) => {
       promises.push(
-        Api.put('/admin/poApprovalAction', {
+        Api.put("/admin/poApprovalAction", {
           poId,
-          status: status.toUpperCase()
-        })
+          status: status.toUpperCase(),
+        }),
       );
     });
 
     try {
       // Execute all promises
       const results = await Promise.all(promises);
-      
+
       // Check for any failures
-      const failedActions = results.filter(result => !result.data.success);
-      
+      const failedActions = results.filter((result) => !result.data.success);
+
       if (failedActions.length > 0) {
         throw new Error(`${failedActions.length} action(s) failed`);
       }
 
-      alert(`Successfully ${status.toLowerCase()}ed ${selectedPOs.size} PO(s)!`);
-      
+      alert(
+        `Successfully ${status.toLowerCase()}ed ${selectedPOs.size} PO(s)!`,
+      );
+
       // Remove processed POs from the list
-      setApprovalData(prev => prev.filter(po => !selectedPOs.has(po.poId)));
+      setApprovalData((prev) => prev.filter((po) => !selectedPOs.has(po.poId)));
       // Clear selections
       setSelectedPOs(new Set());
-      
     } catch (error) {
       console.error(`Error in bulk ${status.toLowerCase()}:`, error);
       alert(
         `Failed to ${status.toLowerCase()} some POs: ` +
-        (error?.response?.data?.message || error?.message || 'Unknown error')
+          (error?.response?.data?.message || error?.message || "Unknown error"),
       );
     } finally {
       setBulkActionLoading(false);
@@ -191,34 +200,72 @@ const ApprovalPOInvoice = () => {
             </div>
             <div className="flex space-x-3">
               <button
-                onClick={() => handleBulkApprovalAction('APPROVED')}
+                onClick={() => handleBulkApprovalAction("APPROVED")}
                 disabled={bulkActionLoading}
                 className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
                 {bulkActionLoading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     Processing...
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     Approve Selected
                   </>
                 )}
               </button>
               <button
-                onClick={() => handleBulkApprovalAction('DECLINED')}
+                onClick={() => handleBulkApprovalAction("DECLINED")}
                 disabled={bulkActionLoading}
                 className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
                 Decline Selected
               </button>
@@ -234,25 +281,42 @@ const ApprovalPOInvoice = () => {
       )}
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">PO Approval Requests</h2>
+        <h2 className="text-2xl font-bold text-gray-800">
+          PO Approval Requests
+        </h2>
         <div className="flex space-x-3">
           <button
             onClick={fetchApprovalData}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
             Refresh
           </button>
         </div>
       </div>
-      
+
       {approvalData.length === 0 ? (
         <div className="text-center p-8 bg-white rounded-lg shadow">
           <div className="text-gray-400 text-6xl mb-4">📋</div>
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">No Pending Approvals</h3>
-          <p className="text-gray-500">All purchase orders have been processed.</p>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">
+            No Pending Approvals
+          </h3>
+          <p className="text-gray-500">
+            All purchase orders have been processed.
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -263,22 +327,40 @@ const ApprovalPOInvoice = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                     <input
                       type="checkbox"
-                      checked={selectedPOs.size === approvalData.length && approvalData.length > 0}
+                      checked={
+                        selectedPOs.size === approvalData.length &&
+                        approvalData.length > 0
+                      }
                       onChange={handleSelectAll}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Details</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    PO Details
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vendor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {approvalData.map((po) => (
-                  <tr key={po.poId} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={po.poId}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
@@ -289,75 +371,142 @@ const ApprovalPOInvoice = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{po.poNumber}</div>
-                        <div className="text-sm text-gray-500">{po.companyName}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {po.poNumber}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {po.companyName}
+                        </div>
                         <button
                           onClick={() => openItemModal(po.items, po.poNumber)}
                           className="mt-1 text-xs text-blue-600 hover:text-blue-800 flex items-center"
                         >
-                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          <svg
+                            className="w-4 h-4 mr-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
                           </svg>
                           View Items ({po.items.length})
                         </button>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{po.vendorName}</div>
+                      <div className="text-sm text-gray-900">
+                        {po.vendorName}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-semibold text-gray-900">
-                        {po.currency} {parseFloat(po.grandTotal).toLocaleString(undefined, {
+                        {po.currency}{" "}
+                        {parseFloat(po.grandTotal).toLocaleString(undefined, {
                           minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
+                          maximumFractionDigits: 2,
                         })}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        po.approvalStatus === 'Pending' 
-                          ? 'bg-yellow-100 text-yellow-800' 
-                          : po.approvalStatus === 'APPROVED'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span
+                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          po.approvalStatus === "Pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : po.approvalStatus === "APPROVED"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                        }`}
+                      >
                         {po.approvalStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(po.poDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
+                      {new Date(po.poDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
                       })}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleApprovalAction(po.poId, 'APPROVED')}
+                          onClick={() =>
+                            handleApprovalAction(po.poId, "APPROVED")
+                          }
                           disabled={actionLoading[po.poId]}
                           className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                         >
                           {actionLoading[po.poId] ? (
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <svg
+                              className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
                             </svg>
                           ) : (
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            <svg
+                              className="w-4 h-4 mr-2"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
                             </svg>
                           )}
-                          {actionLoading[po.poId] ? 'Processing...' : 'Approve'}
+                          {actionLoading[po.poId] ? "Processing..." : "Approve"}
                         </button>
                         <button
-                          onClick={() => handleApprovalAction(po.poId, 'DECLINED')}
+                          onClick={() =>
+                            handleApprovalAction(po.poId, "DECLINED")
+                          }
                           disabled={actionLoading[po.poId]}
                           className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                         >
-                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          <svg
+                            className="w-4 h-4 mr-2"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                           Decline
                         </button>
@@ -383,34 +532,61 @@ const ApprovalPOInvoice = () => {
                 onClick={closeItemModal}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             <div className="overflow-y-auto max-h-96">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Item Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Quantity
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Unit
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Source
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {viewItemModal.items.map((item, index) => (
                     <tr key={item.id || index} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">{item.itemName}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.quantity}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700">{item.unit}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {item.itemName}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {item.quantity}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {item.unit}
+                      </td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 text-xs rounded ${
-                          item.itemSource === 'mysql' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
+                        <span
+                          className={`px-2 py-1 text-xs rounded ${
+                            item.itemSource === "mysql"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
                           {item.itemSource}
                         </span>
                       </td>
@@ -419,7 +595,7 @@ const ApprovalPOInvoice = () => {
                 </tbody>
               </table>
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
               <button
                 onClick={closeItemModal}
