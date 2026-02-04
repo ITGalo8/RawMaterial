@@ -14,7 +14,9 @@
 //   EyeSlashIcon,
 //   BeakerIcon,
 //   ShoppingCartIcon,
-//   BuildingLibraryIcon
+//   BuildingLibraryIcon,
+//   ChevronDownIcon,
+//   ChevronUpIcon
 // } from "@heroicons/react/24/outline";
 
 // const RawMaterialStock = () => {
@@ -29,75 +31,46 @@
 //   const [warehouseList, setWarehouseList] = useState([]);
 //   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
 //   const [warehouseLoading, setWarehouseLoading] = useState(true);
+//   const [expandedSections, setExpandedSections] = useState({
+//     used: true,
+//     notUsed: true
+//   });
   
 //   const role = localStorage.getItem("roleName");
 
-//   console.log("role -> ", role);
-// const fetchWarehouses = async () => {
+//   const fetchWarehouses = async () => {
+//     if (role === "store") return;
 
-//   if (role === "store") return;
-
-//   try {
-//     setWarehouseLoading(true);
-
-//     const res = await Api.get("/purchase/warehouses");
-
-//     const formatted = res?.data?.data?.map((w) => ({
-//       label: w.warehouseName,
-//       value: w._id,
-//     }));
-
-//     setWarehouseList(formatted);
-
-//     if (formatted.length > 0 && !selectedWarehouse) {
-//       setSelectedWarehouse(formatted[0].value);
+//     try {
+//       setWarehouseLoading(true);
+//       const res = await Api.get("/purchase/warehouses");
+//       const formatted = res?.data?.data?.map((w) => ({
+//         label: w.warehouseName,
+//         value: w._id,
+//       }));
+//       setWarehouseList(formatted);
+//       if (formatted.length > 0 && !selectedWarehouse) {
+//         setSelectedWarehouse(formatted[0].value);
+//       }
+//     } catch (err) {
+//       console.error(err);
+//     } finally {
+//       setWarehouseLoading(false);
 //     }
-//   } catch (err) {
-//     console.error(err);
-//   } finally {
-//     setWarehouseLoading(false);
-//   }
-// };
+//   };
 
-// useEffect(() => {
-//   if (role) {
-//     fetchWarehouses();
-//   }
-// }, [role]);
-
-
-//   // const fetchWarehouses = async () => {
-//   //   try {
-//   //     setWarehouseLoading(true);
-//   //     const res = await Api.get(`/purchase/warehouses`);
-//   //     const formatted = res?.data?.data?.map((w) => ({
-//   //       label: w.warehouseName,
-//   //       value: w._id,
-//   //     }));
-//   //     setWarehouseList(formatted);
-//   //     console.log("Warehouse List: ", res.data.data);
-      
-//   //     // Auto-select first warehouse if none selected
-//   //     if (formatted.length > 0 && !selectedWarehouse) {
-//   //       setSelectedWarehouse(formatted[0].value);
-//   //     }
-//   //   } catch (err) {
-//   //     console.error("Error loading warehouses:", err);
-//   //     alert("Error loading warehouses");
-//   //   } finally {
-//   //     setWarehouseLoading(false);
-//   //   }
-//   // };
+//   useEffect(() => {
+//     if (role) {
+//       fetchWarehouses();
+//     }
+//   }, [role]);
 
 //   const fetchRawMaterials = async () => {
 //     try {
 //       if(selectedWarehouse === null && role !== "Store" ) return;
 //       console.log("Fetching raw materials for warehouse:", selectedWarehouse);
 //       setLoading(true);
-//       // let url = `purchase/warehouses/${selectedWarehouse}/raw-material`;
 //       let url = `/purchase/warehouses/raw-material?${selectedWarehouse !== null && "warehouseId="}${selectedWarehouse !== null && selectedWarehouse}`;
-      
-//       // Add warehouse filter if selected
       
 //       const res = await Api.get(url);
 //       const list = res.data.data || [];
@@ -174,6 +147,13 @@
 //     setSelectedWarehouse(warehouseId);
 //   };
 
+//   const toggleSection = (section) => {
+//     setExpandedSections(prev => ({
+//       ...prev,
+//       [section]: !prev[section]
+//     }));
+//   };
+
 //   const stats = {
 //     total: rawMaterials.length,
 //     used: rawMaterials.filter(item => item.isUsed).length,
@@ -181,6 +161,10 @@
 //     outOfStock: rawMaterials.filter(item => item.outOfStock).length,
 //     inStock: rawMaterials.filter(item => !item.outOfStock).length
 //   };
+
+//   // Filter materials by usage status
+//   const usedMaterials = filtered.filter(item => item.isUsed);
+//   const notUsedMaterials = filtered.filter(item => !item.isUsed);
 
 //   if (loading && warehouseLoading) {
 //     return (
@@ -197,6 +181,221 @@
 //     );
 //   }
 
+//   const renderMaterialCard = (item) => {
+//     const isOutOfStock = item.outOfStock;
+//     const isBlinking = blinkingItems.includes(item.id);
+    
+//     return (
+//       <div
+//         key={item.id}
+//         className={`bg-white rounded-xl border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md ${
+//           isOutOfStock 
+//             ? `border-red-300 ${isBlinking ? 'animate-pulse' : ''}`
+//             : 'border-gray-200'
+//         }`}
+//       >
+//         {/* Header with Status */}
+//         <div className={`p-4 ${isOutOfStock ? 'bg-gradient-to-r from-red-50 to-red-100' : 'bg-gradient-to-r from-gray-50 to-gray-100'}`}>
+//           <div className="flex items-center justify-between">
+//             <div className="flex items-center gap-3">
+//               <div className={`p-2 rounded-lg ${isOutOfStock ? 'bg-red-200' : 'bg-blue-100'}`}>
+//                 <CubeIcon className={`h-5 w-5 ${isOutOfStock ? 'text-red-700' : 'text-blue-600'}`} />
+//               </div>
+//               <div>
+//                 <h3 className="font-bold text-gray-900 text-lg truncate">{item.name}</h3>
+//                 <div className="flex items-center gap-2 mt-1">
+//                   <span className="text-sm text-gray-600">{item.unit}</span>
+//                   {isOutOfStock && (
+//                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-200 text-red-800 animate-pulse">
+//                       <ShoppingCartIcon className="h-3 w-3 mr-1" />
+//                       Out of Stock
+//                     </span>
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Content */}
+//         <div className="p-5">
+//           <div className="grid grid-cols-2 gap-4 mb-6">
+//             <div className={`p-4 rounded-lg ${
+//               isOutOfStock ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200'
+//             }`}>
+//               <p className="text-xs text-gray-500 mb-1">Current Stock</p>
+//               <div className="flex items-baseline gap-2">
+//                 <p className={`text-3xl font-bold ${isOutOfStock ? 'text-red-600' : 'text-gray-900'}`}>
+//                   {item.stock}
+//                 </p>
+//                 {isOutOfStock && (
+//                   <ExclamationTriangleIcon className="h-5 w-5 text-red-500 animate-pulse" />
+//                 )}
+//               </div>
+//             </div>
+            
+//             <div className={`p-4 rounded-lg border ${
+//               item.isUsed ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50'
+//             }`}>
+//               <p className="text-xs text-gray-500 mb-1">Usage Status</p>
+//               <div className="flex items-center gap-2">
+//                 {item.isUsed ? (
+//                   <>
+//                     <BeakerIcon className="h-5 w-5 text-green-600" />
+//                     <span className="text-lg font-semibold text-green-700">In Use</span>
+//                   </>
+//                 ) : (
+//                   <>
+//                     <EyeSlashIcon className="h-5 w-5 text-blue-600" />
+//                     <span className="text-lg font-semibold text-blue-700">Not Used</span>
+//                   </>
+//                 )}
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* Action Buttons */}
+//           <div className="space-y-3">
+//             <button
+//               onClick={() => toggleMaterialUsage(item.id, item.isUsed)}
+//               disabled={updating === item.id}
+//               className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+//                 updating === item.id
+//                   ? 'bg-gray-100 text-gray-600 border border-gray-300 cursor-not-allowed'
+//                   : item.isUsed
+//                     ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-300'
+//                     : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-300'
+//               } ${isOutOfStock ? 'opacity-100' : ''}`}
+//             >
+//               {updating === item.id ? (
+//                 <>
+//                   <ArrowPathIcon className="h-4 w-4 animate-spin" />
+//                   Updating...
+//                 </>
+//               ) : item.isUsed ? (
+//                 <>
+//                   <EyeSlashIcon className="h-4 w-4" />
+//                   Mark as Not Used
+//                 </>
+//               ) : (
+//                 <>
+//                   <BeakerIcon className="h-4 w-4" />
+//                   Mark as Used
+//                 </>
+//               )}
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   };
+
+//   const renderMaterialRow = (item) => {
+//     const isOutOfStock = item.outOfStock;
+//     const isBlinking = blinkingItems.includes(item.id);
+    
+//     return (
+//       <tr 
+//         key={item.id} 
+//         className={`hover:bg-gray-50 transition-colors ${
+//           isOutOfStock ? `bg-red-50 ${isBlinking ? 'animate-pulse' : ''}` : ''
+//         }`}
+//       >
+//         <td className="px-6 py-4">
+//           <div className="flex items-center gap-4">
+//             <div className={`p-3 rounded-lg ${isOutOfStock ? 'bg-red-100' : 'bg-blue-100'}`}>
+//               <CubeIcon className={`h-5 w-5 ${isOutOfStock ? 'text-red-600' : 'text-blue-600'}`} />
+//             </div>
+//             <div>
+//               <h4 className="font-semibold text-gray-900">{item.name}</h4>
+//               {isOutOfStock && (
+//                 <div className="flex items-center gap-2 mt-1">
+//                   <ShoppingCartIcon className="h-4 w-4 text-red-500" />
+//                   <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+//                     Out of Stock
+//                   </span>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         </td>
+//         <td className="px-6 py-4">
+//           <div className="space-y-2">
+//             <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+//               isOutOfStock ? 'bg-red-100 border border-red-200' : 'bg-gray-100 border border-gray-200'
+//             }`}>
+//               <span className={`text-xl font-bold ${isOutOfStock ? 'text-red-600' : 'text-gray-900'}`}>
+//                 {item.stock}
+//               </span>
+//               <span className="text-sm text-gray-600">•</span>
+//               <span className="text-sm text-gray-700">{item.unit}</span>
+//               {isOutOfStock && (
+//                 <ExclamationTriangleIcon className="h-4 w-4 text-red-500 animate-pulse" />
+//               )}
+//             </div>
+//           </div>
+//         </td>
+//         <td className="px-6 py-4">
+//           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
+//             item.isUsed 
+//               ? 'bg-green-100 border border-green-200' 
+//               : 'bg-blue-100 border border-blue-200'
+//           }`}>
+//             {item.isUsed ? (
+//               <>
+//                 <BeakerIcon className="h-5 w-5 text-green-600" />
+//                 <span className="font-medium text-green-700">In Use</span>
+//               </>
+//             ) : (
+//               <>
+//                 <EyeSlashIcon className="h-5 w-5 text-blue-600" />
+//                 <span className="font-medium text-blue-700">Not Used</span>
+//               </>
+//             )}
+//           </div>
+//         </td>
+//         <td className="px-6 py-4">
+//           <div className="space-y-2">
+//             <button
+//               onClick={() => toggleMaterialUsage(item.id, item.isUsed)}
+//               disabled={updating === item.id}
+//               className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 min-w-[140px] ${
+//                 updating === item.id
+//                   ? 'bg-gray-100 text-gray-600 border border-gray-300 cursor-not-allowed'
+//                   : item.isUsed
+//                     ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-300'
+//                     : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-300'
+//               }`}
+//             >
+//               {updating === item.id ? (
+//                 <>
+//                   <ArrowPathIcon className="h-4 w-4 animate-spin" />
+//                   Updating...
+//                 </>
+//               ) : item.isUsed ? (
+//                 <>
+//                   <EyeSlashIcon className="h-4 w-4" />
+//                   Mark Not Used
+//                 </>
+//               ) : (
+//                 <>
+//                   <BeakerIcon className="h-4 w-4" />
+//                   Mark Used
+//                 </>
+//               )}
+//             </button>
+            
+//             {isOutOfStock && (
+//               <p className="text-xs text-red-600 text-center mt-1">
+//                 Stock needs reorder
+//               </p>
+//             )}
+//           </div>
+//         </td>
+//       </tr>
+//     );
+//   };
+
 //   return (
 //     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 p-4 md:p-6">
 //       <div className="max-w-7xl mx-auto">
@@ -211,7 +410,6 @@
 //             </div>
 
 //             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-
 //               <div className="w-full md:w-64">
 //                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
 //                   <BuildingLibraryIcon className="h-4 w-4" />
@@ -226,14 +424,11 @@
 //                   {warehouseLoading ? (
 //                     <option>Loading warehouses...</option>
 //                   ) : (
-//                     <>
-                      
-//                       {warehouseList.map((warehouse) => (
-//                         <option key={warehouse.value} value={warehouse.value}>
-//                           {warehouse.label}
-//                         </option>
-//                       ))}
-//                     </>
+//                     warehouseList.map((warehouse) => (
+//                       <option key={warehouse.value} value={warehouse.value}>
+//                         {warehouse.label}
+//                       </option>
+//                     ))
 //                   )}
 //                 </select>
 //               </div>
@@ -283,15 +478,6 @@
 //                     </p>
 //                   </div>
 //                 </div>
-//                 <button
-//                   onClick={() => {
-//                     setSelectedWarehouse("");
-//                     fetchRawMaterials();
-//                   }}
-//                   className="px-6 py-2.5 bg-white text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors font-medium"
-//                 >
-                  
-//                 </button>
 //               </div>
 //             </div>
 //           )}
@@ -466,307 +652,145 @@
 //             </div>
 //           )}
 
-//           {/* Content based on view mode */}
-//           {viewMode === "grid" ? (
-//             /* Grid View */
-//             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2">
-//               {filtered.length > 0 ? (
-//                 filtered.map((item) => {
-//                   const isOutOfStock = item.outOfStock;
-//                   const isBlinking = blinkingItems.includes(item.id);
-                  
-//                   return (
-//                     <div
-//                       key={item.id}
-//                       className={`bg-white rounded-xl border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md ${
-//                         isOutOfStock 
-//                           ? `border-red-300 ${isBlinking ? 'animate-pulse' : ''}`
-//                           : 'border-gray-200'
-//                       }`}
-//                     >
-//                       {/* Header with Status */}
-//                       <div className={`p-4 ${isOutOfStock ? 'bg-gradient-to-r from-red-50 to-red-100' : 'bg-gradient-to-r from-gray-50 to-gray-100'}`}>
-//                         <div className="flex items-center justify-between">
-//                           <div className="flex items-center gap-3">
-//                             <div className={`p-2 rounded-lg ${isOutOfStock ? 'bg-red-200' : 'bg-blue-100'}`}>
-//                               <CubeIcon className={`h-5 w-5 ${isOutOfStock ? 'text-red-700' : 'text-blue-600'}`} />
-//                             </div>
-//                             <div>
-//                               <h3 className="font-bold text-gray-900 text-lg truncate">{item.name}</h3>
-//                               <div className="flex items-center gap-2 mt-1">
-//                                 <span className="text-sm text-gray-600">{item.unit}</span>
-//                                 {isOutOfStock && (
-//                                   <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-200 text-red-800 animate-pulse">
-//                                     <ShoppingCartIcon className="h-3 w-3 mr-1" />
-//                                     Out of Stock
-//                                   </span>
-//                                 )}
-//                               </div>
-//                             </div>
-//                           </div>
-//                         </div>
-//                       </div>
-
-//                       {/* Content */}
-//                       <div className="p-5">
-//                         <div className="grid grid-cols-2 gap-4 mb-6">
-//                           <div className={`p-4 rounded-lg ${
-//                             isOutOfStock ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200'
-//                           }`}>
-//                             <p className="text-xs text-gray-500 mb-1">Current Stock</p>
-//                             <div className="flex items-baseline gap-2">
-//                               <p className={`text-3xl font-bold ${isOutOfStock ? 'text-red-600' : 'text-gray-900'}`}>
-//                                 {item.stock}
-//                               </p>
-//                               {isOutOfStock && (
-//                                 <ExclamationTriangleIcon className="h-5 w-5 text-red-500 animate-pulse" />
-//                               )}
-//                             </div>
-//                           </div>
-                          
-//                           <div className={`p-4 rounded-lg border ${
-//                             item.isUsed ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50'
-//                           }`}>
-//                             <p className="text-xs text-gray-500 mb-1">Usage Status</p>
-//                             <div className="flex items-center gap-2">
-//                               {item.isUsed ? (
-//                                 <>
-//                                   <BeakerIcon className="h-5 w-5 text-green-600" />
-//                                   <span className="text-lg font-semibold text-green-700">In Use</span>
-//                                 </>
-//                               ) : (
-//                                 <>
-//                                   <EyeSlashIcon className="h-5 w-5 text-blue-600" />
-//                                   <span className="text-lg font-semibold text-blue-700">Not Used</span>
-//                                 </>
-//                               )}
-//                             </div>
-//                           </div>
-//                         </div>
-
-//                         {/* Action Buttons */}
-//                         <div className="space-y-3">
-//                           {/* Usage Toggle Button - Always Enabled */}
-//                           <button
-//                             onClick={() => toggleMaterialUsage(item.id, item.isUsed)}
-//                             disabled={updating === item.id}
-//                             className={`w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
-//                               updating === item.id
-//                                 ? 'bg-gray-100 text-gray-600 border border-gray-300 cursor-not-allowed'
-//                                 : item.isUsed
-//                                   ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-300'
-//                                   : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-300'
-//                             } ${isOutOfStock ? 'opacity-100' : ''}`}
-//                           >
-//                             {updating === item.id ? (
-//                               <>
-//                                 <ArrowPathIcon className="h-4 w-4 animate-spin" />
-//                                 Updating...
-//                               </>
-//                             ) : item.isUsed ? (
-//                               <>
-//                                 <EyeSlashIcon className="h-4 w-4" />
-//                                 Mark as Not Used
-//                               </>
-//                             ) : (
-//                               <>
-//                                 <BeakerIcon className="h-4 w-4" />
-//                                 Mark as Used
-//                               </>
-//                             )}
-//                           </button>
-
-//                           {/* Stock Status Message */}
-//                         </div>
-//                       </div>
+//           {/* Content with categorized sections */}
+//           <div className="space-y-8">
+//             {/* In Use Section */}
+//             {usedMaterials.length > 0 && (
+//               <div className="bg-white rounded-xl border border-green-200 shadow-sm overflow-hidden">
+//                 <div 
+//                   className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 cursor-pointer flex items-center justify-between"
+//                   onClick={() => toggleSection('used')}
+//                 >
+//                   <div className="flex items-center gap-4">
+//                     <div className="p-3 bg-green-100 rounded-lg">
+//                       <BeakerIcon className="h-6 w-6 text-green-600" />
 //                     </div>
-//                   );
-//                 })
-//               ) : (
-//                 <div className="col-span-full bg-white rounded-xl border border-gray-200 p-12 text-center">
-//                   <ExclamationTriangleIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-//                   <h3 className="text-xl font-semibold text-gray-500 mb-2">
-//                     {selectedWarehouse ? 'No Materials Found in This Warehouse' : 'No Materials Found'}
-//                   </h3>
-//                   <p className="text-gray-400">
-//                     {search || statusFilter !== 'all' 
-//                       ? 'Try adjusting your search or filter criteria'
-//                       : 'Start by adding some raw materials to your inventory'}
-//                   </p>
-//                   {selectedWarehouse && (
-//                     <button
-//                       onClick={() => setSelectedWarehouse("")}
-//                       className="mt-4 px-6 py-2 bg-blue-50 text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-100 transition-colors"
-//                     >
-                     
-//                     </button>
-//                   )}
-//                 </div>
-//               )}
-//             </div>
-//           ) : (
-//             /* List View (Table) */
-//             <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-//               <div className="overflow-x-auto">
-//                 <table className="min-w-full divide-y divide-gray-200">
-//                   <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-//                     <tr>
-//                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                         Material
-//                       </th>
-//                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                         Stock & Unit
-//                       </th>
-//                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                         Usage Status
-//                       </th>
-//                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-//                         Action
-//                       </th>
-//                     </tr>
-//                   </thead>
-//                   <tbody className="divide-y divide-gray-200">
-//                     {filtered.map((item) => {
-//                       const isOutOfStock = item.outOfStock;
-//                       const isBlinking = blinkingItems.includes(item.id);
-                      
-//                       return (
-//                         <tr 
-//                           key={item.id} 
-//                           className={`hover:bg-gray-50 transition-colors ${
-//                             isOutOfStock ? `bg-red-50 ${isBlinking ? 'animate-pulse' : ''}` : ''
-//                           }`}
-//                         >
-//                           <td className="px-6 py-4">
-//                             <div className="flex items-center gap-4">
-//                               <div className={`p-3 rounded-lg ${isOutOfStock ? 'bg-red-100' : 'bg-blue-100'}`}>
-//                                 <CubeIcon className={`h-5 w-5 ${isOutOfStock ? 'text-red-600' : 'text-blue-600'}`} />
-//                               </div>
-//                               <div>
-//                                 <h4 className="font-semibold text-gray-900">{item.name}</h4>
-//                                 {isOutOfStock && (
-//                                   <div className="flex items-center gap-2 mt-1">
-//                                     <ShoppingCartIcon className="h-4 w-4 text-red-500" />
-//                                     <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
-//                                       Out of Stock
-//                                     </span>
-//                                   </div>
-//                                 )}
-//                               </div>
-//                             </div>
-//                           </td>
-//                           <td className="px-6 py-4">
-//                             <div className="space-y-2">
-//                               <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
-//                                 isOutOfStock ? 'bg-red-100 border border-red-200' : 'bg-gray-100 border border-gray-200'
-//                               }`}>
-//                                 <span className={`text-xl font-bold ${isOutOfStock ? 'text-red-600' : 'text-gray-900'}`}>
-//                                   {item.stock}
-//                                 </span>
-//                                 <span className="text-sm text-gray-600">•</span>
-//                                 <span className="text-sm text-gray-700">{item.unit}</span>
-//                                 {isOutOfStock && (
-//                                   <ExclamationTriangleIcon className="h-4 w-4 text-red-500 animate-pulse" />
-//                                 )}
-//                               </div>
-//                             </div>
-//                           </td>
-//                           <td className="px-6 py-4">
-//                             <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${
-//                               item.isUsed 
-//                                 ? 'bg-green-100 border border-green-200' 
-//                                 : 'bg-blue-100 border border-blue-200'
-//                             }`}>
-//                               {item.isUsed ? (
-//                                 <>
-//                                   <BeakerIcon className="h-5 w-5 text-green-600" />
-//                                   <span className="font-medium text-green-700">In Use</span>
-//                                 </>
-//                               ) : (
-//                                 <>
-//                                   <EyeSlashIcon className="h-5 w-5 text-blue-600" />
-//                                   <span className="font-medium text-blue-700">Not Used</span>
-//                                 </>
-//                               )}
-//                             </div>
-//                           </td>
-//                           <td className="px-6 py-4">
-//                             <div className="space-y-2">
-//                               <button
-//                                 onClick={() => toggleMaterialUsage(item.id, item.isUsed)}
-//                                 disabled={updating === item.id}
-//                                 className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 min-w-[140px] ${
-//                                   updating === item.id
-//                                     ? 'bg-gray-100 text-gray-600 border border-gray-300 cursor-not-allowed'
-//                                     : item.isUsed
-//                                       ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-300'
-//                                       : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-300'
-//                                 }`}
-//                               >
-//                                 {updating === item.id ? (
-//                                   <>
-//                                     <ArrowPathIcon className="h-4 w-4 animate-spin" />
-//                                     Updating...
-//                                   </>
-//                                 ) : item.isUsed ? (
-//                                   <>
-//                                     <EyeSlashIcon className="h-4 w-4" />
-//                                     Mark Not Used
-//                                   </>
-//                                 ) : (
-//                                   <>
-//                                     <BeakerIcon className="h-4 w-4" />
-//                                     Mark Used
-//                                   </>
-//                                 )}
-//                               </button>
-                              
-//                               {isOutOfStock && (
-//                                 <p className="text-xs text-red-600 text-center mt-1">
-//                                   Stock needs reorder
-//                                 </p>
-//                               )}
-//                             </div>
-//                           </td>
-//                         </tr>
-//                       );
-//                     })}
-//                   </tbody>
-//                 </table>
-//               </div>
-
-//               {/* Table Footer */}
-//               <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-//                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-//                   <div>
-//                     <p className="text-sm text-gray-600">
-//                       Showing <span className="font-semibold">{filtered.length}</span> of{' '}
-//                       <span className="font-semibold">{rawMaterials.length}</span> materials
-//                       {selectedWarehouse && (
-//                         <span className="text-blue-600 ml-2">
-//                           • Warehouse: {warehouseList.find(w => w.value === selectedWarehouse)?.label}
-//                         </span>
-//                       )}
-//                     </p>
-//                   </div>
-//                   <div className="flex items-center gap-6">
-//                     <div className="flex items-center gap-2">
-//                       <BeakerIcon className="h-4 w-4 text-green-600" />
-//                       <span className="text-sm text-gray-600">In Use: {stats.used}</span>
-//                     </div>
-//                     <div className="flex items-center gap-2">
-//                       <EyeSlashIcon className="h-4 w-4 text-blue-600" />
-//                       <span className="text-sm text-gray-600">Not Used: {stats.notUsed}</span>
-//                     </div>
-//                     <div className="flex items-center gap-2">
-//                       <ShoppingCartIcon className="h-4 w-4 text-red-600 animate-pulse" />
-//                       <span className="text-sm text-gray-600">Out of Stock: {stats.outOfStock}</span>
+//                     <div>
+//                       <h2 className="text-2xl font-bold text-green-900">Materials In Use</h2>
+//                       <p className="text-green-700">{usedMaterials.length} materials currently being used in production</p>
 //                     </div>
 //                   </div>
+//                   <div className="text-green-600">
+//                     {expandedSections.used ? (
+//                       <ChevronUpIcon className="h-6 w-6" />
+//                     ) : (
+//                       <ChevronDownIcon className="h-6 w-6" />
+//                     )}
+//                   </div>
 //                 </div>
+                
+//                 {expandedSections.used && (
+//                   <div className="p-6">
+//                     {viewMode === "grid" ? (
+//                       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+//                         {usedMaterials.map((item) => renderMaterialCard(item))}
+//                       </div>
+//                     ) : (
+//                       <div className="overflow-x-auto">
+//                         <table className="min-w-full divide-y divide-gray-200">
+//                           <thead className="bg-gradient-to-r from-green-50 to-emerald-50">
+//                             <tr>
+//                               <th className="px-6 py-4 text-left text-sm font-semibold text-green-700 uppercase tracking-wider">
+//                                 Material
+//                               </th>
+//                               <th className="px-6 py-4 text-left text-sm font-semibold text-green-700 uppercase tracking-wider">
+//                                 Stock & Unit
+//                               </th>
+//                               <th className="px-6 py-4 text-left text-sm font-semibold text-green-700 uppercase tracking-wider">
+//                                 Usage Status
+//                               </th>
+//                               <th className="px-6 py-4 text-left text-sm font-semibold text-green-700 uppercase tracking-wider">
+//                                 Action
+//                               </th>
+//                             </tr>
+//                           </thead>
+//                           <tbody className="divide-y divide-gray-200">
+//                             {usedMaterials.map((item) => renderMaterialRow(item))}
+//                           </tbody>
+//                         </table>
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
 //               </div>
-//             </div>
-//           )}
+//             )}
+
+//             {/* Not In Use Section */}
+//             {notUsedMaterials.length > 0 && (
+//               <div className="bg-white rounded-xl border border-blue-200 shadow-sm overflow-hidden">
+//                 <div 
+//                   className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-blue-200 cursor-pointer flex items-center justify-between"
+//                   onClick={() => toggleSection('notUsed')}
+//                 >
+//                   <div className="flex items-center gap-4">
+//                     <div className="p-3 bg-blue-100 rounded-lg">
+//                       <EyeSlashIcon className="h-6 w-6 text-blue-600" />
+//                     </div>
+//                     <div>
+//                       <h2 className="text-2xl font-bold text-blue-900">Materials Not In Use</h2>
+//                       <p className="text-blue-700">{notUsedMaterials.length} materials available for production use</p>
+//                     </div>
+//                   </div>
+//                   <div className="text-blue-600">
+//                     {expandedSections.notUsed ? (
+//                       <ChevronUpIcon className="h-6 w-6" />
+//                     ) : (
+//                       <ChevronDownIcon className="h-6 w-6" />
+//                     )}
+//                   </div>
+//                 </div>
+                
+//                 {expandedSections.notUsed && (
+//                   <div className="p-6">
+//                     {viewMode === "grid" ? (
+//                       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+//                         {notUsedMaterials.map((item) => renderMaterialCard(item))}
+//                       </div>
+//                     ) : (
+//                       <div className="overflow-x-auto">
+//                         <table className="min-w-full divide-y divide-gray-200">
+//                           <thead className="bg-gradient-to-r from-blue-50 to-cyan-50">
+//                             <tr>
+//                               <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">
+//                                 Material
+//                               </th>
+//                               <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">
+//                                 Stock & Unit
+//                               </th>
+//                               <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">
+//                                 Usage Status
+//                               </th>
+//                               <th className="px-6 py-4 text-left text-sm font-semibold text-blue-700 uppercase tracking-wider">
+//                                 Action
+//                               </th>
+//                             </tr>
+//                           </thead>
+//                           <tbody className="divide-y divide-gray-200">
+//                             {notUsedMaterials.map((item) => renderMaterialRow(item))}
+//                           </tbody>
+//                         </table>
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+//             )}
+
+//             {/* Empty State */}
+//             {usedMaterials.length === 0 && notUsedMaterials.length === 0 && (
+//               <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+//                 <ExclamationTriangleIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+//                 <h3 className="text-xl font-semibold text-gray-500 mb-2">
+//                   {selectedWarehouse ? 'No Materials Found in This Warehouse' : 'No Materials Found'}
+//                 </h3>
+//                 <p className="text-gray-400">
+//                   {search || statusFilter !== 'all' 
+//                     ? 'Try adjusting your search or filter criteria'
+//                     : 'Start by adding some raw materials to your inventory'}
+//                 </p>
+//               </div>
+//             )}
+//           </div>
 
 //           {/* Legend and Help Section */}
 //           <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -835,7 +859,7 @@
 //                     <EyeSlashIcon className="h-4 w-4 text-green-600" />
 //                   </div>
 //                   <p className="text-sm text-blue-700">
-//                     <span className="font-semibold">Quick Updates:</span> Click buttons to toggle between "Used" and "Not Used" instantly
+//                     <span className="font-semibold">Categorized View:</span> Materials are grouped by usage status for better organization
 //                   </p>
 //                 </div>
 //               </div>
@@ -851,6 +875,7 @@
 
 import React, { useEffect, useState } from "react";
 import Api from "../../auth/Api";
+import * as XLSX from "xlsx";
 import {
   CheckCircleIcon,
   ArrowPathIcon,
@@ -867,7 +892,8 @@ import {
   ShoppingCartIcon,
   BuildingLibraryIcon,
   ChevronDownIcon,
-  ChevronUpIcon
+  ChevronUpIcon,
+  ArrowDownTrayIcon
 } from "@heroicons/react/24/outline";
 
 const RawMaterialStock = () => {
@@ -886,6 +912,7 @@ const RawMaterialStock = () => {
     used: true,
     notUsed: true
   });
+  const [exporting, setExporting] = useState(false);
   
   const role = localStorage.getItem("roleName");
 
@@ -1003,6 +1030,119 @@ const RawMaterialStock = () => {
       ...prev,
       [section]: !prev[section]
     }));
+  };
+
+  const exportToExcel = (type = "filtered") => {
+    try {
+      setExporting(true);
+      
+      let dataToExport = [];
+      let sheetName = "";
+      let fileName = "";
+      const warehouseName = warehouseList.find(w => w.value === selectedWarehouse)?.label || "All Warehouses";
+      const dateStr = new Date().toISOString().split('T')[0];
+      
+      switch(type) {
+        case "all":
+          dataToExport = rawMaterials;
+          sheetName = "All Materials";
+          fileName = `All_RawMaterials_${warehouseName.replace(/\s+/g, '_')}_${dateStr}.xlsx`;
+          break;
+        case "used":
+          dataToExport = rawMaterials.filter(item => item.isUsed);
+          sheetName = "Materials In Use";
+          fileName = `Materials_In_Use_${warehouseName.replace(/\s+/g, '_')}_${dateStr}.xlsx`;
+          break;
+        case "notUsed":
+          dataToExport = rawMaterials.filter(item => !item.isUsed);
+          sheetName = "Materials Not Used";
+          fileName = `Materials_Not_Used_${warehouseName.replace(/\s+/g, '_')}_${dateStr}.xlsx`;
+          break;
+        case "outOfStock":
+          dataToExport = rawMaterials.filter(item => item.outOfStock);
+          sheetName = "Out of Stock";
+          fileName = `Out_Of_Stock_Materials_${warehouseName.replace(/\s+/g, '_')}_${dateStr}.xlsx`;
+          break;
+        default:
+          dataToExport = filtered;
+          sheetName = "Filtered Materials";
+          fileName = `Filtered_RawMaterials_${warehouseName.replace(/\s+/g, '_')}_${dateStr}.xlsx`;
+      }
+      
+      if (dataToExport.length === 0) {
+        alert(`No data available to export for ${sheetName}`);
+        setExporting(false);
+        return;
+      }
+      
+      // Format data for Excel
+      const exportData = dataToExport.map(item => ({
+        "Material ID": item.id || "",
+        "Material Name": item.name || "",
+        "Stock Quantity": item.stock || 0,
+        "Unit": item.unit || "",
+        "Minimum Stock": item.minStock || "N/A",
+        "Maximum Stock": item.maxStock || "N/A",
+        "Usage Status": item.isUsed ? "In Use" : "Not Used",
+        "Stock Status": item.outOfStock ? "OUT OF STOCK" : "IN STOCK",
+        "Category": item.category || "N/A",
+        "Warehouse": warehouseName,
+        "Reorder Required": item.outOfStock ? "YES" : "NO",
+        "Last Updated": new Date().toLocaleString()
+      }));
+      
+      // Add summary row
+      const summaryRow = {
+        "Material ID": "SUMMARY",
+        "Material Name": `Total Items: ${dataToExport.length}`,
+        "Stock Quantity": `In Stock: ${dataToExport.filter(item => !item.outOfStock).length}`,
+        "Unit": `Out of Stock: ${dataToExport.filter(item => item.outOfStock).length}`,
+        "Minimum Stock": `In Use: ${dataToExport.filter(item => item.isUsed).length}`,
+        "Maximum Stock": `Not Used: ${dataToExport.filter(item => !item.isUsed).length}`,
+        "Usage Status": "",
+        "Stock Status": "",
+        "Category": "",
+        "Warehouse": "",
+        "Reorder Required": "",
+        "Last Updated": ""
+      };
+      
+      exportData.push(summaryRow);
+      
+      // Create worksheet with auto column width
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      
+      // Set column widths
+      const wscols = [
+        {wch: 15}, // Material ID
+        {wch: 25}, // Material Name
+        {wch: 15}, // Stock Quantity
+        {wch: 10}, // Unit
+        {wch: 15}, // Minimum Stock
+        {wch: 15}, // Maximum Stock
+        {wch: 12}, // Usage Status
+        {wch: 15}, // Stock Status
+        {wch: 15}, // Category
+        {wch: 20}, // Warehouse
+        {wch: 15}, // Reorder Required
+        {wch: 20}  // Last Updated
+      ];
+      ws['!cols'] = wscols;
+      
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      
+      // Export to Excel
+      XLSX.writeFile(wb, fileName);
+      
+      alert(`Excel file "${fileName}" downloaded successfully!`);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      alert("Failed to export to Excel. Please try again.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const stats = {
@@ -1300,6 +1440,67 @@ const RawMaterialStock = () => {
                   </button>
                 </div>
                 
+                {/* Export Dropdown */}
+                <div className="relative group">
+                  <button
+                    onClick={() => exportToExcel("filtered")}
+                    disabled={exporting || filtered.length === 0}
+                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white border border-green-700 rounded-lg hover:bg-green-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ArrowDownTrayIcon className={`h-4 w-4 mr-2 ${exporting ? 'animate-bounce' : ''}`} />
+                    {exporting ? 'Exporting...' : 'Export Excel'}
+                  </button>
+                  
+                  {/* Advanced Export Dropdown */}
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                    <div className="py-2">
+                      <div className="px-4 py-2 text-xs font-semibold text-gray-500 bg-gray-50">
+                        Export Options
+                      </div>
+                      <button
+                        onClick={() => exportToExcel("filtered")}
+                        disabled={filtered.length === 0}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+                      >
+                        <span>Filtered View</span>
+                        <span className="text-xs text-gray-500">{filtered.length}</span>
+                      </button>
+                      <button
+                        onClick={() => exportToExcel("all")}
+                        disabled={rawMaterials.length === 0}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+                      >
+                        <span>All Materials</span>
+                        <span className="text-xs text-gray-500">{rawMaterials.length}</span>
+                      </button>
+                      <button
+                        onClick={() => exportToExcel("used")}
+                        disabled={stats.used === 0}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+                      >
+                        <span>In Use Only</span>
+                        <span className="text-xs text-gray-500">{stats.used}</span>
+                      </button>
+                      <button
+                        onClick={() => exportToExcel("notUsed")}
+                        disabled={stats.notUsed === 0}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+                      >
+                        <span>Not Used Only</span>
+                        <span className="text-xs text-gray-500">{stats.notUsed}</span>
+                      </button>
+                      <button
+                        onClick={() => exportToExcel("outOfStock")}
+                        disabled={stats.outOfStock === 0}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-t border-gray-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+                      >
+                        <span>Out of Stock</span>
+                        <span className="text-xs text-gray-500">{stats.outOfStock}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
                 <button
                   onClick={fetchRawMaterials}
                   disabled={loading}
@@ -1328,6 +1529,19 @@ const RawMaterialStock = () => {
                       Viewing materials from this warehouse only
                     </p>
                   </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-blue-600">
+                    Total Items: {stats.total}
+                  </span>
+                  <button
+                    onClick={() => exportToExcel("all")}
+                    disabled={exporting || rawMaterials.length === 0}
+                    className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <ArrowDownTrayIcon className="h-4 w-4" />
+                    Export All
+                  </button>
                 </div>
               </div>
             </div>
@@ -1456,21 +1670,34 @@ const RawMaterialStock = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Quick Actions
                 </label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {stats.outOfStock > 0 && (
                     <button
                       onClick={() => setStatusFilter("out-of-stock")}
-                      className="flex-1 px-4 py-2.5 bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                      className="col-span-2 px-4 py-2.5 bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
                     >
                       <BellAlertIcon className="h-4 w-4" />
                       Stock Alerts ({stats.outOfStock})
                     </button>
                   )}
                   <button
+                    onClick={() => exportToExcel("filtered")}
+                    disabled={exporting || filtered.length === 0}
+                    className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                      filtered.length === 0 || exporting
+                        ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                        : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-300'
+                    }`}
+                  >
+                    <ArrowDownTrayIcon className={`h-4 w-4 ${exporting ? 'animate-bounce' : ''}`} />
+                    Export
+                  </button>
+                  <button
                     onClick={fetchRawMaterials}
-                    className="px-4 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                    className="px-4 py-2.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
                   >
                     <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    Refresh
                   </button>
                 </div>
               </div>
@@ -1493,12 +1720,21 @@ const RawMaterialStock = () => {
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setStatusFilter("out-of-stock")}
-                  className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-                >
-                  View All ({stats.outOfStock})
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setStatusFilter("out-of-stock")}
+                    className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    View All ({stats.outOfStock})
+                  </button>
+                  <button
+                    onClick={() => exportToExcel("outOfStock")}
+                    disabled={exporting}
+                    className="px-6 py-2.5 bg-white text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors font-medium disabled:opacity-50"
+                  >
+                    Export List
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1521,12 +1757,25 @@ const RawMaterialStock = () => {
                       <p className="text-green-700">{usedMaterials.length} materials currently being used in production</p>
                     </div>
                   </div>
-                  <div className="text-green-600">
-                    {expandedSections.used ? (
-                      <ChevronUpIcon className="h-6 w-6" />
-                    ) : (
-                      <ChevronDownIcon className="h-6 w-6" />
-                    )}
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exportToExcel("used");
+                      }}
+                      disabled={exporting}
+                      className="px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                    >
+                      <ArrowDownTrayIcon className="h-4 w-4" />
+                      Export
+                    </button>
+                    <div className="text-green-600">
+                      {expandedSections.used ? (
+                        <ChevronUpIcon className="h-6 w-6" />
+                      ) : (
+                        <ChevronDownIcon className="h-6 w-6" />
+                      )}
+                    </div>
                   </div>
                 </div>
                 
@@ -1582,12 +1831,25 @@ const RawMaterialStock = () => {
                       <p className="text-blue-700">{notUsedMaterials.length} materials available for production use</p>
                     </div>
                   </div>
-                  <div className="text-blue-600">
-                    {expandedSections.notUsed ? (
-                      <ChevronUpIcon className="h-6 w-6" />
-                    ) : (
-                      <ChevronDownIcon className="h-6 w-6" />
-                    )}
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        exportToExcel("notUsed");
+                      }}
+                      disabled={exporting}
+                      className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                    >
+                      <ArrowDownTrayIcon className="h-4 w-4" />
+                      Export
+                    </button>
+                    <div className="text-blue-600">
+                      {expandedSections.notUsed ? (
+                        <ChevronUpIcon className="h-6 w-6" />
+                      ) : (
+                        <ChevronDownIcon className="h-6 w-6" />
+                      )}
+                    </div>
                   </div>
                 </div>
                 
@@ -1691,6 +1953,14 @@ const RawMaterialStock = () => {
                 </div>
                 <div className="flex items-start gap-2">
                   <div className="p-1 bg-blue-100 rounded">
+                    <ArrowDownTrayIcon className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    <span className="font-semibold">Excel Export:</span> Export data with multiple options (filtered, all, by status)
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="p-1 bg-blue-100 rounded">
                     <BeakerIcon className="h-4 w-4 text-blue-600" />
                   </div>
                   <p className="text-sm text-blue-700">
@@ -1703,14 +1973,6 @@ const RawMaterialStock = () => {
                   </div>
                   <p className="text-sm text-blue-700">
                     <span className="font-semibold">Out of Stock:</span> Items marked with blinking indicators but can still have usage status updated
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="p-1 bg-green-100 rounded">
-                    <EyeSlashIcon className="h-4 w-4 text-green-600" />
-                  </div>
-                  <p className="text-sm text-blue-700">
-                    <span className="font-semibold">Categorized View:</span> Materials are grouped by usage status for better organization
                   </p>
                 </div>
               </div>
