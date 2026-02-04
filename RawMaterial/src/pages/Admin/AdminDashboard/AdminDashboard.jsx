@@ -7,12 +7,13 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [updateLoading, setUpdateLoading] = useState(null);
+  const [updateLoading, setUpdateLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [selectedRequests, setSelectedRequests] = useState([]);
   const [actionType, setActionType] = useState(null);
   const [remarks, setRemarks] = useState('');
   const [notification, setNotification] = useState(null);
+  const [bulkSelect, setBulkSelect] = useState(false);
   
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,6 +80,9 @@ const AdminDashboard = () => {
       if (response.data.success) {
         setPaymentRequests(response.data.data);
         setFilteredRequests(response.data.data);
+        // Clear selection when data is refreshed
+        setSelectedRequests([]);
+        setBulkSelect(false);
       } else {
         setError('Failed to fetch payment requests');
       }
@@ -91,21 +95,35 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleActionClick = (request, action) => {
-    setSelectedRequest(request);
+  const handleSingleActionClick = (request, action) => {
+    setSelectedRequests([request]);
+    setActionType(action);
+    setRemarks('');
+    setShowModal(true);
+  };
+
+  const handleBulkActionClick = (action) => {
+    if (selectedRequests.length === 0) {
+      setNotification({
+        type: 'warning',
+        message: 'Please select at least one payment request to perform bulk action'
+      });
+      return;
+    }
+    
     setActionType(action);
     setRemarks('');
     setShowModal(true);
   };
 
   const handleUpdateStatus = async () => {
-    if (!selectedRequest || !actionType) return;
+    if (selectedRequests.length === 0 || !actionType) return;
 
     try {
-      setUpdateLoading(selectedRequest.paymentRequestId);
+      setUpdateLoading(true);
       
       const updateData = {
-        paymentRequestId: selectedRequest.paymentRequestId,
+        paymentRequestIds: selectedRequests.map(req => req.paymentRequestId),
         status: actionType === 'APPROVE' ? 'APPROVED' : 'REJECTED',
         remarks: remarks || (actionType === 'APPROVE' ? 'Payment Approved' : 'Payment Rejected')
       };
@@ -123,7 +141,7 @@ const AdminDashboard = () => {
       if (response.data.success) {
         setNotification({
           type: 'success',
-          message: response.data.message || `Payment request ${actionType === 'APPROVE' ? 'approved' : 'rejected'} successfully! Refreshing data...`
+          message: response.data.message || `Successfully ${actionType === 'APPROVE' ? 'approved' : 'rejected'} ${selectedRequests.length} payment request(s)! Refreshing data...`
         });
 
         // Set refreshing state
@@ -131,9 +149,10 @@ const AdminDashboard = () => {
         
         // Close modal first
         setShowModal(false);
-        setSelectedRequest(null);
+        setSelectedRequests([]);
         setActionType(null);
         setRemarks('');
+        setBulkSelect(false);
         
         // Refresh data after a short delay
         setTimeout(() => {
@@ -153,8 +172,48 @@ const AdminDashboard = () => {
         message: err.response?.data?.message || err.message || 'Failed to update payment status'
       });
     } finally {
-      setUpdateLoading(null);
+      setUpdateLoading(false);
     }
+  };
+
+  const handleSelectAllOnCurrentPage = () => {
+    const allIdsOnPage = currentItems.map(item => item.paymentRequestId);
+    const allSelectedOnPage = currentItems.every(item => 
+      selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
+    );
+    
+    if (allSelectedOnPage) {
+      // Deselect all on current page
+      setSelectedRequests(prev => prev.filter(
+        item => !allIdsOnPage.includes(item.paymentRequestId)
+      ));
+    } else {
+      // Select all on current page
+      const newSelections = currentItems.filter(
+        item => !selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
+      );
+      setSelectedRequests(prev => [...prev, ...newSelections]);
+    }
+  };
+
+  const handleSelectItem = (request) => {
+    const isSelected = selectedRequests.some(
+      selected => selected.paymentRequestId === request.paymentRequestId
+    );
+    
+    if (isSelected) {
+      setSelectedRequests(prev => prev.filter(
+        item => item.paymentRequestId !== request.paymentRequestId
+      ));
+    } else {
+      setSelectedRequests(prev => [...prev, request]);
+    }
+  };
+
+  const isItemSelected = (paymentRequestId) => {
+    return selectedRequests.some(
+      item => item.paymentRequestId === paymentRequestId
+    );
   };
 
   const formatDate = (dateString) => {
@@ -243,6 +302,12 @@ const AdminDashboard = () => {
     setSearchField('all');
   };
 
+  // Clear all selections
+  const clearAllSelections = () => {
+    setSelectedRequests([]);
+    setBulkSelect(false);
+  };
+
   // Get status badge
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -309,11 +374,15 @@ const AdminDashboard = () => {
 
       {/* Notification */}
       {notification && (
-        <div className={`fixed top-4 right-4 z-50 ${notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'} border px-4 py-3 rounded shadow-lg transition-opacity duration-300 max-w-sm`}>
+        <div className={`fixed top-4 right-4 z-50 ${notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : notification.type === 'warning' ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 'bg-red-50 border-red-200 text-red-700'} border px-4 py-3 rounded shadow-lg transition-opacity duration-300 max-w-sm`}>
           <div className="flex items-center">
             {notification.type === 'success' ? (
               <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            ) : notification.type === 'warning' ? (
+              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             ) : (
               <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -326,18 +395,18 @@ const AdminDashboard = () => {
       )}
 
       {/* Confirmation Modal */}
-      {showModal && selectedRequest && (
+      {showModal && selectedRequests.length > 0 && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center p-4">
           <div className="relative mt-8 mx-auto p-5 border w-full max-w-md md:max-w-lg shadow-lg rounded-md bg-white">
             <div className="mt-3">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium leading-6 text-gray-900">
-                  Confirm {actionType === 'APPROVE' ? 'Approval' : 'Rejection'}
+                  Confirm {actionType === 'APPROVE' ? 'Approval' : 'Rejection'} ({selectedRequests.length} item{selectedRequests.length > 1 ? 's' : ''})
                 </h3>
                 <button
                   onClick={() => {
                     setShowModal(false);
-                    setSelectedRequest(null);
+                    setSelectedRequests([]);
                     setActionType(null);
                     setRemarks('');
                   }}
@@ -349,19 +418,31 @@ const AdminDashboard = () => {
                 </button>
               </div>
               
-              <div className="mt-4 bg-gray-50 p-4 rounded">
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex justify-between">
-                    <span className="font-medium">PO Number:</span>
-                    <span>{selectedRequest.poNumber}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Vendor:</span>
-                    <span>{selectedRequest.vendorName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Amount:</span>
-                    <span className="font-semibold">{formatCurrency(selectedRequest.requestedAmount, selectedRequest.currency)}</span>
+              <div className="mt-4 bg-gray-50 p-4 rounded max-h-60 overflow-y-auto">
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Payment Requests:</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  {selectedRequests.slice(0, 10).map((request, index) => (
+                    <li key={request.paymentRequestId} className="flex justify-between items-center p-2 hover:bg-gray-100 rounded">
+                      <div className="flex items-center">
+                        <span className="font-medium mr-2">{index + 1}.</span>
+                        <div>
+                          <div className="font-medium">{request.poNumber}</div>
+                          <div className="text-xs text-gray-500">{request.vendorName}</div>
+                        </div>
+                      </div>
+                      <div className="font-semibold">{formatCurrency(request.requestedAmount, request.currency)}</div>
+                    </li>
+                  ))}
+                  {selectedRequests.length > 10 && (
+                    <li className="text-center text-gray-500 text-sm py-2">
+                      ...and {selectedRequests.length - 10} more
+                    </li>
+                  )}
+                </ul>
+                <div className="mt-3 pt-3 border-t border-gray-200 text-sm">
+                  <div className="flex justify-between font-medium">
+                    <span>Total Selected:</span>
+                    <span>{selectedRequests.length} request{selectedRequests.length > 1 ? 's' : ''}</span>
                   </div>
                 </div>
               </div>
@@ -383,7 +464,7 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => {
                     setShowModal(false);
-                    setSelectedRequest(null);
+                    setSelectedRequests([]);
                     setActionType(null);
                     setRemarks('');
                   }}
@@ -393,14 +474,14 @@ const AdminDashboard = () => {
                 </button>
                 <button
                   onClick={handleUpdateStatus}
-                  disabled={updateLoading === selectedRequest.paymentRequestId}
+                  disabled={updateLoading}
                   className={`w-full sm:w-auto px-4 py-2 rounded-md text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ${
                     actionType === 'APPROVE'
                       ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:ring-green-500 shadow-sm hover:shadow'
                       : 'bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 focus:ring-red-500 shadow-sm hover:shadow'
-                  } ${updateLoading === selectedRequest.paymentRequestId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  } ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {updateLoading === selectedRequest.paymentRequestId ? (
+                  {updateLoading ? (
                     <span className="flex items-center justify-center">
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -422,6 +503,63 @@ const AdminDashboard = () => {
         <h1 className="text-xl md:text-2xl font-bold text-gray-800">Payment Approval Request</h1>
         <p className="text-gray-600 text-sm md:text-base mt-1">Approve or reject payment requests from vendors</p>
       </div>
+
+      {/* Selection Summary Bar */}
+      {selectedRequests.length > 0 && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-sm p-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+            <div className="flex items-center mb-2 sm:mb-0">
+              <div className="bg-blue-100 text-blue-800 rounded-full p-2 mr-3">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">
+                  {selectedRequests.length} payment request{selectedRequests.length > 1 ? 's' : ''} selected
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Total amount: {formatCurrency(
+                    selectedRequests.reduce((sum, req) => sum + req.requestedAmount, 0),
+                    selectedRequests[0]?.currency || 'USD'
+                  )}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={clearAllSelections}
+                className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-white rounded-md border border-gray-300 transition-colors duration-150"
+              >
+                Clear All
+              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleBulkActionClick('APPROVE')}
+                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-md shadow-sm hover:shadow transition-all duration-150 flex items-center"
+                  disabled={updateLoading}
+                >
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Approve All
+                </button>
+                <button
+                  onClick={() => handleBulkActionClick('REJECT')}
+                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-md shadow-sm hover:shadow transition-all duration-150 flex items-center"
+                  disabled={updateLoading}
+                >
+                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Reject All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search Section */}
       <div className="bg-white rounded-lg shadow-md p-4 mb-6">
@@ -500,13 +638,26 @@ const AdminDashboard = () => {
       ) : (
         <>
           <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-            {/* Table Header with Pagination Controls */}
+            {/* Table Header with Bulk Actions */}
             <div className="px-4 md:px-6 py-4 border-b border-gray-200">
               <div className="flex flex-col space-y-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between space-y-2 md:space-y-0">
-                  <h2 className="text-lg font-semibold text-gray-700">
-                    Payment Requests
-                  </h2>
+                  <div className="flex items-center space-x-3">
+                    <h2 className="text-lg font-semibold text-gray-700">
+                      Payment Requests
+                    </h2>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                        checked={currentItems.length > 0 && currentItems.every(item => 
+                          selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
+                        )}
+                        onChange={handleSelectAllOnCurrentPage}
+                      />
+                      <span className="ml-2 text-sm text-gray-600">Select page</span>
+                    </label>
+                  </div>
                   <div className="flex items-center space-x-2">
                     {/* Items per page selector */}
                     <div className="flex items-center space-x-1 md:space-x-2">
@@ -547,6 +698,11 @@ const AdminDashboard = () => {
                         (filtered from {paymentRequests.length})
                       </span>
                     )}
+                    {selectedRequests.length > 0 && (
+                      <span className="ml-2 text-blue-600 font-medium">
+                        • {selectedRequests.length} selected
+                      </span>
+                    )}
                   </div>
                   <div>
                     Showing {filteredRequests.length === 0 ? 0 : indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRequests.length)} of {filteredRequests.length} entries
@@ -560,6 +716,9 @@ const AdminDashboard = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                      Select
+                    </th>
                     <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       PO Details
                     </th>
@@ -592,6 +751,16 @@ const AdminDashboard = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentItems.map((request) => (
                     <tr key={request.paymentRequestId} className="hover:bg-gray-50 transition-colors duration-150">
+                      {/* Select Checkbox */}
+                      <td className="px-4 md:px-6 py-4">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                          checked={isItemSelected(request.paymentRequestId)}
+                          onChange={() => handleSelectItem(request)}
+                        />
+                      </td>
+                      
                       {/* PO Details */}
                       <td className="px-4 md:px-6 py-4">
                         <div className="flex flex-col">
@@ -655,13 +824,13 @@ const AdminDashboard = () => {
                         </div>
                       </td>
                       
-                      {/* Actions - Beautifully Designed Buttons */}
+                      {/* Actions */}
                       <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-1 sm:space-y-0">
                           {/* Approve Button */}
                           <button 
-                            onClick={() => handleActionClick(request, 'APPROVE')}
-                            disabled={updateLoading === request.paymentRequestId || request.status === 'APPROVED'}
+                            onClick={() => handleSingleActionClick(request, 'APPROVE')}
+                            disabled={updateLoading || request.status === 'APPROVED'}
                             className={`
                               relative inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium
                               transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500
@@ -669,7 +838,7 @@ const AdminDashboard = () => {
                                 ? 'bg-green-100 text-green-800 border border-green-200 cursor-default shadow-inner' 
                                 : 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 hover:from-green-100 hover:to-emerald-100 border border-green-200 hover:border-green-300 hover:shadow-sm active:scale-95'
                               }
-                              ${(updateLoading === request.paymentRequestId) ? 'opacity-50 cursor-not-allowed' : ''}
+                              ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                             `}
                           >
                             {request.status === 'APPROVED' ? (
@@ -691,8 +860,8 @@ const AdminDashboard = () => {
                           
                           {/* Reject Button */}
                           <button 
-                            onClick={() => handleActionClick(request, 'REJECT')}
-                            disabled={updateLoading === request.paymentRequestId || request.status === 'REJECTED'}
+                            onClick={() => handleSingleActionClick(request, 'REJECT')}
+                            disabled={updateLoading || request.status === 'REJECTED'}
                             className={`
                               relative inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium
                               transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500
@@ -700,7 +869,7 @@ const AdminDashboard = () => {
                                 ? 'bg-red-100 text-red-800 border border-red-200 cursor-default shadow-inner' 
                                 : 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 hover:from-red-100 hover:to-pink-100 border border-red-200 hover:border-red-300 hover:shadow-sm active:scale-95'
                               }
-                              ${(updateLoading === request.paymentRequestId) ? 'opacity-50 cursor-not-allowed' : ''}
+                              ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                             `}
                           >
                             {request.status === 'REJECTED' ? (
@@ -842,8 +1011,6 @@ const AdminDashboard = () => {
               </div>
             )}
           </div>
-          
-
         </>
       )}
     </div>
