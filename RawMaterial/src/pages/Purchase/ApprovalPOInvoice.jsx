@@ -712,7 +712,7 @@ const ApprovalPOInvoice = () => {
       if (response.data.success) {
         alert(`PO ${status.toLowerCase()} successfully!`);
 
-        // Remove the approved/declined PO from the list
+        // Remove the approved/REJECTED PO from the list
         setApprovalData((prev) => prev.filter((po) => po.poId !== poId));
         // Remove from selected if it was selected
         const newSelected = new Set(selectedPOs);
@@ -867,7 +867,7 @@ const ApprovalPOInvoice = () => {
                 )}
               </button>
               <button
-                onClick={() => handleBulkApprovalAction("DECLINED")}
+                onClick={() => handleBulkApprovalAction("REJECTED")}
                 disabled={bulkActionLoading}
                 className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
@@ -1117,7 +1117,7 @@ const ApprovalPOInvoice = () => {
                             </button>
                             <button
                               onClick={() =>
-                                handleApprovalAction(po.poId, "DECLINED")
+                                handleApprovalAction(po.poId, "REJECTED")
                               }
                               disabled={actionLoading[po.poId] || selectedPOs.size > 0}
                               className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
