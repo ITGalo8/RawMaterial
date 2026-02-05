@@ -262,9 +262,7 @@ const PaymentRequestDetails = () => {
               <h1 className="text-3xl font-bold text-gray-900">
                 Payment Request Details
               </h1>
-              <p className="text-gray-600 mt-2">
-                Manage and review pending payment requests
-              </p>
+              
             </div>
             <div className="mt-4 md:mt-0 flex space-x-3">
               <button
@@ -749,7 +747,7 @@ const PaymentRequestDetails = () => {
                           </button>
                           <button
                             onClick={() =>
-                              handleApprove(
+                              handleReject(
                                 request.paymentRequestId,
                                 request.poNumber,
                                 "Reject"
