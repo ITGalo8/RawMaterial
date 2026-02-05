@@ -235,9 +235,7 @@ const PoOrderDetails = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             PO Stock Receiving
           </h1>
-          <p className="text-gray-600 text-sm">
-            Manage pending purchase orders for stock receiving
-          </p>
+         
         </div>
 
         {/* Search and Filters */}
