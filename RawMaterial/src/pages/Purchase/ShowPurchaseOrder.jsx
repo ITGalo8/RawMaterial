@@ -942,7 +942,7 @@ const ShowPurchaseOrder = () => {
     try {
       const formData = new FormData();
       formData.append('vendorId', invoiceData.vendorId);
-      formData.append('sold', invoiceData.poId); // Using 'sold' as per your API
+      formData.append('poId', invoiceData.poId);
       formData.append('invoiceNumber', invoiceData.invoiceNumber);
       formData.append('invoiceFile', invoiceData.invoiceFile);
 
