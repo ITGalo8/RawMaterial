@@ -1077,33 +1077,32 @@ const RawMaterialStock = () => {
       
       // Format data for Excel
       const exportData = dataToExport.map(item => ({
-        "Material ID": item.id || "",
         "Material Name": item.name || "",
         "Stock Quantity": item.stock || 0,
         "Unit": item.unit || "",
         "Minimum Stock": item.minStock || "N/A",
         "Maximum Stock": item.maxStock || "N/A",
         "Usage Status": item.isUsed ? "In Use" : "Not Used",
-        "Stock Status": item.outOfStock ? "OUT OF STOCK" : "IN STOCK",
+        // "Stock Status": item.outOfStock ? "OUT OF STOCK" : "IN STOCK",
         "Category": item.category || "N/A",
         "Warehouse": warehouseName,
-        "Reorder Required": item.outOfStock ? "YES" : "NO",
+        // "Reorder Required": item.outOfStock ? "YES" : "NO",
         "Last Updated": new Date().toLocaleString()
       }));
       
       // Add summary row
       const summaryRow = {
-        "Material ID": "SUMMARY",
+        // "Material ID": "SUMMARY",
         "Material Name": `Total Items: ${dataToExport.length}`,
         "Stock Quantity": `In Stock: ${dataToExport.filter(item => !item.outOfStock).length}`,
         "Unit": `Out of Stock: ${dataToExport.filter(item => item.outOfStock).length}`,
         "Minimum Stock": `In Use: ${dataToExport.filter(item => item.isUsed).length}`,
         "Maximum Stock": `Not Used: ${dataToExport.filter(item => !item.isUsed).length}`,
         "Usage Status": "",
-        "Stock Status": "",
+        // "Stock Status": "",
         "Category": "",
         "Warehouse": "",
-        "Reorder Required": "",
+        // "Reorder Required": "",
         "Last Updated": ""
       };
       
@@ -1114,17 +1113,14 @@ const RawMaterialStock = () => {
       
       // Set column widths
       const wscols = [
-        {wch: 15}, // Material ID
         {wch: 25}, // Material Name
         {wch: 15}, // Stock Quantity
         {wch: 10}, // Unit
         {wch: 15}, // Minimum Stock
         {wch: 15}, // Maximum Stock
         {wch: 12}, // Usage Status
-        {wch: 15}, // Stock Status
         {wch: 15}, // Category
         {wch: 20}, // Warehouse
-        {wch: 15}, // Reorder Required
         {wch: 20}  // Last Updated
       ];
       ws['!cols'] = wscols;
