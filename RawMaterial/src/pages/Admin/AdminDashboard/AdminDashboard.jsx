@@ -388,7 +388,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="p-3 max-w-full overflow-x-hidden">
+    <div className="p-4 max-w-full overflow-x-hidden bg-gray-50 min-h-screen">
       {/* Global refreshing overlay */}
       {refreshing && (
         <div className="fixed inset-0 bg-gray-200 bg-opacity-75 z-40 flex items-center justify-center">
@@ -401,7 +401,7 @@ const AdminDashboard = () => {
 
       {/* Notification */}
       {notification && (
-        <div className={`fixed top-4 right-4 z-50 max-w-[calc(100vw-2rem)] ${notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : notification.type === 'warning' ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 'bg-red-50 border-red-200 text-red-700'} border px-4 py-3 rounded shadow-lg transition-opacity duration-300`}>
+        <div className={`fixed top-4 right-4 z-50 max-w-md ${notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-700' : notification.type === 'warning' ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 'bg-red-50 border-red-200 text-red-700'} border px-4 py-3 rounded shadow-lg transition-opacity duration-300`}>
           <div className="flex items-center">
             {notification.type === 'success' ? (
               <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -416,19 +416,19 @@ const AdminDashboard = () => {
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             )}
-            <span className="text-sm break-words">{notification.message}</span>
+            <span className="text-sm">{notification.message}</span>
           </div>
         </div>
       )}
 
       {/* Confirmation Modal */}
       {showModal && selectedRequests.length > 0 && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-start justify-center p-3 overflow-y-auto">
-          <div className="relative mt-4 mx-auto p-4 border w-full max-w-[95%] md:max-w-lg shadow-lg rounded-md bg-white">
-            <div className="mt-2">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-base font-medium leading-6 text-gray-900">
-                  Confirm {actionType === 'APPROVE' ? 'Approval' : 'Rejection'} ({selectedRequests.length} item{selectedRequests.length > 1 ? 's' : ''})
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Confirm {actionType === 'APPROVE' ? 'Approval' : 'Rejection'}
                 </h3>
                 <button
                   onClick={() => {
@@ -437,7 +437,7 @@ const AdminDashboard = () => {
                     setActionType(null);
                     setRemarks('');
                   }}
-                  className="text-gray-400 hover:text-gray-500"
+                  className="text-gray-400 hover:text-gray-500 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -445,36 +445,35 @@ const AdminDashboard = () => {
                 </button>
               </div>
               
-              <div className="mt-3 bg-gray-50 p-3 rounded max-h-48 overflow-y-auto">
-                <h4 className="text-xs font-medium text-gray-700 mb-2">Selected Payment Requests:</h4>
-                <ul className="space-y-1 text-xs text-gray-600">
-                  {selectedRequests.slice(0, 10).map((request, index) => (
-                    <li key={request.paymentRequestId} className="flex justify-between items-center p-1.5 hover:bg-gray-100 rounded">
-                      <div className="flex items-center">
-                        <span className="font-medium mr-1">{index + 1}.</span>
-                        <div className="truncate max-w-[150px]">
-                          <div className="font-medium truncate">{request.poNumber}</div>
-                          <div className="text-xs text-gray-500 truncate">{request.vendorName}</div>
+              <div className="mb-6">
+                <p className="text-sm text-gray-600 mb-3">
+                  You are about to {actionType === 'APPROVE' ? 'approve' : 'reject'} {selectedRequests.length} payment request{selectedRequests.length > 1 ? 's' : ''}.
+                </p>
+                
+                <div className="bg-gray-50 rounded-lg p-4 max-h-40 overflow-y-auto">
+                  <h4 className="text-xs font-medium text-gray-700 mb-2">Selected Items:</h4>
+                  <ul className="space-y-2">
+                    {selectedRequests.slice(0, 5).map((request, index) => (
+                      <li key={request.paymentRequestId} className="flex items-center justify-between p-2 bg-white rounded border">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{request.poNumber}</p>
+                          <p className="text-xs text-gray-500 truncate">{request.vendorName}</p>
                         </div>
-                      </div>
-                      <div className="font-semibold text-xs">{formatCurrency(request.requestedAmount, request.currency)}</div>
-                    </li>
-                  ))}
-                  {selectedRequests.length > 10 && (
-                    <li className="text-center text-gray-500 text-xs py-1">
-                      ...and {selectedRequests.length - 10} more
-                    </li>
-                  )}
-                </ul>
-                <div className="mt-2 pt-2 border-t border-gray-200 text-xs">
-                  <div className="flex justify-between font-medium">
-                    <span>Total Selected:</span>
-                    <span>{selectedRequests.length} request{selectedRequests.length > 1 ? 's' : ''}</span>
-                  </div>
+                        <span className="text-sm font-semibold text-gray-900 ml-2">
+                          {formatCurrency(request.requestedAmount, request.currency)}
+                        </span>
+                      </li>
+                    ))}
+                    {selectedRequests.length > 5 && (
+                      <li className="text-center text-gray-500 text-sm py-2">
+                        ...and {selectedRequests.length - 5} more
+                      </li>
+                    )}
+                  </ul>
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
+              <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => {
                     setShowModal(false);
@@ -482,22 +481,22 @@ const AdminDashboard = () => {
                     setActionType(null);
                     setRemarks('');
                   }}
-                  className="w-full sm:w-auto px-3 py-1.5 border border-gray-300 rounded text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUpdateStatus}
                   disabled={updateLoading}
-                  className={`w-full sm:w-auto px-3 py-1.5 rounded text-xs font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ${
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${
                     actionType === 'APPROVE'
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 focus:ring-green-500'
-                      : 'bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 focus:ring-red-500'
+                      ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                      : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
                   } ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   {updateLoading ? (
-                    <span className="flex items-center justify-center">
-                      <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-white" fill="none" viewBox="0 0 24 24">
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
@@ -515,72 +514,95 @@ const AdminDashboard = () => {
 
       {/* PDF Viewer Modal */}
       {showPdfModal && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-90 z-[100] flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
-          <div className="relative mt-4 mx-auto w-full max-w-6xl max-h-[90vh] bg-white rounded-lg shadow-2xl flex flex-col">
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-90 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 bg-gray-50 rounded-t-lg">
-              <div>
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-                  Invoice PDF Viewer
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-gray-900 truncate">
+                  Invoice Preview
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 truncate">
+                <p className="text-sm text-gray-600 truncate">
                   {selectedPdfUrl.split('/').pop()}
                 </p>
               </div>
-              <div className="flex items-center space-x-2">
-                {/* PDF Navigation Controls */}
+              <div className="flex items-center space-x-4">
                 {pdfNumPages && pdfNumPages > 1 && (
-                  <div className="flex items-center space-x-2 mr-3">
+                  <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-md">
                     <button
                       onClick={() => setPdfPageNumber(prev => Math.max(prev - 1, 1))}
                       disabled={pdfPageNumber <= 1}
-                      className="p-1.5 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      title="Previous page"
+                      className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                     </button>
-                    <span className="text-sm text-gray-700 whitespace-nowrap">
+                    <span className="text-sm font-medium">
                       Page {pdfPageNumber} of {pdfNumPages}
                     </span>
                     <button
                       onClick={() => setPdfPageNumber(prev => Math.min(prev + 1, pdfNumPages))}
                       disabled={pdfPageNumber >= pdfNumPages}
-                      className="p-1.5 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      title="Next page"
+                      className="text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
                   </div>
                 )}
                 
-                <button
-                  onClick={() => {
-                    setShowPdfModal(false);
-                    setSelectedPdfUrl('');
-                    setPdfNumPages(null);
-                    setPdfPageNumber(1);
-                  }}
-                  className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                  title="Close"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => window.open(selectedPdfUrl, '_blank')}
+                    className="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Open
+                  </button>
+                  <button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = selectedPdfUrl;
+                      link.download = selectedPdfUrl.split('/').pop() || 'invoice.pdf';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-md transition-colors flex items-center"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowPdfModal(false);
+                      setSelectedPdfUrl('');
+                      setPdfNumPages(null);
+                      setPdfPageNumber(1);
+                    }}
+                    className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Modal Body - PDF Viewer */}
-            <div className="flex-1 overflow-hidden bg-gray-900 p-1 sm:p-2">
+            <div className="flex-1 overflow-hidden bg-gray-100">
               {pdfLoading && (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-3"></div>
-                    <p className="text-white text-sm">Loading PDF...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading PDF document...</p>
                   </div>
                 </div>
               )}
@@ -588,15 +610,15 @@ const AdminDashboard = () => {
               {pdfError && (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <div className="mx-auto w-12 h-12 text-red-400 mb-3">
+                    <div className="mx-auto w-12 h-12 text-red-500 mb-4">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <p className="text-white text-sm mb-3">{pdfError}</p>
+                    <p className="text-gray-700 mb-4">{pdfError}</p>
                     <button
                       onClick={() => window.open(selectedPdfUrl, '_blank')}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition-colors"
+                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
                     >
                       Open PDF in New Tab
                     </button>
@@ -605,20 +627,14 @@ const AdminDashboard = () => {
               )}
               
               {!pdfError && selectedPdfUrl && (
-                <div className="h-full overflow-auto flex justify-center">
+                <div className="h-full overflow-auto p-4 flex justify-center">
                   <Document
                     file={selectedPdfUrl}
                     onLoadSuccess={onDocumentLoadSuccess}
                     onLoadError={onDocumentLoadError}
                     loading={
-                      <div className="text-center py-10">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                        <p className="text-white text-sm">Loading PDF document...</p>
-                      </div>
-                    }
-                    error={
-                      <div className="text-center py-10">
-                        <p className="text-white text-sm">Failed to load PDF</p>
+                      <div className="flex items-center justify-center h-64">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                       </div>
                     }
                   >
@@ -627,73 +643,37 @@ const AdminDashboard = () => {
                       className="shadow-lg"
                       renderAnnotationLayer={false}
                       renderTextLayer={false}
-                      width={Math.min(800, window.innerWidth - 40)}
+                      width={Math.min(800, window.innerWidth - 100)}
                     />
                   </Document>
                 </div>
               )}
             </div>
-
-            {/* Modal Footer */}
-            <div className="p-3 sm:p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0">
-                {/* <div className="text-xs sm:text-sm text-gray-600 truncate">
-                  <span className="font-medium">URL:</span> 
-                  <span className="ml-1 truncate">{selectedPdfUrl}</span>
-                </div> */}
-                {/* <div className="flex space-x-2">
-                  <button
-                    onClick={() => window.open(selectedPdfUrl, '_blank')}
-                    className="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center"
-                  >
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    Open in New Tab
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Create a temporary link for download
-                      const link = document.createElement('a');
-                      link.href = selectedPdfUrl;
-                      link.download = selectedPdfUrl.split('/').pop() || 'invoice.pdf';
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
-                    }}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center"
-                  >
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download PDF
-                  </button>
-                </div> */}
-              </div>
-            </div>
           </div>
         </div>
       )}
 
-      <div className="mb-4">
-        <h1 className="text-lg font-bold text-gray-800 truncate">Payment Approval Request</h1>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Payment Approval Dashboard</h1>
+        <p className="text-gray-600 mt-1">Review and manage payment requests from vendors</p>
       </div>
 
       {/* Selection Summary Bar */}
       {selectedRequests.length > 0 && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded shadow p-3 mb-4">
-          <div className="flex flex-col space-y-2">
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="bg-blue-100 text-blue-800 rounded-full p-1.5 mr-2">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <div className="bg-blue-100 p-2 rounded-lg mr-3">
+                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-medium text-gray-900 truncate">
+              <div>
+                <h3 className="font-semibold text-gray-900">
                   {selectedRequests.length} payment request{selectedRequests.length > 1 ? 's' : ''} selected
                 </h3>
-                <p className="text-xs text-gray-600 truncate">
+                <p className="text-sm text-gray-600">
                   Total amount: {formatCurrency(
                     selectedRequests.reduce((sum, req) => sum + req.requestedAmount, 0),
                     selectedRequests[0]?.currency || 'USD'
@@ -702,47 +682,45 @@ const AdminDashboard = () => {
               </div>
             </div>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex items-center space-x-3">
               <button
                 onClick={clearAllSelections}
-                className="px-3 py-1 text-xs text-gray-700 hover:text-gray-900 hover:bg-white rounded border border-gray-300 transition-colors duration-150"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Clear All
+                Clear Selection
               </button>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleBulkActionClick('APPROVE')}
-                  className="px-3 py-1 text-xs font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded shadow-sm hover:shadow transition-all duration-150 flex items-center"
-                  disabled={updateLoading}
-                >
-                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Approve All
-                </button>
-                <button
-                  onClick={() => handleBulkActionClick('REJECT')}
-                  className="px-3 py-1 text-xs font-medium text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded shadow-sm hover:shadow transition-all duration-150 flex items-center"
-                  disabled={updateLoading}
-                >
-                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Reject All
-                </button>
-              </div>
+              <button
+                onClick={() => handleBulkActionClick('APPROVE')}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center"
+                disabled={updateLoading}
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Approve All
+              </button>
+              <button
+                onClick={() => handleBulkActionClick('REJECT')}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center"
+                disabled={updateLoading}
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Reject All
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Search Section */}
-      <div className="bg-white rounded-lg shadow p-3 mb-4">
-        <div className="flex flex-col space-y-3">
-          <div className="flex flex-col space-y-2">
+      {/* Search and Filters */}
+      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -751,292 +729,427 @@ const AdminDashboard = () => {
                 placeholder="Search payment requests..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <select
-                value={searchField}
-                onChange={(e) => setSearchField(e.target.value)}
-                className="text-sm border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent w-full"
-              >
-                {searchFields.map((field) => (
-                  <option key={field.value} value={field.value}>
-                    {field.label}
-                  </option>
-                ))}
-              </select>
-              
-              {searchTerm && (
-                <button
-                  onClick={clearSearch}
-                  className="px-2 py-1.5 text-xs text-gray-600 hover:text-gray-800 whitespace-nowrap hover:bg-gray-100 rounded transition-colors duration-150"
-                >
-                  Clear
-                </button>
-              )}
             </div>
           </div>
           
-          <div className="flex flex-col text-xs">
-            <div className="text-gray-600">
-              Total: <span className="font-semibold">{filteredRequests.length}</span> request(s)
-              {searchTerm && (
-                <span className="ml-1 text-gray-500">
-                  (filtered from {paymentRequests.length})
+          <div className="flex items-center space-x-3">
+            <select
+              value={searchField}
+              onChange={(e) => setSearchField(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            >
+              {searchFields.map((field) => (
+                <option key={field.value} value={field.value}>
+                  {field.label}
+                </option>
+              ))}
+            </select>
+            
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors whitespace-nowrap"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+        
+        <div className="mt-4 flex flex-wrap items-center justify-between">
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">{filteredRequests.length}</span> request(s) found
+            {searchTerm && (
+              <span className="ml-2">
+                (filtered from {paymentRequests.length})
+              </span>
+            )}
+          </div>
+          
+          <button
+            onClick={fetchPaymentRequests}
+            className="flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh Data
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      {error ? (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <div className="mx-auto w-12 h-12 text-red-500 mb-4">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Data</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchPaymentRequests}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          {/* Table Header */}
+          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <h2 className="text-lg font-semibold text-gray-900">Payment Requests</h2>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    checked={currentItems.length > 0 && currentItems.every(item => 
+                      selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
+                    )}
+                    onChange={handleSelectAllOnCurrentPage}
+                  />
+                  <span className="text-sm text-gray-600">Select Page</span>
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-600">Show</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span className="text-sm text-gray-600">per page</span>
+              </div>
+            </div>
+            
+            <div className="mt-2 text-sm text-gray-600">
+              Showing {filteredRequests.length === 0 ? 0 : indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRequests.length)} of {filteredRequests.length} entries
+              {selectedRequests.length > 0 && (
+                <span className="ml-2 text-blue-600 font-medium">
+                  • {selectedRequests.length} selected
                 </span>
               )}
             </div>
           </div>
-        </div>
-      </div>
 
-      {error ? (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
-          <div className="flex items-center">
-            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            <span>{error}</span>
-          </div>
-          <button 
-            onClick={fetchPaymentRequests}
-            className="mt-1 bg-red-100 hover:bg-red-200 text-red-800 px-2 py-0.5 rounded text-xs transition-colors duration-150"
-          >
-            Retry
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-4">
-            {/* Table Header with Bulk Actions */}
-            <div className="px-3 py-2 border-b border-gray-200">
-              <div className="flex flex-col space-y-2">
-                <div className="flex flex-col space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <h2 className="text-base font-semibold text-gray-700">
-                        Payment Requests
-                      </h2>
-                      <label className="inline-flex items-center cursor-pointer">
+          {/* Mobile Card View */}
+          <div className="md:hidden">
+            {currentItems.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 text-gray-300 mb-4">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No payment requests found</h3>
+                <p className="text-gray-600 mb-4">
+                  {searchTerm ? 'No results match your search criteria' : 'There are no payment requests pending approval'}
+                </p>
+                {searchTerm && (
+                  <button
+                    onClick={clearSearch}
+                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Clear search
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-200">
+                {currentItems.map((request) => (
+                  <div key={request.paymentRequestId} className="p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-start space-x-3">
                         <input
                           type="checkbox"
-                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                          checked={currentItems.length > 0 && currentItems.every(item => 
-                            selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
-                          )}
-                          onChange={handleSelectAllOnCurrentPage}
+                          className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          checked={isItemSelected(request.paymentRequestId)}
+                          onChange={() => handleSelectItem(request)}
                         />
-                        <span className="ml-1 text-xs text-gray-600">Select page</span>
-                      </label>
+                        <div>
+                          <div className="font-semibold text-gray-900">
+                            {request.poNumber}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {request.companyName}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-gray-900">
+                          {formatCurrency(request.requestedAmount, request.currency)}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {formatDate(request.createdAt).split(',')[0]}
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="flex items-center space-x-1">
-                      <button
-                        onClick={fetchPaymentRequests}
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-2 py-1 rounded text-xs font-medium flex items-center shadow-sm hover:shadow transition-all duration-150"
-                        title="Refresh data"
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Vendor</div>
+                        <div className="text-sm font-medium">{request.vendorName}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Requested By</div>
+                        <div className="text-sm font-medium">{request.paymentRequestedBy}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Type</div>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          request.billpaymentType === 'Advance_Payment' 
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {request.billpaymentType.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 mb-1">Invoices</div>
+                        <div className="flex flex-wrap gap-1">
+                          {request.invoices && request.invoices.length > 0 ? (
+                            request.invoices.map((invoice, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => handleViewPdf(invoice.invoiceUrl)}
+                                className="px-2 py-1 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                              >
+                                View PDF
+                              </button>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-500 italic">No invoice</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => handleSingleActionClick(request, 'APPROVE')}
+                        disabled={updateLoading || request.status === 'APPROVED'}
+                        className={`
+                          flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center
+                          ${request.status === 'APPROVED' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                          }
+                          ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
+                        `}
                       >
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Refresh
+                        {request.status === 'APPROVED' ? (
+                          <>
+                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            Approved
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Approve
+                          </>
+                        )}
+                      </button>
+                      
+                      <button 
+                        onClick={() => handleSingleActionClick(request, 'REJECT')}
+                        disabled={updateLoading || request.status === 'REJECTED'}
+                        className={`
+                          flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors flex items-center justify-center
+                          ${request.status === 'REJECTED' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                          }
+                          ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
+                        `}
+                      >
+                        {request.status === 'REJECTED' ? (
+                          <>
+                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            Rejected
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Reject
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
-                  
-                  {/* Items per page selector */}
-                  <div className="flex items-center space-x-1">
-                    <span className="text-xs text-gray-600">Show</span>
-                    <select
-                      value={itemsPerPage}
-                      onChange={handleItemsPerPageChange}
-                      className="border border-gray-300 rounded px-1 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value={5}>5</option>
-                      <option value={10}>10</option>
-                      <option value={20}>20</option>
-                      <option value={30}>30</option>
-                    </select>
-                    <span className="text-xs text-gray-600">per page</span>
-                  </div>
-                </div>
-                
-                {/* Results info */}
-                <div className="flex flex-col text-xs text-gray-500">
-                  <div>
-                    Total: <span className="font-semibold">{filteredRequests.length}</span> request(s)
-                    {searchTerm && (
-                      <span className="ml-1">
-                        (filtered from {paymentRequests.length})
-                      </span>
-                    )}
-                    {selectedRequests.length > 0 && (
-                      <span className="ml-1 text-blue-600 font-medium">
-                        • {selectedRequests.length} selected
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    Showing {filteredRequests.length === 0 ? 0 : indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredRequests.length)} of {filteredRequests.length} entries
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Mobile Card View */}
-            <div className="md:hidden">
-              {currentItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="mx-auto w-16 h-16 text-gray-300 mb-3">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-500 text-sm mb-1">
-                    {searchTerm ? 'No payment requests match your search' : 'No payment requests found'}
-                  </p>
-                  {searchTerm && (
-                    <button
-                      onClick={clearSearch}
-                      className="text-blue-600 hover:text-blue-800 text-xs hover:underline transition-colors duration-150"
-                    >
-                      Clear search to see all requests
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-200">
-                  {currentItems.map((request) => (
-                    <div key={request.paymentRequestId} className="p-3 hover:bg-gray-50 transition-colors duration-150">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-start space-x-2">
-                          <input
-                            type="checkbox"
-                            className="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                            checked={isItemSelected(request.paymentRequestId)}
-                            onChange={() => handleSelectItem(request)}
-                          />
-                          <div>
-                            <div className="font-medium text-gray-900 text-sm truncate max-w-[180px]">
-                              {request.poNumber}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {request.companyName}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-semibold text-gray-900 text-sm">
-                            {formatCurrency(request.requestedAmount, request.currency)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {formatDate(request.createdAt).split(',')[0]}
-                          </div>
-                        </div>
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      checked={currentItems.length > 0 && currentItems.every(item => 
+                        selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
+                      )}
+                      onChange={handleSelectAllOnCurrentPage}
+                    />
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    PO Number
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Company
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vendor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Requested By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Invoice
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {currentItems.map((request) => (
+                  <tr key={request.paymentRequestId} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={isItemSelected(request.paymentRequestId)}
+                        onChange={() => handleSelectItem(request)}
+                      />
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {request.poNumber}
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-3">
-                        <div>
-                          <span className="text-gray-500">Vendor:</span>
-                          <div className="font-medium truncate">{request.vendorName}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Requested by:</span>
-                          <div className="font-medium truncate">{request.paymentRequestedBy}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Type:</span>
-                          <span className={`px-1.5 py-0.5 inline-flex text-xs leading-4 font-semibold rounded-full ${
-                            request.billpaymentType === 'Advance_Payment' 
-                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                              : 'bg-green-100 text-green-800 border border-green-200'
-                          }`}>
-                            {request.billpaymentType.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Invoices:</span>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {request.invoices && request.invoices.length > 0 ? (
-                              request.invoices.map((invoice, idx) => {
-                                const fullPdfUrl = getFullPdfUrl(invoice.invoiceUrl);
-                                
-                                return (
-                                  <div key={idx} className="flex items-center space-x-1">
-                                    <button
-                                      onClick={() => handleViewPdf(invoice.invoiceUrl)}
-                                      className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs rounded border border-blue-200 flex items-center transition-colors"
-                                    >
-                                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                      </svg>
-                                      Preview
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(fullPdfUrl, '_blank');
-                                      }}
-                                      className="px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs rounded border border-green-200 flex items-center transition-colors"
-                                    >
-                                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                      </svg>
-                                      Open
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        const link = document.createElement('a');
-                                        link.href = fullPdfUrl;
-                                        link.download = invoice.invoiceNumber || 'invoice.pdf';
-                                        document.body.appendChild(link);
-                                        link.click();
-                                        document.body.removeChild(link);
-                                      }}
-                                      className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs rounded border border-purple-200 flex items-center transition-colors"
-                                    >
-                                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                      </svg>
-                                      Download
-                                    </button>
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              <span className="text-xs text-gray-500">No invoices</span>
-                            )}
-                          </div>
-                        </div>
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {request.companyName}
                       </div>
-                      
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {request.vendorName}
+                      </div>
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {formatCurrency(request.requestedAmount, request.currency)}
+                      </div>
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                        request.billpaymentType === 'Advance_Payment' 
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {request.billpaymentType.replace('_', ' ')}
+                      </span>
+                    </td>
+                   
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {request.paymentRequestedBy}
+                      </div>
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        {formatDate(request.createdAt).split(',')[0]}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {formatDate(request.createdAt).split(',')[1]}
+                      </div>
+                    </td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col space-y-2">
+                        {request.invoices && request.invoices.length > 0 ? (
+                          request.invoices.map((invoice, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleViewPdf(invoice.invoiceUrl)}
+                              className="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                            >
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              View Invoice
+                            </button>
+                          ))
+                        ) : (
+                          <span className="text-sm text-gray-500 italic">No invoice</span>
+                        )}
+                      </div>
+                    </td>
+                    
+                    <td className="px-6 py-4">
                       <div className="flex space-x-2">
                         <button 
                           onClick={() => handleSingleActionClick(request, 'APPROVE')}
                           disabled={updateLoading || request.status === 'APPROVED'}
                           className={`
-                            flex-1 relative inline-flex items-center justify-center px-2 py-1.5 rounded text-xs font-medium
-                            transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-green-500
+                            px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center
                             ${request.status === 'APPROVED' 
-                              ? 'bg-green-100 text-green-800 border border-green-200 cursor-default' 
-                              : 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 hover:from-green-100 hover:to-emerald-100 border border-green-200 hover:border-green-300'
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
                             }
                             ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                           `}
                         >
                           {request.status === 'APPROVED' ? (
                             <>
-                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
                               Approved
                             </>
                           ) : (
                             <>
-                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
                               Approve
@@ -1048,25 +1161,24 @@ const AdminDashboard = () => {
                           onClick={() => handleSingleActionClick(request, 'REJECT')}
                           disabled={updateLoading || request.status === 'REJECTED'}
                           className={`
-                            flex-1 relative inline-flex items-center justify-center px-2 py-1.5 rounded text-xs font-medium
-                            transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-red-500
+                            px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center
                             ${request.status === 'REJECTED' 
-                              ? 'bg-red-100 text-red-800 border border-red-200 cursor-default' 
-                              : 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 hover:from-red-100 hover:to-pink-100 border border-red-200 hover:border-red-300'
+                              ? 'bg-red-100 text-red-800' 
+                              : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
                             }
                             ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                           `}
                         >
                           {request.status === 'REJECTED' ? (
                             <>
-                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                               </svg>
                               Rejected
                             </>
                           ) : (
                             <>
-                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
                               Reject
@@ -1074,364 +1186,93 @@ const AdminDashboard = () => {
                           )}
                         </button>
                       </div>
-                    </div>
-                  ))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            {currentItems.length === 0 && (
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 text-gray-300 mb-4">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
                 </div>
-              )}
-            </div>
-
-            {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
-              <div className="inline-block min-w-full align-middle">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                          checked={currentItems.length > 0 && currentItems.every(item => 
-                            selectedRequests.some(selected => selected.paymentRequestId === item.paymentRequestId)
-                          )}
-                          onChange={handleSelectAllOnCurrentPage}
-                        />
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                        PO Number
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                        Company
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                        Vendor
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
-                        Amount
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
-                        Type
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                        Requested By
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                        Date
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
-                        Invoices
-                      </th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentItems.map((request) => (
-                      <tr key={request.paymentRequestId} className="hover:bg-gray-50 transition-colors duration-150">
-                        <td className="px-3 py-2">
-                          <input
-                            type="checkbox"
-                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                            checked={isItemSelected(request.paymentRequestId)}
-                            onChange={() => handleSelectItem(request)}
-                          />
-                        </td>
-                        
-                        <td className="px-3 py-2">
-                          <div className="text-sm text-gray-900 truncate max-w-[120px]">
-                            {request.poNumber}
-                          </div>
-                        </td>
-                        
-                        <td className="px-3 py-2">
-                          <div className="text-sm text-gray-900 truncate max-w-[120px]">
-                            {request.companyName}
-                          </div>
-                        </td>
-                        
-                        <td className="px-3 py-2">
-                          <div className="text-sm text-gray-900 truncate max-w-[120px]">
-                            {request.vendorName}
-                          </div>
-                        </td>
-                        
-                        <td className="px-3 py-2">
-                          <div className="text-sm font-semibold text-gray-900">
-                            {formatCurrency(request.requestedAmount, request.currency)}
-                          </div>
-                        </td>
-                        
-                        <td className="px-3 py-2">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded-full ${
-                            request.billpaymentType === 'Advance_Payment' 
-                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                              : 'bg-green-100 text-green-800 border border-green-200'
-                          }`}>
-                            {request.billpaymentType.replace('_', ' ')}
-                          </span>
-                        </td>
-                       
-                        <td className="px-3 py-2">
-                          <div className="text-sm text-gray-900 truncate max-w-[120px]">
-                            {request.paymentRequestedBy}
-                          </div>
-                        </td>
-                        
-                        <td className="px-3 py-2">
-                          <div className="text-sm text-gray-900">
-                            <div>{formatDate(request.createdAt).split(',')[0]}</div>
-                            <div className="text-xs text-gray-500">
-                              {formatDate(request.createdAt).split(',')[1]}
-                            </div>
-                          </div>
-                        </td>
-                        
-                        <td className="px-3 py-2">
-                          <div className="flex flex-col space-y-1">
-                            {request.invoices && request.invoices.length > 0 ? (
-                              request.invoices.map((invoice, idx) => {
-                                const fullPdfUrl = getFullPdfUrl(invoice.invoiceUrl);
-                                
-                                return (
-                                  <div key={idx} className="flex items-center space-x-1">
-                                    <span className="text-xs text-gray-600 truncate max-w-[100px]">
-                                      {invoice.invoiceNumber || 'Invoice'}
-                                    </span>
-                                    <div className="flex items-center space-x-1">
-                                      <button
-                                        onClick={() => handleViewPdf(invoice.invoiceUrl)}
-                                        className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                                        title="Preview PDF"
-                                      >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          window.open(fullPdfUrl, '_blank');
-                                        }}
-                                        className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors"
-                                        title="Open in New Tab"
-                                      >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                        </svg>
-                                      </button>
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          const link = document.createElement('a');
-                                          link.href = fullPdfUrl;
-                                          link.download = invoice.invoiceNumber || 'invoice.pdf';
-                                          document.body.appendChild(link);
-                                          link.click();
-                                          document.body.removeChild(link);
-                                        }}
-                                        className="p-1 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded transition-colors"
-                                        title="Download PDF"
-                                      >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              <span className="text-xs text-gray-500 italic">No invoice</span>
-                            )}
-                          </div>
-                        </td>
-                        
-                        <td className="px-3 py-2">
-                          <div className="flex space-x-1">
-                            <button 
-                              onClick={() => handleSingleActionClick(request, 'APPROVE')}
-                              disabled={updateLoading || request.status === 'APPROVED'}
-                              className={`
-                                relative inline-flex items-center px-2 py-1 rounded text-xs font-medium
-                                transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-green-500
-                                ${request.status === 'APPROVED' 
-                                  ? 'bg-green-100 text-green-800 border border-green-200 cursor-default' 
-                                  : 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 hover:from-green-100 hover:to-emerald-100 border border-green-200 hover:border-green-300'
-                                }
-                                ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
-                              `}
-                            >
-                              {request.status === 'APPROVED' ? (
-                                <>
-                                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                  Approved
-                                </>
-                              ) : (
-                                <>
-                                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                  Approve
-                                </>
-                              )}
-                            </button>
-                            
-                            <button 
-                              onClick={() => handleSingleActionClick(request, 'REJECT')}
-                              disabled={updateLoading || request.status === 'REJECTED'}
-                              className={`
-                                relative inline-flex items-center px-2 py-1 rounded text-xs font-medium
-                                transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-red-500
-                                ${request.status === 'REJECTED' 
-                                  ? 'bg-red-100 text-red-800 border border-red-200 cursor-default' 
-                                  : 'bg-gradient-to-r from-red-50 to-pink-50 text-red-700 hover:from-red-100 hover:to-pink-100 border border-red-200 hover:border-red-300'
-                                }
-                                ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
-                              `}
-                            >
-                              {request.status === 'REJECTED' ? (
-                                <>
-                                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                  </svg>
-                                  Rejected
-                                </>
-                              ) : (
-                                <>
-                                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                  Reject
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              {/* No Results Message for Desktop */}
-              {currentItems.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="mx-auto w-16 h-16 text-gray-300 mb-3">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-500 text-sm mb-1">
-                    {searchTerm ? 'No payment requests match your search' : 'No payment requests found'}
-                  </p>
-                  {searchTerm && (
-                    <button
-                      onClick={clearSearch}
-                      className="text-blue-600 hover:text-blue-800 text-xs hover:underline transition-colors duration-150"
-                    >
-                      Clear search to see all requests
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Pagination Controls */}
-            {filteredRequests.length > 0 && (
-              <div className="px-3 py-2 border-t border-gray-200">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-1 sm:space-y-0">
-                    <div className="text-xs text-gray-700">
-                      Page <span className="font-medium">{currentPage}</span> of{' '}
-                      <span className="font-medium">{totalPages}</span>
-                    </div>
-                    
-                    {/* Pagination buttons */}
-                    <div className="flex items-center justify-center space-x-1">
-                      <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className={`p-1.5 rounded transition-colors duration-150 ${
-                          currentPage === 1
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                        }`}
-                        aria-label="Previous page"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </button>
-                      
-                      {/* Page numbers - responsive */}
-                      <div className="flex items-center space-x-1">
-                        {getPageNumbers().map((number, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handlePageChange(number)}
-                            disabled={number === '...'}
-                            className={`min-w-7 h-7 flex items-center justify-center rounded text-xs transition-colors duration-150 ${
-                              number === '...'
-                                ? 'text-gray-500 cursor-default'
-                                : currentPage === number
-                                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
-                                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                            }`}
-                          >
-                            {number}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className={`p-1.5 rounded transition-colors duration-150 ${
-                          currentPage === totalPages
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                        }`}
-                        aria-label="Next page"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* Bottom row with page selection */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-1 sm:space-y-0">
-                    <div className="text-xs text-gray-600">
-                      Total: {filteredRequests.length} items
-                    </div>
-                    
-                    <div className="flex items-center space-x-1">
-                      <span className="text-xs text-gray-600">Go to page:</span>
-                      <input
-                        type="number"
-                        min="1"
-                        max={totalPages}
-                        value={currentPage}
-                        onChange={(e) => {
-                          const page = parseInt(e.target.value);
-                          if (page >= 1 && page <= totalPages) {
-                            handlePageChange(page);
-                          }
-                        }}
-                        className="w-12 border border-gray-300 rounded px-1 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <span className="text-xs text-gray-600">of {totalPages}</span>
-                    </div>
-                  </div>
-                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No payment requests found</h3>
+                <p className="text-gray-600 mb-4">
+                  {searchTerm ? 'No results match your search criteria' : 'There are no payment requests pending approval'}
+                </p>
+                {searchTerm && (
+                  <button
+                    onClick={clearSearch}
+                    className="text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Clear search
+                  </button>
+                )}
               </div>
             )}
           </div>
-        </>
+
+          {/* Pagination */}
+          {filteredRequests.length > 0 && (
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Page <span className="font-medium">{currentPage}</span> of{' '}
+                  <span className="font-medium">{totalPages}</span> •{' '}
+                  <span className="font-medium">{filteredRequests.length}</span> total items
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      currentPage === 1
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Previous
+                  </button>
+                  
+                  <div className="flex items-center space-x-1">
+                    {getPageNumbers().map((number, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handlePageChange(number)}
+                        disabled={number === '...'}
+                        className={`w-10 h-10 flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${
+                          number === '...'
+                            ? 'text-gray-500 cursor-default'
+                            : currentPage === number
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {number}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      currentPage === totalPages
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

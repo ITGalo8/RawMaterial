@@ -1578,9 +1578,7 @@ const ShowPurchaseOrder = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             View Purchase Order
           </h1>
-          <p className="text-gray-600">
-            Select a company and purchase order to view details
-          </p>
+
         </div>
 
         {/* Search Section */}
@@ -2594,9 +2592,7 @@ const ShowPurchaseOrder = () => {
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 No Purchase Orders
               </h3>
-              <p className="text-gray-600 max-w-md mx-auto">
-                This company doesn't have any purchase orders yet.
-              </p>
+              
             </div>
           )}
 

@@ -366,7 +366,7 @@ const AppRoutes = () => {
         <Route
           path="show-purchase-orders"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Admin"]}>
               <ShowPurchaseOrder />
             </ProtectedRoute>
           }
