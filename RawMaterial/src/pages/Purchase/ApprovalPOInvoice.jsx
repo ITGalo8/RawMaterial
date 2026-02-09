@@ -97,7 +97,7 @@
 //       if (response.data.success) {
 //         alert(`PO ${status.toLowerCase()} successfully!`);
 
-//         // Remove the approved/declined PO from the list
+//         // Remove the approved/REJECTED PO from the list
 //         setApprovalData((prev) => prev.filter((po) => po.poId !== poId));
 //         // Remove from selected if it was selected
 //         const newSelected = new Set(selectedPOs);
@@ -176,6 +176,9 @@
 //     }
 //   };
 
+//   // Check if current row is selected
+//   const isRowSelected = (poId) => selectedPOs.has(poId);
+
 //   if (loading) {
 //     return (
 //       <div className="flex justify-center items-center h-64">
@@ -249,7 +252,7 @@
 //                 )}
 //               </button>
 //               <button
-//                 onClick={() => handleBulkApprovalAction("DECLINED")}
+//                 onClick={() => handleBulkApprovalAction("REJECTED")}
 //                 disabled={bulkActionLoading}
 //                 className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
 //               >
@@ -356,122 +359,39 @@
 //                 </tr>
 //               </thead>
 //               <tbody className="bg-white divide-y divide-gray-200">
-//                 {approvalData.map((po) => (
-//                   <tr
-//                     key={po.poId}
-//                     className="hover:bg-gray-50 transition-colors"
-//                   >
-//                     <td className="px-6 py-4">
-//                       <input
-//                         type="checkbox"
-//                         checked={selectedPOs.has(po.poId)}
-//                         onChange={() => handleSelectPO(po.poId)}
-//                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-//                       />
-//                     </td>
-//                     <td className="px-6 py-4">
-//                       <div>
-//                         <div className="text-sm font-medium text-gray-900">
-//                           {po.poNumber}
-//                         </div>
-//                         <div className="text-sm text-gray-500">
-//                           {po.companyName}
-//                         </div>
-//                         <button
-//                           onClick={() => openItemModal(po.items, po.poNumber)}
-//                           className="mt-1 text-xs text-blue-600 hover:text-blue-800 flex items-center"
-//                         >
-//                           <svg
-//                             className="w-4 h-4 mr-1"
-//                             fill="none"
-//                             stroke="currentColor"
-//                             viewBox="0 0 24 24"
-//                             xmlns="http://www.w3.org/2000/svg"
+//                 {approvalData.map((po) => {
+//                   const isSelected = isRowSelected(po.poId);
+//                   return (
+//                     <tr
+//                       key={po.poId}
+//                       className={`transition-colors ${
+//                         isSelected
+//                           ? "bg-blue-50 hover:bg-blue-100"
+//                           : "hover:bg-gray-50"
+//                       }`}
+//                     >
+//                       <td className="px-6 py-4">
+//                         <input
+//                           type="checkbox"
+//                           checked={isSelected}
+//                           onChange={() => handleSelectPO(po.poId)}
+//                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+//                         />
+//                       </td>
+//                       <td className="px-6 py-4">
+//                         <div>
+//                           <div className="text-sm font-medium text-gray-900">
+//                             {po.poNumber}
+//                           </div>
+//                           <div className="text-sm text-gray-500">
+//                             {po.companyName}
+//                           </div>
+//                           <button
+//                             onClick={() => openItemModal(po.items, po.poNumber)}
+//                             className="mt-1 text-xs text-blue-600 hover:text-blue-800 flex items-center"
 //                           >
-//                             <path
-//                               strokeLinecap="round"
-//                               strokeLinejoin="round"
-//                               strokeWidth={2}
-//                               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-//                             />
-//                             <path
-//                               strokeLinecap="round"
-//                               strokeLinejoin="round"
-//                               strokeWidth={2}
-//                               d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-//                             />
-//                           </svg>
-//                           View Items ({po.items.length})
-//                         </button>
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4">
-//                       <div className="text-sm text-gray-900">
-//                         {po.vendorName}
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4">
-//                       <div className="text-sm font-semibold text-gray-900">
-//                         {po.currency}{" "}
-//                         {parseFloat(po.grandTotal).toLocaleString(undefined, {
-//                           minimumFractionDigits: 2,
-//                           maximumFractionDigits: 2,
-//                         })}
-//                       </div>
-//                     </td>
-//                     <td className="px-6 py-4">
-//                       <span
-//                         className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-//                           po.approvalStatus === "Pending"
-//                             ? "bg-yellow-100 text-yellow-800"
-//                             : po.approvalStatus === "APPROVED"
-//                               ? "bg-green-100 text-green-800"
-//                               : "bg-red-100 text-red-800"
-//                         }`}
-//                       >
-//                         {po.approvalStatus}
-//                       </span>
-//                     </td>
-//                     <td className="px-6 py-4 text-sm text-gray-500">
-//                       {new Date(po.poDate).toLocaleDateString("en-US", {
-//                         year: "numeric",
-//                         month: "short",
-//                         day: "numeric",
-//                       })}
-//                     </td>
-//                     <td className="px-6 py-4">
-//                       <div className="flex space-x-2">
-//                         <button
-//                           onClick={() =>
-//                             handleApprovalAction(po.poId, "APPROVED")
-//                           }
-//                           disabled={actionLoading[po.poId]}
-//                           className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-//                         >
-//                           {actionLoading[po.poId] ? (
 //                             <svg
-//                               className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-//                               xmlns="http://www.w3.org/2000/svg"
-//                               fill="none"
-//                               viewBox="0 0 24 24"
-//                             >
-//                               <circle
-//                                 className="opacity-25"
-//                                 cx="12"
-//                                 cy="12"
-//                                 r="10"
-//                                 stroke="currentColor"
-//                                 strokeWidth="4"
-//                               ></circle>
-//                               <path
-//                                 className="opacity-75"
-//                                 fill="currentColor"
-//                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-//                               ></path>
-//                             </svg>
-//                           ) : (
-//                             <svg
-//                               className="w-4 h-4 mr-2"
+//                               className="w-4 h-4 mr-1"
 //                               fill="none"
 //                               stroke="currentColor"
 //                               viewBox="0 0 24 24"
@@ -481,39 +401,142 @@
 //                                 strokeLinecap="round"
 //                                 strokeLinejoin="round"
 //                                 strokeWidth={2}
-//                                 d="M5 13l4 4L19 7"
+//                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+//                               />
+//                               <path
+//                                 strokeLinecap="round"
+//                                 strokeLinejoin="round"
+//                                 strokeWidth={2}
+//                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
 //                               />
 //                             </svg>
-//                           )}
-//                           {actionLoading[po.poId] ? "Processing..." : "Approve"}
-//                         </button>
-//                         <button
-//                           onClick={() =>
-//                             handleApprovalAction(po.poId, "DECLINED")
-//                           }
-//                           disabled={actionLoading[po.poId]}
-//                           className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+//                             View Items ({po.items.length})
+//                           </button>
+//                         </div>
+//                       </td>
+//                       <td className="px-6 py-4">
+//                         <div className="text-sm text-gray-900">
+//                           {po.vendorName}
+//                         </div>
+//                       </td>
+//                       <td className="px-6 py-4">
+//                         <div className="text-sm font-semibold text-gray-900">
+//                           {po.currency}{" "}
+//                           {parseFloat(po.grandTotal).toLocaleString(undefined, {
+//                             minimumFractionDigits: 2,
+//                             maximumFractionDigits: 2,
+//                           })}
+//                         </div>
+//                       </td>
+//                       <td className="px-6 py-4">
+//                         <span
+//                           className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+//                             po.approvalStatus === "Pending"
+//                               ? "bg-yellow-100 text-yellow-800"
+//                               : po.approvalStatus === "APPROVED"
+//                                 ? "bg-green-100 text-green-800"
+//                                 : "bg-red-100 text-red-800"
+//                           }`}
 //                         >
-//                           <svg
-//                             className="w-4 h-4 mr-2"
-//                             fill="none"
-//                             stroke="currentColor"
-//                             viewBox="0 0 24 24"
-//                             xmlns="http://www.w3.org/2000/svg"
-//                           >
-//                             <path
-//                               strokeLinecap="round"
-//                               strokeLinejoin="round"
-//                               strokeWidth={2}
-//                               d="M6 18L18 6M6 6l12 12"
-//                             />
-//                           </svg>
-//                           Decline
-//                         </button>
-//                       </div>
-//                     </td>
-//                   </tr>
-//                 ))}
+//                           {po.approvalStatus}
+//                         </span>
+//                       </td>
+//                       <td className="px-6 py-4 text-sm text-gray-500">
+//                         {new Date(po.poDate).toLocaleDateString("en-US", {
+//                           year: "numeric",
+//                           month: "short",
+//                           day: "numeric",
+//                         })}
+//                       </td>
+//                       <td className="px-6 py-4">
+//                         {/* Hide individual action buttons when row is selected */}
+//                         {isSelected ? (
+//                           <div className="text-sm text-gray-500 italic">
+//                             Use bulk actions above
+//                           </div>
+//                         ) : (
+//                           <div className="flex space-x-2">
+//                             <button
+//                               onClick={() =>
+//                                 handleApprovalAction(po.poId, "APPROVED")
+//                               }
+//                               disabled={
+//                                 actionLoading[po.poId] || selectedPOs.size > 0
+//                               }
+//                               className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+//                             >
+//                               {actionLoading[po.poId] ? (
+//                                 <svg
+//                                   className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+//                                   xmlns="http://www.w3.org/2000/svg"
+//                                   fill="none"
+//                                   viewBox="0 0 24 24"
+//                                 >
+//                                   <circle
+//                                     className="opacity-25"
+//                                     cx="12"
+//                                     cy="12"
+//                                     r="10"
+//                                     stroke="currentColor"
+//                                     strokeWidth="4"
+//                                   ></circle>
+//                                   <path
+//                                     className="opacity-75"
+//                                     fill="currentColor"
+//                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                                   ></path>
+//                                 </svg>
+//                               ) : (
+//                                 <svg
+//                                   className="w-4 h-4 mr-2"
+//                                   fill="none"
+//                                   stroke="currentColor"
+//                                   viewBox="0 0 24 24"
+//                                   xmlns="http://www.w3.org/2000/svg"
+//                                 >
+//                                   <path
+//                                     strokeLinecap="round"
+//                                     strokeLinejoin="round"
+//                                     strokeWidth={2}
+//                                     d="M5 13l4 4L19 7"
+//                                   />
+//                                 </svg>
+//                               )}
+//                               {actionLoading[po.poId]
+//                                 ? "Processing..."
+//                                 : "Approve"}
+//                             </button>
+//                             <button
+//                               onClick={() =>
+//                                 handleApprovalAction(po.poId, "REJECTED")
+//                               }
+//                               disabled={
+//                                 actionLoading[po.poId] || selectedPOs.size > 0
+//                               }
+//                               className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+//                             >
+//                               <svg
+//                                 className="w-4 h-4 mr-2"
+//                                 fill="none"
+//                                 stroke="currentColor"
+//                                 viewBox="0 0 24 24"
+//                                 xmlns="http://www.w3.org/2000/svg"
+//                               >
+//                                 <path
+//                                   strokeLinecap="round"
+//                                   strokeLinejoin="round"
+//                                   strokeWidth={2}
+//                                   d="M6 18L18 6M6 6l12 12"
+//                                 />
+//                               </svg>
+//                               Decline
+//                             </button>
+//                           </div>
+//                         )}
+//                       </td>
+//                     </tr>
+//                   );
+//                 })}
 //               </tbody>
 //             </table>
 //           </div>
@@ -562,9 +585,6 @@
 //                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 //                       Unit
 //                     </th>
-//                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Source
-//                     </th>
 //                   </tr>
 //                 </thead>
 //                 <tbody className="bg-white divide-y divide-gray-200">
@@ -578,17 +598,6 @@
 //                       </td>
 //                       <td className="px-4 py-3 text-sm text-gray-700">
 //                         {item.unit}
-//                       </td>
-//                       <td className="px-4 py-3">
-//                         <span
-//                           className={`px-2 py-1 text-xs rounded ${
-//                             item.itemSource === "mysql"
-//                               ? "bg-blue-100 text-blue-800"
-//                               : "bg-green-100 text-green-800"
-//                           }`}
-//                         >
-//                           {item.itemSource}
-//                         </span>
 //                       </td>
 //                     </tr>
 //                   ))}
@@ -612,6 +621,7 @@
 // };
 
 // export default ApprovalPOInvoice;
+
 
 import React, { useState, useEffect } from "react";
 import Api from "../../auth/Api";
@@ -638,7 +648,7 @@ const ApprovalPOInvoice = () => {
       const response = await Api.get(`/admin/getPOsForApproval`);
       const data = response?.data?.data || [];
       setApprovalData(data);
-      setSelectedPOs(new Set()); // Clear selections on refresh
+      setSelectedPOs(new Set());
     } catch (error) {
       console.log(
         "Error fetching Approval PO Data:",
@@ -650,6 +660,122 @@ const ApprovalPOInvoice = () => {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Open PDF in new tab
+  const openPdfInNewTab = async (poId, poNumber) => {
+    try {
+      // Fetch PDF as blob
+      const response = await Api.get(`/admin/previewPOPdf?poId=${poId}`, {
+        responseType: 'blob',
+      });
+      
+      // Create blob URL from the response
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const pdfUrl = URL.createObjectURL(blob);
+      
+      // Open in new tab
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(`
+          <html>
+            <head>
+              <title>PO-${poNumber}</title>
+              <style>
+                body { margin: 0; padding: 0; }
+                .pdf-container { width: 100%; height: 100vh; }
+                iframe { width: 100%; height: 100%; border: none; }
+                .no-pdf { 
+                  display: flex; 
+                  flex-direction: column; 
+                  justify-content: center; 
+                  align-items: center; 
+                  height: 100vh; 
+                  text-align: center; 
+                  font-family: Arial, sans-serif; 
+                }
+                .download-btn { 
+                  margin-top: 20px; 
+                  padding: 10px 20px; 
+                  background: #4CAF50; 
+                  color: white; 
+                  border: none; 
+                  border-radius: 4px; 
+                  cursor: pointer; 
+                  text-decoration: none; 
+                }
+              </style>
+            </head>
+            <body>
+              <div class="pdf-container">
+                <iframe src="${pdfUrl}" title="PO-${poNumber}"></iframe>
+              </div>
+              <script>
+                // Clean up blob URL when window is closed
+                window.addEventListener('beforeunload', function() {
+                  URL.revokeObjectURL("${pdfUrl}");
+                });
+              </script>
+            </body>
+          </html>
+        `);
+        
+        // Set focus to the new window
+        newWindow.focus();
+        
+        // Store reference for cleanup on component unmount
+        return { window: newWindow, blobUrl: pdfUrl };
+      }
+      
+    } catch (error) {
+      console.error("Error loading PDF:", error);
+      alert("Failed to load PDF. Please try again.");
+      
+      // Alternative: Show error in new tab
+      const errorWindow = window.open();
+      if (errorWindow) {
+        errorWindow.document.write(`
+          <html>
+            <head><title>Error Loading PDF</title></head>
+            <body style="font-family: Arial, sans-serif; padding: 20px;">
+              <h2 style="color: #d32f2f;">Failed to Load PDF</h2>
+              <p>Unable to load the PDF document for PO: ${poNumber}</p>
+              <p>Error: ${error.message || "Unknown error"}</p>
+              <button onclick="window.close()" style="padding: 10px 20px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Close Window
+              </button>
+            </body>
+          </html>
+        `);
+        errorWindow.focus();
+      }
+    }
+  };
+
+  // Alternative: Direct download approach
+  const downloadPdf = async (poId, poNumber) => {
+    try {
+      const response = await Api.get(`/admin/previewPOPdf?poId=${poId}`, {
+        responseType: 'blob',
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `PO-${poNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      alert("Failed to download PDF. Please try again.");
     }
   };
 
@@ -711,10 +837,7 @@ const ApprovalPOInvoice = () => {
 
       if (response.data.success) {
         alert(`PO ${status.toLowerCase()} successfully!`);
-
-        // Remove the approved/REJECTED PO from the list
         setApprovalData((prev) => prev.filter((po) => po.poId !== poId));
-        // Remove from selected if it was selected
         const newSelected = new Set(selectedPOs);
         newSelected.delete(poId);
         setSelectedPOs(newSelected);
@@ -751,7 +874,6 @@ const ApprovalPOInvoice = () => {
     const promises = [];
     const selectedArray = Array.from(selectedPOs);
 
-    // Create promises for all selected POs
     selectedArray.forEach((poId) => {
       promises.push(
         Api.put("/admin/poApprovalAction", {
@@ -762,10 +884,7 @@ const ApprovalPOInvoice = () => {
     });
 
     try {
-      // Execute all promises
       const results = await Promise.all(promises);
-
-      // Check for any failures
       const failedActions = results.filter((result) => !result.data.success);
 
       if (failedActions.length > 0) {
@@ -776,9 +895,7 @@ const ApprovalPOInvoice = () => {
         `Successfully ${status.toLowerCase()}ed ${selectedPOs.size} PO(s)!`,
       );
 
-      // Remove processed POs from the list
       setApprovalData((prev) => prev.filter((po) => !selectedPOs.has(po.poId)));
-      // Clear selections
       setSelectedPOs(new Set());
     } catch (error) {
       console.error(`Error in bulk ${status.toLowerCase()}:`, error);
@@ -980,7 +1097,9 @@ const ApprovalPOInvoice = () => {
                     <tr
                       key={po.poId}
                       className={`transition-colors ${
-                        isSelected ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-gray-50"
+                        isSelected
+                          ? "bg-blue-50 hover:bg-blue-100"
+                          : "hover:bg-gray-50"
                       }`}
                     >
                       <td className="px-6 py-4">
@@ -999,32 +1118,78 @@ const ApprovalPOInvoice = () => {
                           <div className="text-sm text-gray-500">
                             {po.companyName}
                           </div>
-                          <button
-                            onClick={() => openItemModal(po.items, po.poNumber)}
-                            className="mt-1 text-xs text-blue-600 hover:text-blue-800 flex items-center"
-                          >
-                            <svg
-                              className="w-4 h-4 mr-1"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
+                          <div className="flex flex-wrap gap-3 mt-1">
+                            <button
+                              onClick={() => openItemModal(po.items, po.poNumber)}
+                              className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              />
-                            </svg>
-                            View Items ({po.items.length})
-                          </button>
+                              <svg
+                                className="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                />
+                              </svg>
+                              View Items ({po.items.length})
+                            </button>
+                            <button
+                              onClick={() => openPdfInNewTab(po.poId, po.poNumber)}
+                              className="text-xs text-green-600 hover:text-green-800 flex items-center"
+                            >
+                              <svg
+                                className="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                              </svg>
+                              View PDF
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadPdf(po.poId, po.poNumber);
+                              }}
+                              className="text-xs text-purple-600 hover:text-purple-800 flex items-center"
+                              title="Download PDF"
+                            >
+                              <svg
+                                className="w-4 h-4 mr-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                />
+                              </svg>
+                              Download
+                            </button>
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -1062,7 +1227,6 @@ const ApprovalPOInvoice = () => {
                         })}
                       </td>
                       <td className="px-6 py-4">
-                        {/* Hide individual action buttons when row is selected */}
                         {isSelected ? (
                           <div className="text-sm text-gray-500 italic">
                             Use bulk actions above
@@ -1073,7 +1237,9 @@ const ApprovalPOInvoice = () => {
                               onClick={() =>
                                 handleApprovalAction(po.poId, "APPROVED")
                               }
-                              disabled={actionLoading[po.poId] || selectedPOs.size > 0}
+                              disabled={
+                                actionLoading[po.poId] || selectedPOs.size > 0
+                              }
                               className="px-4 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                             >
                               {actionLoading[po.poId] ? (
@@ -1113,13 +1279,17 @@ const ApprovalPOInvoice = () => {
                                   />
                                 </svg>
                               )}
-                              {actionLoading[po.poId] ? "Processing..." : "Approve"}
+                              {actionLoading[po.poId]
+                                ? "Processing..."
+                                : "Approve"}
                             </button>
                             <button
                               onClick={() =>
                                 handleApprovalAction(po.poId, "REJECTED")
                               }
-                              disabled={actionLoading[po.poId] || selectedPOs.size > 0}
+                              disabled={
+                                actionLoading[po.poId] || selectedPOs.size > 0
+                              }
                               className="px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                             >
                               <svg
@@ -1192,9 +1362,6 @@ const ApprovalPOInvoice = () => {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Unit
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Source
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -1208,17 +1375,6 @@ const ApprovalPOInvoice = () => {
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">
                         {item.unit}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`px-2 py-1 text-xs rounded ${
-                            item.itemSource === "mysql"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
-                        >
-                          {item.itemSource}
-                        </span>
                       </td>
                     </tr>
                   ))}

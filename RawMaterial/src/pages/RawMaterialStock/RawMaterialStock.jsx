@@ -1393,7 +1393,7 @@ const RawMaterialStock = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
                 Raw Material Inventory
               </h1>
-              <p className="text-gray-600 mt-2">Manage your production materials and stock levels</p>
+              
             </div>
 
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">

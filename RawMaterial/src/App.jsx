@@ -99,7 +99,7 @@ const getRedirectPath = (role) => {
     return "/service-process-request";
   }
 
-  if (["Store", "Purchase"].includes(role)) {
+  if (["Store", "Purchase", "Admin"].includes(role)) {
     return "/raw-material-stock";
   }
 
@@ -107,7 +107,6 @@ const getRedirectPath = (role) => {
   return "/login";
 };
 
-// ========== All Routes ==========
 const AppRoutes = () => {
   const { user, loading } = useUser();
 
@@ -192,7 +191,7 @@ const AppRoutes = () => {
         <Route
           path="store-tracking"
           element={
-            <ProtectedRoute allowedRoles={["Store", "Production"]}>
+            <ProtectedRoute allowedRoles={["Store", "Production", "Admin"]}>
               <StoreTracking />
             </ProtectedRoute>
           }
@@ -293,7 +292,7 @@ const AppRoutes = () => {
         <Route
           path="purchase-dashboard"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Admin"]}>
               <PurchaseDashboard />
             </ProtectedRoute>
           }
@@ -376,7 +375,7 @@ const AppRoutes = () => {
         <Route
           path="po-order-details"
           element={
-            <ProtectedRoute allowedRoles={["Purchase", "Production"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Production", "Admin"]}>
               <PoOrderDetails />
             </ProtectedRoute>
           }
@@ -429,7 +428,7 @@ const AppRoutes = () => {
         <Route
           path="installation-stock"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Admin"]}>
               <InstallationStock />
             </ProtectedRoute>
           }
@@ -576,7 +575,7 @@ const AppRoutes = () => {
         <Route
           path="raw-material-stock"
           element={
-            <ProtectedRoute allowedRoles={["Store", "Purchase", "Production"]}>
+            <ProtectedRoute allowedRoles={["Store", "Purchase", "Production", "Admin"]}>
               <RawMaterialStock />
             </ProtectedRoute>
           }

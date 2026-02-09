@@ -93,9 +93,6 @@ const InstallationStock = () => {
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Installation Stock Analysis
         </h1>
-        <p className="text-gray-600">
-          View detailed stock availability for installation projects
-        </p>
       </div>
 
       {/* Filters */}
