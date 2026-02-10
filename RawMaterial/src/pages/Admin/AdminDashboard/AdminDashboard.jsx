@@ -230,9 +230,10 @@ const AdminDashboard = () => {
 
   // PDF Viewer Functions
   const handleViewPdf = (invoiceUrl) => {
-    // Construct full URL based on your API base URL
-    const baseUrl = 'http://69.62.73.56:5050'; // Adjust based on your actual base URL
-    const fullUrl = invoiceUrl.startsWith('http') ? invoiceUrl : `${baseUrl}${invoiceUrl}`;
+   
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const fullUrl = invoiceUrl.includes(baseUrl) ? invoiceUrl : baseUrl+invoiceUrl;
+    console.log("full URL", fullUrl);
     
     setSelectedPdfUrl(fullUrl);
     setShowPdfModal(true);
@@ -252,12 +253,6 @@ const AdminDashboard = () => {
     console.error('Error loading PDF:', error);
     setPdfError('Failed to load PDF. Please try again.');
     setPdfLoading(false);
-  };
-
-  // Helper function to get full PDF URL
-  const getFullPdfUrl = (invoiceUrl) => {
-    const baseUrl = 'http://69.62.73.56:5050';
-    return invoiceUrl.startsWith('http') ? invoiceUrl : `${baseUrl}${invoiceUrl}`;
   };
 
   const formatDate = (dateString) => {
@@ -656,7 +651,7 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Payment Approval Dashboard</h1>
-        <p className="text-gray-600 mt-1">Review and manage payment requests from vendors</p>
+        
       </div>
 
       {/* Selection Summary Bar */}

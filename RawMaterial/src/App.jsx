@@ -74,7 +74,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
 const getRedirectPath = (role) => {
   if (["Admin", "SuperAdmin", "Superadmin"].includes(role)) {
-    return "/admin-dashboard";
+    return "/purchase-dashboard";
   }
   if (role === "Store") return "/store-keeper";
   if (role === "Purchase") return "/purchase-dashboard";
