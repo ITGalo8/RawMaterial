@@ -103,7 +103,7 @@ const SideMenubar = () => {
                 {user.name || user.email}
               </div>
               <div className="text-gray-300 text-sm capitalize">
-                {user.role}
+                {user?.role === "Admin" ? "Super Admin" :user?.role }
               </div>
             </div>
           </div>
