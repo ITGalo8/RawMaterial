@@ -455,7 +455,7 @@ const AppRoutes = () => {
         <Route
           path="po-payment-details"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Admin"]}>
               <PoPaymentDetails />
             </ProtectedRoute>
           }
