@@ -315,8 +315,7 @@ const SideMenubar = () => {
             </>
           )}
 
-          {user.role === "Purchase" ||
-            (user.role === "Admin" && (
+          {(user.role === "Purchase" || user.role === "Admin") && (
               <>
                 <li>
                   <NavLink
@@ -332,11 +331,11 @@ const SideMenubar = () => {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <MdDashboard className="text-lg" />
-                    Purchase Details
+                    Purchase Dashboard
                   </NavLink>
                 </li>
               </>
-            ))}
+            )}
 
           {(user.role === "Store" ||
             user.role === "Production" ||
@@ -356,7 +355,7 @@ const SideMenubar = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <IoStorefrontSharp className="text-lg" />
-                  Store Tracking
+                  Service Tracking
                 </NavLink>
               </li>
             </>
