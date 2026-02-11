@@ -496,8 +496,7 @@ const SideMenubar = () => {
             </>
           )}
 
-          {user.role === "Purchase" ||
-            (user.role === "Admin" && (
+          {(user?.role === "Purchase" || user?.role === "Admin") && (
               <>
                 <li>
                   <NavLink
@@ -517,7 +516,7 @@ const SideMenubar = () => {
                   </NavLink>
                 </li>
               </>
-            ))}
+            )}
 
           {user.role === "Purchase" && (
             <>
