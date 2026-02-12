@@ -1564,7 +1564,7 @@ const PoInvoice = () => {
       active.push(`Currency: ${filters.currency}`);
     if (filters.invoiceType !== "all")
       active.push(
-        `Invoice Type: ${filters.invoiceType === "po" ? "PO Invoices" : "Purchase Dept(Invoice)"}`,
+        `Invoice Type: ${filters.invoiceType === "po" ? "Uploaded By Warehouse" : "Uploaded By Purchase Dept"}`,
       );
     if (filters.invoiceStatus !== "all")
       active.push(`Invoice Status: ${filters.invoiceStatus}`);
@@ -2144,13 +2144,13 @@ const PoInvoice = () => {
                     scope="col"
                     className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    PO Invoices
+                   Uploaded By Warehouse
                   </th>
                   <th
                     scope="col"
                     className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                   >
-                    Purchase Dept(Invoice)
+                    Uploaded By Purchase Dept
                   </th>
                   <th
                     scope="col"
@@ -2381,7 +2381,7 @@ const PoInvoice = () => {
                                     size={18}
                                     className="mr-2 text-blue-600"
                                   />
-                                  PO Invoices
+                                  Uploaded By Warehouse
                                   <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     {po.poBillCount} invoices
                                   </span>
@@ -2484,7 +2484,7 @@ const PoInvoice = () => {
                                     size={18}
                                     className="mr-2 text-purple-600"
                                   />
-                                  Purchase Dept(Invoice)
+                                  Uploaded By Purchase Dept
                                   <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                     {po.vendorInvoiceCount} invoices
                                   </span>
@@ -2735,7 +2735,7 @@ const PoInvoice = () => {
                       <div className="mb-4">
                         <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                           <Receipt size={16} className="mr-1 text-blue-600" />
-                          PO Invoices ({po.poBillCount})
+                          Uploaded By Warehouse ({po.poBillCount})
                         </h4>
                         {po.poBills.map((bill, index) => (
                           <div
@@ -2789,7 +2789,8 @@ const PoInvoice = () => {
                       <div>
                         <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                           <Store size={16} className="mr-1 text-purple-600" />
-                          Purchase Dept(Invoice) ({po.vendorInvoiceCount})
+                          Uploaded By Purchase Dept
+                        ({po.vendorInvoiceCount})
                         </h4>
                         {po.vendorInvoices.map((invoice, index) => (
                           <div
