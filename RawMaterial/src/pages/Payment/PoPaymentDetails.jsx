@@ -285,7 +285,7 @@ const PoPaymentDetails = () => {
 
                             {/* Docs Verification */}
                             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h5 className="font-semibold text-gray-800 mb-3">Document Verification</h5>
+                              <h5 className="font-semibold text-gray-800 mb-3">Accounts Verification</h5>
                               <div className="space-y-2 text-sm">
                                 <div>
                                   <span className="text-gray-500">Status:</span>
@@ -310,7 +310,7 @@ const PoPaymentDetails = () => {
 
                             {/* Admin Verification */}
                             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h5 className="font-semibold text-gray-800 mb-3">Admin Verification</h5>
+                              <h5 className="font-semibold text-gray-800 mb-3">Payment Approval (Super Admin) </h5>
                               <div className="space-y-2 text-sm">
                                 <div>
                                   <span className="text-gray-500">Status:</span>
@@ -335,7 +335,7 @@ const PoPaymentDetails = () => {
 
                             {/* Accounts Verification */}
                             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h5 className="font-semibold text-gray-800 mb-3">Accounts Verification</h5>
+                              <h5 className="font-semibold text-gray-800 mb-3">Payment Done</h5>
                               <div className="space-y-2 text-sm">
                                 <div>
                                   <span className="text-gray-500">Status:</span>
