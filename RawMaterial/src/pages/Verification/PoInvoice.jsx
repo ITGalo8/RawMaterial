@@ -1636,6 +1636,9 @@ import {
   Hash,
   Receipt,
   Store,
+  Image as ImageIcon,
+  File as FileIcon,
+  X,
 } from "lucide-react";
 import { useDebounce } from "../../hooks/UseDebounce";
 
@@ -1679,9 +1682,71 @@ const PoInvoice = () => {
     paidVendorAmount: 0,
     pendingVendorAmount: 0,
   });
+  
+  // State for image preview modal
+  const [imagePreview, setImagePreview] = useState({
+    isOpen: false,
+    imageUrl: null,
+    fileName: null,
+  });
 
   // Debounce search input
   const debouncedSearch = useDebounce(searchInput, 300);
+
+  // Helper function to determine file type from URL or filename
+  const getFileType = (fileUrl) => {
+    if (!fileUrl) return 'unknown';
+    
+    const extension = fileUrl.split('.').pop()?.toLowerCase();
+    
+    // Check if it's an image
+    const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
+    if (imageExtensions.includes(extension)) {
+      return 'image';
+    }
+    
+    // Check if it's a PDF
+    if (extension === 'pdf') {
+      return 'pdf';
+    }
+    
+    // If no extension or unknown, try to check from URL structure
+    if (fileUrl.includes('/images/') || fileUrl.includes('/img/')) {
+      return 'image';
+    }
+    
+    return 'unknown';
+  };
+
+  // Get appropriate icon for file type
+  const getFileIcon = (fileType) => {
+    switch (fileType) {
+      case 'pdf':
+        return <FileText size={16} className="text-red-500" />;
+      case 'image':
+        return <ImageIcon size={16} className="text-green-500" />;
+      default:
+        return <FileIcon size={16} className="text-gray-500" />;
+    }
+  };
+
+  // Open image in modal
+  const openImagePreview = (imageUrl, fileName) => {
+    setImagePreview({
+      isOpen: true,
+      imageUrl: imageUrl,
+      fileName: fileName,
+    });
+  };
+
+  // Close image preview modal
+  const closeImagePreview = () => {
+    setImagePreview({
+      isOpen: false,
+      imageUrl: null,
+      fileName: null,
+    });
+  };
 
   // Open PO PDF in new tab with proper authentication
   const openPdfInNewTab = async (poId, poNumber) => {
@@ -1886,6 +1951,60 @@ const PoInvoice = () => {
     }
   };
 
+  // Handle file actions (view/download) for both PDF and images
+  const handleFileAction = async (
+    fileUrl,
+    fileName,
+    action = "view",
+    fileType = "unknown"
+  ) => {
+    const id = fileUrl?.split("/").pop() || "file";
+    setDownloadingPdf((prev) => ({ ...prev, [id]: true }));
+    setPdfError(null);
+
+    try {
+      const fullUrl = `${import.meta.env.VITE_API_URL}${fileUrl}`;
+
+      if (action === "download") {
+        // Download for any file type
+        const response = await fetch(fullUrl);
+        if (!response.ok) throw new Error("Failed to fetch file");
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        
+        // Get proper extension
+        const extension = fileUrl.split('.').pop() || 'pdf';
+        a.download = `${fileName || "file"}.${extension}`;
+        
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        // View - handle based on file type
+        if (fileType === 'pdf') {
+          window.open(fullUrl, "_blank", "noopener,noreferrer");
+        } else if (fileType === 'image') {
+          // Open image in modal
+          openImagePreview(fullUrl, fileName);
+        } else {
+          // For unknown types, try to open in new tab
+          window.open(fullUrl, "_blank", "noopener,noreferrer");
+        }
+      }
+    } catch (error) {
+      console.error("Error handling file:", error);
+      setPdfError(
+        `Failed to ${action} file. Please check the file URL or try again.`,
+      );
+    } finally {
+      setDownloadingPdf((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
   // Fetch data from both APIs
   useEffect(() => {
     const fetchData = async () => {
@@ -1938,6 +2057,8 @@ const PoInvoice = () => {
                 vendorCreatedAt: invoice.createdAt || new Date().toISOString(),
                 vendorUpdatedAt: invoice.updatedAt,
                 invoiceType: "vendor",
+                // Add file type detection
+                fileType: getFileType(invoice.invoiceUrl),
               })),
             });
           });
@@ -1955,6 +2076,8 @@ const PoInvoice = () => {
               poFileUrl: bill.fileUrl,
               poSource: "po",
               invoiceType: "po",
+              // Add file type detection
+              fileType: getFileType(bill.fileUrl),
             }));
 
             // Get vendor invoices separately
@@ -2183,46 +2306,6 @@ const PoInvoice = () => {
     }));
   }, []);
 
-  // Handle PDF actions for invoices
-  const handlePdfAction = async (
-    fileUrl,
-    fileName,
-    action = "view",
-    invoiceType = "po",
-  ) => {
-    const id = fileUrl?.split("/").pop() || "invoice";
-    setDownloadingPdf((prev) => ({ ...prev, [id]: true }));
-    setPdfError(null);
-
-    try {
-      const fullUrl = `${import.meta.env.VITE_API_URL}${fileUrl}`;
-
-      if (action === "download") {
-        const response = await fetch(fullUrl);
-        if (!response.ok) throw new Error("Failed to fetch PDF");
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${fileName || "invoice"}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        window.open(fullUrl, "_blank", "noopener,noreferrer");
-      }
-    } catch (error) {
-      console.error("Error handling PDF:", error);
-      setPdfError(
-        `Failed to ${action} PDF. Please check the file URL or try again.`,
-      );
-    } finally {
-      setDownloadingPdf((prev) => ({ ...prev, [id]: false }));
-    }
-  };
-
   // Clear all filters
   const clearAllFilters = () => {
     setFilters({
@@ -2336,6 +2419,133 @@ const PoInvoice = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Render file actions based on file type
+  const renderFileActions = (file, invoiceType = "po") => {
+    const fileType = file.fileType || getFileType(file.poFileUrl || file.vendorFileUrl);
+    const fileUrl = file.poFileUrl || file.vendorFileUrl;
+    const fileId = file.poInvoiceId || file.vendorInvoiceId;
+    const fileName = file.poInvoiceNumber || file.vendorInvoiceNumber;
+    
+    const buttonColor = invoiceType === "po" ? "blue" : "purple";
+    
+    return (
+      <div className="flex space-x-2">
+        {/* Download Button */}
+        <button
+          onClick={() =>
+            handleFileAction(
+              fileUrl,
+              fileName,
+              "download",
+              fileType
+            )
+          }
+          disabled={downloadingPdf[fileId]}
+          className={`flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-${buttonColor}-600 hover:bg-${buttonColor}-700 disabled:opacity-50`}
+        >
+          {downloadingPdf[fileId] ? (
+            <>
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+              Downloading...
+            </>
+          ) : (
+            <>
+              <Download size={14} className="mr-1" />
+              Download
+            </>
+          )}
+        </button>
+        
+        {/* View Button - Different based on file type */}
+        <button
+          onClick={() =>
+            handleFileAction(
+              fileUrl,
+              fileName,
+              "view",
+              fileType
+            )
+          }
+          className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+        >
+          {getFileIcon(fileType)}
+          <span className="ml-1">
+            {fileType === 'image' ? 'Preview' : 'View'}
+          </span>
+        </button>
+      </div>
+    );
+  };
+
+  // Image Preview Modal
+  const ImagePreviewModal = () => {
+    if (!imagePreview.isOpen) return null;
+    
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+          <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+
+          <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+          <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {imagePreview.fileName || 'Image Preview'}
+                </h3>
+                <button
+                  onClick={closeImagePreview}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="mt-2">
+                <img
+                  src={imagePreview.imageUrl}
+                  alt={imagePreview.fileName || 'Preview'}
+                  className="max-w-full max-h-[70vh] mx-auto"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Available';
+                  }}
+                />
+              </div>
+            </div>
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button
+                type="button"
+                onClick={closeImagePreview}
+                className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleFileAction(
+                    imagePreview.imageUrl,
+                    imagePreview.fileName,
+                    "download",
+                    "image"
+                  );
+                  closeImagePreview();
+                }}
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+              >
+                <Download size={16} className="mr-2" />
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Skeleton loading component
   const SkeletonRow = () => (
     <tr className="animate-pulse">
@@ -2406,6 +2616,9 @@ const PoInvoice = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Image Preview Modal */}
+      <ImagePreviewModal />
+
       {/* PDF Error Alert */}
       {pdfError && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
@@ -2787,7 +3000,7 @@ const PoInvoice = () => {
                           <td colSpan="7" className="px-6 py-4">
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                               {/* PO Items Section */}
-                              <div className="lg:col-span-1">
+                              {/* <div className="lg:col-span-1">
                                 <div className="flex justify-between items-center mb-3">
                                   <h3 className="text-lg font-medium text-gray-900 flex items-center">
                                     <FileText size={18} className="mr-2" />
@@ -2817,7 +3030,7 @@ const PoInvoice = () => {
                                     ))}
                                   </div>
                                 </div>
-                              </div>
+                              </div> */}
 
                               {/* PO Invoices Section */}
                               <div className="lg:col-span-1">
@@ -2826,88 +3039,44 @@ const PoInvoice = () => {
                                     size={18}
                                     className="mr-2 text-blue-600"
                                   />
-                                  Uploaded By Warehouse
+                                  Warehouse
                                   <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     {po.poBillCount} invoices
                                   </span>
                                 </h3>
                                 {po.poBillCount > 0 ? (
                                   <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                                    {po.poBills.map((bill, index) => (
-                                      <div
-                                        key={bill.poInvoiceId || index}
-                                        className="bg-white rounded-lg border border-blue-200 p-4"
-                                      >
-                                        <div className="flex justify-between items-start mb-2">
-                                          <div>
-                                            <div className="flex items-center">
-                                              <Hash className="h-4 w-4 text-gray-400 mr-1" />
-                                              <span className="text-sm font-semibold text-gray-900">
-                                                {bill.poInvoiceNumber}
-                                              </span>
+                                    {po.poBills.map((bill, index) => {
+                                      const fileType = bill.fileType || getFileType(bill.poFileUrl);
+                                      return (
+                                        <div
+                                          key={bill.poInvoiceId || index}
+                                          className="bg-white rounded-lg border border-blue-200 p-4"
+                                        >
+                                          <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                              <div className="flex items-center">
+                                                <Hash className="h-4 w-4 text-gray-400 mr-1" />
+                                                <span className="text-sm font-semibold text-gray-900">
+                                                  {bill.poInvoiceNumber}
+                                                </span>
+                                              </div>
+                                              <div className="text-xs text-gray-500 mt-1 flex items-center">
+                                                {getFileIcon(fileType)}
+                                                <span className="ml-1">
+                                                  Date: {formatDate(bill.poInvoiceDate)}
+                                                </span>
+                                              </div>
                                             </div>
-                                            <div className="text-xs text-gray-500 mt-1">
-                                              Date:{" "}
-                                              {formatDate(bill.poInvoiceDate)}
-                                            </div>
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                              {fileType === 'pdf' ? 'PDF' : fileType === 'image' ? 'Image' : 'File'}
+                                            </span>
                                           </div>
-                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            PO Invoice
-                                          </span>
-                                        </div>
 
-                                        <div className="flex space-x-2 mt-3">
-                                          <button
-                                            onClick={() =>
-                                              handlePdfAction(
-                                                bill.poFileUrl,
-                                                bill.poInvoiceNumber,
-                                                "download",
-                                                "po",
-                                              )
-                                            }
-                                            disabled={
-                                              downloadingPdf[bill.poInvoiceId]
-                                            }
-                                            className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-                                          >
-                                            {downloadingPdf[
-                                              bill.poInvoiceId
-                                            ] ? (
-                                              <>
-                                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                                Downloading...
-                                              </>
-                                            ) : (
-                                              <>
-                                                <Download
-                                                  size={14}
-                                                  className="mr-1"
-                                                />
-                                                Download
-                                              </>
-                                            )}
-                                          </button>
-                                          <button
-                                            onClick={() =>
-                                              handlePdfAction(
-                                                bill.poFileUrl,
-                                                bill.poInvoiceNumber,
-                                                "view",
-                                                "po",
-                                              )
-                                            }
-                                            className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                          >
-                                            <ExternalLink
-                                              size={14}
-                                              className="mr-1"
-                                            />
-                                            View
-                                          </button>
+                                          {renderFileActions(bill, "po")}
                                         </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 ) : (
                                   <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
@@ -2929,123 +3098,81 @@ const PoInvoice = () => {
                                     size={18}
                                     className="mr-2 text-purple-600"
                                   />
-                                  Uploaded By Purchase Dept
+                                  Purchase Dept
                                   <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                     {po.vendorInvoiceCount} invoices
                                   </span>
                                 </h3>
                                 {po.vendorInvoiceCount > 0 ? (
                                   <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                    {po.vendorInvoices.map((invoice, index) => (
-                                      <div
-                                        key={invoice.vendorInvoiceId || index}
-                                        className="bg-white rounded-lg border border-purple-200 p-4"
-                                      >
-                                        <div className="flex justify-between items-start mb-2">
-                                          <div>
-                                            <div className="flex items-center">
-                                              <Hash className="h-4 w-4 text-gray-400 mr-1" />
-                                              <span className="text-sm font-semibold text-gray-900">
-                                                {invoice.vendorInvoiceNumber}
-                                              </span>
-                                            </div>
-                                           
-                                          </div>
-                                        
-                                        </div>
-
-                                        {/* Approval Info */}
-                                        {(invoice.vendorCreatedBy ||
-                                          invoice.vendorApprovedBy) && (
-                                          <div className="border-t border-gray-200 pt-2 mt-2 text-xs">
-                                            <div className="grid grid-cols-2 gap-2">
-                                              {invoice.vendorCreatedBy && (
-                                                <div>
-                                                  <span className="text-gray-500">
-                                                    Created By:
-                                                  </span>
-                                                  <span className="ml-1 text-gray-700">
-                                                    {invoice.vendorCreatedBy}
-                                                  </span>
-                                                </div>
-                                              )}
-                                              {invoice.vendorApprovedBy && (
-                                                <div>
-                                                  <span className="text-gray-500">
-                                                    Approved By:
-                                                  </span>
-                                                  <span className="ml-1 text-gray-700">
-                                                    {invoice.vendorApprovedBy}
-                                                  </span>
-                                                </div>
-                                              )}
-                                            </div>
-                                            {invoice.vendorRejectionReason && (
-                                              <div className="mt-2 p-2 bg-red-50 rounded text-red-700">
-                                                <span className="font-medium">
-                                                  Rejection Reason:
-                                                </span>{" "}
-                                                {invoice.vendorRejectionReason}
+                                    {po.vendorInvoices.map((invoice, index) => {
+                                      const fileType = invoice.fileType || getFileType(invoice.vendorFileUrl);
+                                      return (
+                                        <div
+                                          key={invoice.vendorInvoiceId || index}
+                                          className="bg-white rounded-lg border border-purple-200 p-4"
+                                        >
+                                          <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                              <div className="flex items-center">
+                                                <Hash className="h-4 w-4 text-gray-400 mr-1" />
+                                                <span className="text-sm font-semibold text-gray-900">
+                                                  {invoice.vendorInvoiceNumber}
+                                                </span>
                                               </div>
-                                            )}
+                                              {/* <div className="text-xs text-gray-500 mt-1 flex items-center">
+                                                {getFileIcon(fileType)}
+                                                <span className="ml-1">
+                                                  Date: {formatDate(invoice.vendorInvoiceDate)}
+                                                </span>
+                                              </div> */}
+                                            </div>
+                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                              {fileType === 'pdf' ? 'PDF' : fileType === 'image' ? 'Image' : 'File'}
+                                            </span>
                                           </div>
-                                        )}
 
-                                        {/* PDF Actions */}
-                                        <div className="flex space-x-2 mt-4">
-                                          <button
-                                            onClick={() =>
-                                              handlePdfAction(
-                                                invoice.vendorFileUrl,
-                                                invoice.vendorInvoiceNumber,
-                                                "download",
-                                                "vendor",
-                                              )
-                                            }
-                                            disabled={
-                                              downloadingPdf[
-                                                invoice.vendorInvoiceId
-                                              ]
-                                            }
-                                            className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-                                          >
-                                            {downloadingPdf[
-                                              invoice.vendorInvoiceId
-                                            ] ? (
-                                              <>
-                                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                                                Downloading...
-                                              </>
-                                            ) : (
-                                              <>
-                                                <Download
-                                                  size={14}
-                                                  className="mr-1"
-                                                />
-                                                Download PDF
-                                              </>
-                                            )}
-                                          </button>
-                                          <button
-                                            onClick={() =>
-                                              handlePdfAction(
-                                                invoice.vendorFileUrl,
-                                                invoice.vendorInvoiceNumber,
-                                                "view",
-                                                "vendor",
-                                              )
-                                            }
-                                            className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                          >
-                                            <ExternalLink
-                                              size={14}
-                                              className="mr-1"
-                                            />
-                                            View
-                                          </button>
+                                          {/* Approval Info */}
+                                          {(invoice.vendorCreatedBy ||
+                                            invoice.vendorApprovedBy) && (
+                                            <div className="border-t border-gray-200 pt-2 mt-2 text-xs">
+                                              <div className="grid grid-cols-2 gap-2">
+                                                {invoice.vendorCreatedBy && (
+                                                  <div>
+                                                    <span className="text-gray-500">
+                                                      Created By:
+                                                    </span>
+                                                    <span className="ml-1 text-gray-700">
+                                                      {invoice.vendorCreatedBy}
+                                                    </span>
+                                                  </div>
+                                                )}
+                                                {invoice.vendorApprovedBy && (
+                                                  <div>
+                                                    <span className="text-gray-500">
+                                                      Approved By:
+                                                    </span>
+                                                    <span className="ml-1 text-gray-700">
+                                                      {invoice.vendorApprovedBy}
+                                                    </span>
+                                                  </div>
+                                                )}
+                                              </div>
+                                              {invoice.vendorRejectionReason && (
+                                                <div className="mt-2 p-2 bg-red-50 rounded text-red-700">
+                                                  <span className="font-medium">
+                                                    Rejection Reason:
+                                                  </span>{" "}
+                                                  {invoice.vendorRejectionReason}
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+
+                                          {renderFileActions(invoice, "vendor")}
                                         </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 ) : (
                                   <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
@@ -3060,7 +3187,7 @@ const PoInvoice = () => {
                                 )}
                               </div>
 
-                              {/* PO Document Section - Updated Design */}
+                              {/* PO Document Section */}
                               <div className="lg:col-span-1">
                                 <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
                                   <FileText size={18} className="mr-2 text-green-600" />
@@ -3228,7 +3355,7 @@ const PoInvoice = () => {
 
                 {expandedRows[po.poId] && (
                   <div className="border-t border-gray-200 p-4 bg-gray-50">
-                    {/* PO Document Section - Updated Mobile Design */}
+                    {/* PO Document Section */}
                     <div className="mb-4">
                       <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                         <FileText size={16} className="mr-1 text-green-600" />
@@ -3283,53 +3410,34 @@ const PoInvoice = () => {
                       <div className="mb-4">
                         <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                           <Receipt size={16} className="mr-1 text-blue-600" />
-                          Uploaded By Warehouse ({po.poBillCount})
+                          Warehouse ({po.poBillCount})
                         </h4>
                         <div className="space-y-2 max-h-60 overflow-y-auto">
-                          {po.poBills.map((bill, index) => (
-                            <div
-                              key={bill.poInvoiceId || index}
-                              className="bg-white rounded border border-blue-200 p-3"
-                            >
-                              <div className="text-sm font-medium">
-                                {bill.poInvoiceNumber}
+                          {po.poBills.map((bill, index) => {
+                            const fileType = bill.fileType || getFileType(bill.poFileUrl);
+                            return (
+                              <div
+                                key={bill.poInvoiceId || index}
+                                className="bg-white rounded border border-blue-200 p-3"
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="text-sm font-medium">
+                                    {bill.poInvoiceNumber}
+                                  </div>
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {fileType === 'pdf' ? 'PDF' : fileType === 'image' ? 'Image' : 'File'}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 mb-2 flex items-center">
+                                  {getFileIcon(fileType)}
+                                  <span className="ml-1">
+                                    Date: {formatDate(bill.poInvoiceDate)}
+                                  </span>
+                                </div>
+                                {renderFileActions(bill, "po")}
                               </div>
-                              <div className="text-xs text-gray-500 mb-2">
-                                Date: {formatDate(bill.poInvoiceDate)}
-                              </div>
-                              <div className="flex space-x-2">
-                                <button
-                                  onClick={() =>
-                                    handlePdfAction(
-                                      bill.poFileUrl,
-                                      bill.poInvoiceNumber,
-                                      "download",
-                                      "po",
-                                    )
-                                  }
-                                  disabled={downloadingPdf[bill.poInvoiceId]}
-                                  className="flex-1 inline-flex items-center justify-center px-3 py-1.5 bg-blue-600 text-white text-xs rounded"
-                                >
-                                  {downloadingPdf[bill.poInvoiceId]
-                                    ? "Downloading..."
-                                    : "Download"}
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handlePdfAction(
-                                      bill.poFileUrl,
-                                      bill.poInvoiceNumber,
-                                      "view",
-                                      "po",
-                                    )
-                                  }
-                                  className="flex-1 inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-xs rounded"
-                                >
-                                  View
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -3339,64 +3447,40 @@ const PoInvoice = () => {
                       <div>
                         <h4 className="font-medium text-gray-900 mb-2 flex items-center">
                           <Store size={16} className="mr-1 text-purple-600" />
-                          Uploaded By Purchase Dept ({po.vendorInvoiceCount})
+                          Purchase Dept ({po.vendorInvoiceCount})
                         </h4>
                         <div className="space-y-2 max-h-60 overflow-y-auto">
-                          {po.vendorInvoices.map((invoice, index) => (
-                            <div
-                              key={invoice.vendorInvoiceId || index}
-                              className="bg-white rounded border border-purple-200 p-3"
-                            >
-                              <div className="flex justify-between items-start mb-1">
-                                <div className="text-sm font-medium">
-                                  {invoice.vendorInvoiceNumber}
+                          {po.vendorInvoices.map((invoice, index) => {
+                            const fileType = invoice.fileType || getFileType(invoice.vendorFileUrl);
+                            return (
+                              <div
+                                key={invoice.vendorInvoiceId || index}
+                                className="bg-white rounded border border-purple-200 p-3"
+                              >
+                                <div className="flex justify-between items-start mb-1">
+                                  <div className="text-sm font-medium">
+                                    {invoice.vendorInvoiceNumber}
+                                  </div>
+                                  <span
+                                    className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeColor(invoice.vendorInvoiceStatus)}`}
+                                  >
+                                    {invoice.vendorInvoiceStatus}
+                                  </span>
                                 </div>
-                                <span
-                                  className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeColor(invoice.vendorInvoiceStatus)}`}
-                                >
-                                  {invoice.vendorInvoiceStatus}
-                                </span>
-                              </div>
-                              <div className="text-xs text-gray-600">
-                                <div>Date: {formatDate(invoice.vendorInvoiceDate)}</div>
-                                <div>Due: {formatDate(invoice.vendorDueDate)}</div>
-                                <div className="font-medium mt-1">
-                                  Amount: {formatCurrency(invoice.vendorTotalAmount, po.currency)}
+                                <div className="text-xs text-gray-600">
+                                  <div className="flex items-center">
+                                    {getFileIcon(fileType)}
+                                    <span className="ml-1">Date: {formatDate(invoice.vendorInvoiceDate)}</span>
+                                  </div>
+                                  <div>Due: {formatDate(invoice.vendorDueDate)}</div>
+                                  <div className="font-medium mt-1">
+                                    Amount: {formatCurrency(invoice.vendorTotalAmount, po.currency)}
+                                  </div>
                                 </div>
+                                {renderFileActions(invoice, "vendor")}
                               </div>
-                              <div className="flex space-x-2 mt-2">
-                                <button
-                                  onClick={() =>
-                                    handlePdfAction(
-                                      invoice.vendorFileUrl,
-                                      invoice.vendorInvoiceNumber,
-                                      "download",
-                                      "vendor",
-                                    )
-                                  }
-                                  disabled={downloadingPdf[invoice.vendorInvoiceId]}
-                                  className="flex-1 inline-flex items-center justify-center px-3 py-1.5 bg-purple-600 text-white text-xs rounded"
-                                >
-                                  {downloadingPdf[invoice.vendorInvoiceId]
-                                    ? "Downloading..."
-                                    : "Download"}
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handlePdfAction(
-                                      invoice.vendorFileUrl,
-                                      invoice.vendorInvoiceNumber,
-                                      "view",
-                                      "vendor",
-                                    )
-                                  }
-                                  className="flex-1 inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-xs rounded"
-                                >
-                                  View
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
