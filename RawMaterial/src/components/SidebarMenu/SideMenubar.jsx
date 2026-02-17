@@ -361,7 +361,7 @@ const SideMenubar = () => {
             </>
           )}
 
-          {user.role === "Verification" && (
+          {(user.role === "Verification" || user.role === "Admin")  && (
             <>
               <li>
                 <NavLink

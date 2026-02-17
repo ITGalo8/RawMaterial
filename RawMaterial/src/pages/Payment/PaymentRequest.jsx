@@ -20,6 +20,7 @@ const PaymentRequest = () => {
     if (billpaymentType === "Advance_Payment") return subTotal;
     if (billpaymentType === "Partial_Payment") return pendingAmount;
     if (billpaymentType === "Full_Payment") return pendingAmount;
+    if (billpaymentType === "Full_Payment_In_Advance") return subTotal;
     return 0;
   };
 
@@ -176,6 +177,7 @@ const PaymentRequest = () => {
                 <option value="Advance_Payment">Advance Payment</option>
                 <option value="Partial_Payment">Partial Payment</option>
                 <option value="Full_Payment">Full Payment</option>
+                <option value="Full_Payment_In_Advance">Full Payment In Advance</option>
               </select>
             </div>
 
@@ -209,26 +211,10 @@ const PaymentRequest = () => {
               />
             </div>
 
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Amount
-              </label>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => {
-                  setAmount(e.target.value);
-                  setLastChanged("amount");
-                }}
-                className="w-full px-3 py-2 border rounded-md"
-              />
-            </div> */}
-
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Amount
               </label>
-
               <input
                 type="number"
                 value={amount}

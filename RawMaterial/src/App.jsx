@@ -500,7 +500,7 @@ const AppRoutes = () => {
         <Route
           path="po-invoice"
           element={
-            <ProtectedRoute allowedRoles={["Verification"]}>
+            <ProtectedRoute allowedRoles={["Verification", "Admin"]}>
               <PoInvoice />
             </ProtectedRoute>
           }
