@@ -547,10 +547,7 @@ const AddRawMaterial = ({
             <select
               value={unit}
               onChange={(e) => setUnit(e.target.value)}
-              disabled={unitLoading || isEditMode}
-              className={`w-full px-4 py-3 rounded-lg border ${
-                isEditMode ? "bg-gray-100 cursor-not-allowed" : ""
-              }`}
+              className={`w-full px-4 py-3 rounded-lg border`}
               required
             >
               <option value="">
