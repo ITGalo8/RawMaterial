@@ -393,7 +393,7 @@ const PoInvoice = () => {
 
         // Fetch data from both APIs in parallel
         const [poResponse, vendorInvoicesResponse] = await Promise.all([
-          Api.get("/verification-dept/purchase-orders/invoices"),
+          Api.get("/verification-dept/purchase-orders/company-wise/invoices"),
           Api.get("/common/vendors/invoices"),
         ]);
 
