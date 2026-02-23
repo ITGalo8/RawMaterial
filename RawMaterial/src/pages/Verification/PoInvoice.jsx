@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Api from "../../auth/Api";
+import { useUser } from "../../Context/UserContext";
 import {
   ChevronDown,
   ChevronUp,
@@ -22,6 +23,8 @@ import {
 import { useDebounce } from "../../hooks/UseDebounce";
 
 const PoInvoice = () => {
+  const { user, logout } = useUser();
+  console.log("user Data ->", user?.role)
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -383,7 +386,7 @@ const PoInvoice = () => {
       setDownloadingPdf((prev) => ({ ...prev, [id]: false }));
     }
   };
-
+  const changableApi = user.role === "Admin" ? "/verification-dept/purchase-orders/invoices" : "/verification-dept/purchase-orders/company-wise/invoices"
   // Fetch data from both APIs
   useEffect(() => {
     const fetchData = async () => {
@@ -393,7 +396,7 @@ const PoInvoice = () => {
 
         // Fetch data from both APIs in parallel
         const [poResponse, vendorInvoicesResponse] = await Promise.all([
-          Api.get("/verification-dept/purchase-orders/company-wise/invoices"),
+          Api.get(changableApi),
           Api.get("/common/vendors/invoices"),
         ]);
 

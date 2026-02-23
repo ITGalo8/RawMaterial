@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Api from '../../../auth/Api';
 import { Document, Page, pdfjs } from 'react-pdf';
 
-// Configure PDF worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const AdminDashboard = () => {
@@ -1010,9 +1009,9 @@ const AdminDashboard = () => {
                       onChange={handleSelectAllOnCurrentPage}
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     PO Number
-                  </th>
+                  </th> */}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Company
                   </th>
@@ -1025,12 +1024,12 @@ const AdminDashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Requested By
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  </th> */}
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
-                  </th>
+                  </th> */}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Invoice
                   </th>
@@ -1051,11 +1050,11 @@ const AdminDashboard = () => {
                       />
                     </td>
                     
-                    <td className="px-6 py-4">
+                    {/* <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">
                         {request.poNumber}
                       </div>
-                    </td>
+                    </td> */}
                     
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
@@ -1085,20 +1084,20 @@ const AdminDashboard = () => {
                       </span>
                     </td>
                    
-                    <td className="px-6 py-4">
+                    {/* <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
                         {request.paymentRequestedBy}
                       </div>
-                    </td>
+                    </td> */}
                     
-                    <td className="px-6 py-4">
+                    {/* <td className="px-6 py-4">
                       <div className="text-sm text-gray-900">
                         {formatDate(request.createdAt).split(',')[0]}
                       </div>
                       <div className="text-xs text-gray-500">
                         {formatDate(request.createdAt).split(',')[1]}
                       </div>
-                    </td>
+                    </td> */}
                     
                     <td className="px-6 py-4">
                       <div className="flex flex-col space-y-2">
@@ -1112,7 +1111,7 @@ const AdminDashboard = () => {
                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
-                              View Invoice
+                              {idx+1}
                             </button>
                           ))
                         ) : (
@@ -1130,24 +1129,22 @@ const AdminDashboard = () => {
                             px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center
                             ${request.status === 'APPROVED' 
                               ? 'bg-green-100 text-green-800' 
-                              : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                              : 'bg-green-500 text-white font-bolder hover:bg-green-600 hover:text-white border border-green-200'
                             }
                             ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                           `}
                         >
                           {request.status === 'APPROVED' ? (
                             <>
-                              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
-                              Approved
                             </>
                           ) : (
                             <>
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
-                              Approve
                             </>
                           )}
                         </button>
@@ -1159,24 +1156,22 @@ const AdminDashboard = () => {
                             px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center
                             ${request.status === 'REJECTED' 
                               ? 'bg-red-100 text-red-800' 
-                              : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                              : 'bg-red-500  text-white hover:bg-red-600 border border-red-200'
                             }
                             ${updateLoading ? 'opacity-50 cursor-not-allowed' : ''}
                           `}
                         >
                           {request.status === 'REJECTED' ? (
                             <>
-                              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                               </svg>
-                              Rejected
                             </>
                           ) : (
                             <>
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
-                              Reject
                             </>
                           )}
                         </button>

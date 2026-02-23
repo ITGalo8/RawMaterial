@@ -53,6 +53,7 @@ import AddWarehouse from "./pages/Purchase/AddWarehouse";
 import AddUnit from "./pages/Purchase/AddUnit";
 import ApprovalPOInvoice from "./pages/Purchase/ApprovalPOInvoice";
 import InvoicePO from "./pages/Purchase/InvoicePO";
+import VendorAllDetails from "./pages/Production/VendorAllDetails";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -586,6 +587,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <SingleOut />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="vendor-all-details"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Production"]}>
+              <VendorAllDetails />
             </ProtectedRoute>
           }
         />
