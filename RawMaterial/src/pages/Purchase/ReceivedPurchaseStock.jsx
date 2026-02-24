@@ -408,7 +408,7 @@ const ReceivedPurchaseStock = () => {
                             Received Qty *
                           </label>
                           <input
-                            type="number"
+                            type="text"
                             min="1"
                             max={remainingQty}
                             step="1"
@@ -429,7 +429,7 @@ const ReceivedPurchaseStock = () => {
                             Good Qty
                           </label>
                           <input
-                            type="number"
+                            type="text"
                             min="0"
                             max={itemInputs[index]?.receivedQty || remainingQty}
                             step="1"
@@ -447,7 +447,7 @@ const ReceivedPurchaseStock = () => {
                             Damaged Qty
                           </label>
                           <input
-                            type="number"
+                            type="text"
                             min="0"
                             max={itemInputs[index]?.receivedQty || remainingQty}
                             step="1"

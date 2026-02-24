@@ -292,7 +292,7 @@ const ItemRequest = () => {
 
                   <InputField
                     label="Quantity:"
-                    type="number"
+                    type="text"
                     min="1"
                     max={mat.stock}
                     value={quantities[mat.id] || ""}

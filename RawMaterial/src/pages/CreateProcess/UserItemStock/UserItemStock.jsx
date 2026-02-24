@@ -293,7 +293,7 @@ const UserItemStock = () => {
 
                     <div className="flex items-center space-x-2">
                       <input
-                        type="number"
+                        type="text"
                         value={getSelectedMaterialQuantity(
                           material.rawMaterialId
                         )}

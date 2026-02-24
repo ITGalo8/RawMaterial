@@ -675,7 +675,7 @@ const PoOrderDetails = () => {
               <div className="flex items-center space-x-1.5">
                 <span className="text-sm text-gray-700">Go to page:</span>
                 <input
-                  type="number"
+                  type="text"
                   min="1"
                   max={totalPages}
                   value={currentPage}

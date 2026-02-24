@@ -18,7 +18,7 @@ const VendorAllDetails = () => {
         setLoading(false);
       }
     };
-
+  
     fetchVendors();
   }, []);
 

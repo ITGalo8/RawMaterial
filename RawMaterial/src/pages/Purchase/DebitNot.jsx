@@ -618,7 +618,7 @@ const DebitNot = () => {
                               Amount (₹)
                             </label>
                             <input
-                              type="number"
+                              type="text"
                               step="0.01"
                               min="0"
                               value={charge.amount}
@@ -713,7 +713,7 @@ const DebitNot = () => {
                             Quantity *
                           </label>
                           <input
-                            type="number"
+                            type="text"
                             step="0.01"
                             min="0"
                             value={item.quantity}
@@ -740,7 +740,7 @@ const DebitNot = () => {
                             Rate (₹) *
                           </label>
                           <input
-                            type="number"
+                            type="text"
                             step="0.01"
                             min="0"
                             value={item.rate}
@@ -769,7 +769,7 @@ const DebitNot = () => {
                           {isItemwiseGST ? (
                             <div className="flex items-center">
                               <input
-                                type="number"
+                                type="text"
                                 step="0.01"
                                 min="0"
                                 max="100"

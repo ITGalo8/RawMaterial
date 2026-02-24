@@ -496,7 +496,7 @@ const SingleOut = () => {
                         <div className="flex items-center space-x-3">
                           <div className="relative flex-1">
                             <input
-                              type="number"
+                              type="text"
                               min="0.01"
                               step="0.01"
                               value={itemQuantities[item.id] || ""}

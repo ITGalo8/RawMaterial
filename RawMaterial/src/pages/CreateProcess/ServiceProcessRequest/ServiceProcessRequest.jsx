@@ -485,7 +485,7 @@ const ServiceProcessRequest = () => {
                     </label>
                     <div className="relative">
                       <input
-                        type="number"
+                        type="text"
                         value={quantity}
                         onChange={(e) => {
                           const value = e.target.value;

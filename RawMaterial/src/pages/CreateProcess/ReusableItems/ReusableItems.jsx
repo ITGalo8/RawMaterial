@@ -337,7 +337,7 @@ const ReusableItems = () => {
                                 Reusable Items Quantity:
                               </label>
                               <input
-                                type="number"
+                                type="text"
                                 value={material.quantity}
                                 onChange={(e) => updateMaterialQuantity(material.id, e.target.value)}
                                 className="w-24 px-3 py-2 border-2 border-gray-200 rounded-lg text-center font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-50 disabled:cursor-not-allowed"

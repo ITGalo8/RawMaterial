@@ -449,7 +449,7 @@ const UpdateVendor = () => {
                       Exchange Rate
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       name="exchangeRate"
                       value={companyDetails?.exchangeRate || ""}
                       onChange={handleInputChange}

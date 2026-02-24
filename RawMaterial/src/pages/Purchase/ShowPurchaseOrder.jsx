@@ -1478,7 +1478,7 @@ const ShowPurchaseOrder = () => {
           grandTotal: po.grandTotal,
           displayGrandTotal: po.displayGrandTotal,
           // Add item count
-          itemCount: Array.isArray(po.items) ? po.items.length : 0,
+          // itemCount: Array.isArray(po.items) ? po.items.length : 0,
         }));
 
         setPoListing(mappedData);
@@ -1531,7 +1531,7 @@ const ShowPurchaseOrder = () => {
     "PO Date",
     "Company",
     "Vendor",
-    "Item Count",
+    // "Item Count",
     "expected Delivery",
     "Status",
     "Actions",
@@ -1763,9 +1763,9 @@ const ShowPurchaseOrder = () => {
                     <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
                       {po?.vendorName || "N/A"}
                     </td>
-                    <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
+                    {/* <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
                       {po.itemCount || "0"}
-                    </td>
+                    </td> */}
                     <td className="px-2 py-2 whitespace-nowrap text-sm text-gray-900">
                       {po?.expectedDeliveryDate
                         ? po.expectedDeliveryDate.split("T")[0]
@@ -2759,7 +2759,7 @@ const ShowPurchaseOrder = () => {
                           Exchange Rate <span className="text-red-500">*</span>
                         </label>
                         <input
-                          type="number"
+                          type="text"
                           name="exchangeRate"
                           value={formData.exchangeRate}
                           onChange={handleInputChange}
@@ -3165,7 +3165,7 @@ const ShowPurchaseOrder = () => {
                                 Quantity <span className="text-red-500">*</span>
                               </label>
                               <input
-                                type="number"
+                                type="text"
                                 value={item.quantity}
                                 onChange={(e) =>
                                   handleItemChange(
@@ -3184,7 +3184,7 @@ const ShowPurchaseOrder = () => {
                                 Rate <span className="text-red-500">*</span>
                               </label>
                               <input
-                                type="number"
+                                type="text"
                                 value={item.rate}
                                 onChange={(e) =>
                                   handleItemChange(
@@ -3206,7 +3206,7 @@ const ShowPurchaseOrder = () => {
                                   <span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                  type="number"
+                                  type="text"
                                   value={item.gstRate || ""}
                                   onChange={(e) =>
                                     handleItemChange(
@@ -3229,7 +3229,7 @@ const ShowPurchaseOrder = () => {
                                 Total <span className="text-red-500">*</span>
                               </label>
                               <input
-                                type="number"
+                                type="text"
                                 value={item.total}
                                 onChange={(e) =>
                                   handleItemChange(
@@ -3368,7 +3368,7 @@ const ShowPurchaseOrder = () => {
                                 Amount
                               </label>
                               <input
-                                type="number"
+                                type="text"
                                 value={charge.amount}
                                 onChange={(e) =>
                                   handleChargeChange(
