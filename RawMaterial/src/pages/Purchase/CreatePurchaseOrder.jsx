@@ -2447,17 +2447,18 @@ const CreatePurchaseOrder = () => {
   const fetchUnits = async () => {
     try {
       const response = await Api.get("/common/unit/view");
-      if (response.data.success) {
+      if (response?.data?.success) {
         // Transform the API response to match our format {value, label}
-        const formattedUnits = response.data.data.map((unit) => ({
-          value: unit.name,
-          label: unit.name,
-          id: unit.id, // Keep the ID for reference if needed
+        const formattedUnits = response?.data?.data?.map((unit) => ({
+          value: unit?.name,
+          label: unit?.name,
+          id: unit?.id, // Keep the ID for reference if needed
         }));
         setUnitTypes(formattedUnits);
       }
     } catch (error) {
-      console.error("Error fetching units:", error);
+      // console.log("Error fetching units:", error?.response?.data?.message);
+      alert("Error: ", error?.response?.data?.message)
       // Fallback to static units if API fails
     }
   };
@@ -2561,7 +2562,7 @@ const CreatePurchaseOrder = () => {
   useEffect(() => {
     if (location.state?.reorderData) {
       const reorderData = location.state.reorderData;
-      console.log("Received reorder data:", reorderData);
+      // console.log("Received reorder data:", reorderData);
 
       // Set basic information
       setSelectedCompany(reorderData.companyId);
@@ -2647,7 +2648,7 @@ const CreatePurchaseOrder = () => {
           taxableAmount: total,
           gstAmount: gstAmount,
           totalAmount: total + gstAmount,
-          itemDetail: foundItem?.itemDetail || item.itemDetail || "",
+          itemDetail: foundItem?.itemDetail || item?.itemDetail || "",
         };
       });
 
@@ -2657,7 +2658,7 @@ const CreatePurchaseOrder = () => {
       // Show success message
       setTimeout(() => {
         setProcessingReorder(false);
-        console.log("Reorder items processed:", mappedItems);
+        // console.log("Reorder items processed:", mappedItems);
       }, 500);
     }
   }, [isItemListLoaded, pendingReorderItems, selectedGstType, itemList]);
@@ -2813,12 +2814,12 @@ const CreatePurchaseOrder = () => {
 
   // Updated handleItemSelect with HSN code handling
   const handleItemSelect = async (id, itemId) => {
-    console.log(`Item changed: ${itemId} for item ${id}`);
+    // console.log(`Item changed: ${itemId} for item ${id}`);
 
     if (!itemId) {
       // If item is cleared, reset all fields including HSN
       setItemDetails(
-        itemDetails.map((item) => {
+        itemDetails?.map((item) => {
           if (item.id === id) {
             return {
               ...item,
@@ -2892,7 +2893,7 @@ const CreatePurchaseOrder = () => {
           const response = await Api.get(`/purchase/items/details/${itemId}`);
 
           if (response.data.success) {
-            const detailedItem = response.data.item;
+            const detailedItem = response?.data?.item;
 
             // Check if API provides HSN code
             const apiHasHsnCode =
@@ -2932,15 +2933,15 @@ const CreatePurchaseOrder = () => {
                     newHsnCode = detailedItem.hsnCode.trim();
                   }
 
-                  console.log(`API Response for item ${itemId}:`, {
-                    source: response.data.source,
-                    apiUnit,
-                    apiDescription,
-                    apiHsnCode: detailedItem.hsnCode,
-                    newUnit,
-                    newDescription,
-                    newHsnCode,
-                  });
+                  // console.log(`API Response for item ${itemId}:`, {
+                  //   source: response.data.source,
+                  //   apiUnit,
+                  //   apiDescription,
+                  //   apiHsnCode: detailedItem.hsnCode,
+                  //   newUnit,
+                  //   newDescription,
+                  //   newHsnCode,
+                  // });
 
                   const updatedItem = {
                     ...item,
@@ -2973,9 +2974,9 @@ const CreatePurchaseOrder = () => {
             );
 
             // Show notification if data was fetched from API
-            console.log(
-              `Item ${id}: Loaded from ${response.data.source} - unit="${detailedItem.unit}", description="${detailedItem.description}", HSN="${detailedItem.hsnCode}"`,
-            );
+            // console.log(
+            //   `Item ${id}: Loaded from ${response.data.source} - unit="${detailedItem.unit}", description="${detailedItem.description}", HSN="${detailedItem.hsnCode}"`,
+            // );
           }
         } catch (apiError) {
           console.error("Error fetching item details:", apiError);
