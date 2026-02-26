@@ -361,7 +361,7 @@ const SideMenubar = () => {
             </>
           )}
 
-          {(user.role === "Verification" || user.role === "Admin")  && (
+          {(user.role === "Verification" || user.role === "Admin" || user.role === "Accounts" )  && (
             <>
               <li>
                 <NavLink
@@ -382,6 +382,7 @@ const SideMenubar = () => {
               </li>
             </>
           )}
+          
 
           {/* Admin Dashboard */}
           {(user.role === "Superadmin" || user.role === "Admin") && (

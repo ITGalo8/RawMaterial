@@ -44,7 +44,6 @@ import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/Dir
 import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
 import PoPaymentDetails from "./pages/Payment/PoPaymentDetails";
-import PoVerification from "./pages/Verification/PoVerification";
 import PoInvoice from "./pages/Verification/PoInvoice";
 import PaymentRequestDetails from "./pages/Verification/PaymentRequestDetails";
 import AccountDetails from "./pages/Accounts/AccountDetails";
@@ -490,18 +489,9 @@ const AppRoutes = () => {
         />
 
         <Route
-          path="po-verification"
-          element={
-            <ProtectedRoute allowedRoles={["Verification"]}>
-              <PoVerification />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="po-invoice"
           element={
-            <ProtectedRoute allowedRoles={["Verification", "Admin"]}>
+            <ProtectedRoute allowedRoles={["Verification", "Admin", "Accounts"]}>
               <PoInvoice />
             </ProtectedRoute>
           }
