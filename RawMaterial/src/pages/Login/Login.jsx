@@ -46,6 +46,8 @@ const Login = () => {
         refreshToken: userData.refreshToken,
       };
 
+      console.log("User Data ", user)
+
       // 🔹 Save to localStorage
       localStorage.setItem("accessToken", userData.accessToken);
       localStorage.setItem("refreshToken", userData.refreshToken);
@@ -96,7 +98,7 @@ const Login = () => {
       }
     } catch (err) {
       setError(
-        err?.response?.data?.message || "Login failed. Please try again.",
+        err?.response?.data?.message || err?.message || err ||  "Login failed. please check Your network and credential both.",
       );
     } finally {
       setLoading(false);

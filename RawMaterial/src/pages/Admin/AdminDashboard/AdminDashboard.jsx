@@ -33,14 +33,14 @@ const AdminDashboard = () => {
   const [pdfError, setPdfError] = useState(null);
 
   // Available search fields
-  const searchFields = [
-    { value: 'all', label: 'All Fields' },
-    { value: 'poNumber', label: 'PO Number' },
-    { value: 'companyName', label: 'Company' },
-    { value: 'vendorName', label: 'Vendor' },
-    { value: 'paymentRequestedBy', label: 'Requested By' },
-    { value: 'status', label: 'Status' }
-  ];
+  // const searchFields = [
+  //   { value: 'all', label: 'All Fields' },
+  //   { value: 'poNumber', label: 'PO Number' },
+  //   { value: 'companyName', label: 'Company' },
+  //   { value: 'vendorName', label: 'Vendor' },
+  //   { value: 'paymentRequestedBy', label: 'Requested By' },
+  //   { value: 'status', label: 'Status' }
+  // ];
 
   useEffect(() => {
     fetchPaymentRequests();
@@ -649,7 +649,7 @@ const AdminDashboard = () => {
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Payment Approval Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-900"></h1>
         
       </div>
 
@@ -728,7 +728,7 @@ const AdminDashboard = () => {
             </div>
           </div>
           
-          <div className="flex items-center space-x-3">
+          {/* <div className="flex items-center space-x-3">
             <select
               value={searchField}
               onChange={(e) => setSearchField(e.target.value)}
@@ -749,7 +749,7 @@ const AdminDashboard = () => {
                 Clear
               </button>
             )}
-          </div>
+          </div> */}
         </div>
         
         <div className="mt-4 flex flex-wrap items-center justify-between">

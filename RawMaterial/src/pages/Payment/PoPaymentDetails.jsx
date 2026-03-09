@@ -275,7 +275,7 @@ const PoPaymentDetails = () => {
                         <div className="ml-4 pl-4 border-l-2 border-blue-200">
                           <div className="flex justify-between items-start mb-4">
                             <h4 className="font-medium text-gray-700">
-                              Payment Request Details
+                              Payment Request History
                             </h4>
                             <div className="text-sm text-gray-500">
                               Requested by: <span className="font-medium">{request.requestedBy}</span>
