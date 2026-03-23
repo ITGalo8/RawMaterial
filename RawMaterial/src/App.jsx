@@ -428,7 +428,7 @@ const AppRoutes = () => {
         <Route
           path="installation-stock"
           element={
-            <ProtectedRoute allowedRoles={["Purchase", "Admin"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Admin", "Production"]}>
               <InstallationStock />
             </ProtectedRoute>
           }
