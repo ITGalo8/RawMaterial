@@ -8,6 +8,7 @@ const PoPaymentDetails = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedRows, setExpandedRows] = useState({});
+  const [cancelingRequestId, setCancelingRequestId] = useState(null);
 
   useEffect(() => {
     fetchPaymentRequests();
@@ -47,20 +48,20 @@ const PoPaymentDetails = () => {
   };
 
   const toggleRowExpansion = (paymentRequestId) => {
-    setExpandedRows(prev => ({
+    setExpandedRows((prev) => ({
       ...prev,
-      [paymentRequestId]: !prev[paymentRequestId]
+      [paymentRequestId]: !prev[paymentRequestId],
     }));
   };
 
   const formatDate = (date) => {
     if (!date) return "N/A";
     return new Date(date).toLocaleDateString("en-IN", {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -74,31 +75,24 @@ const PoPaymentDetails = () => {
       CAD: "C$",
       AUD: "A$",
       CNY: "¥",
-      // Add more currency codes as needed
     };
     return currencySymbols[currencyCode?.toUpperCase()] || currencyCode || "$";
   };
 
   const formatAmount = (amount, currencyCode) => {
     const symbol = getCurrencySymbol(currencyCode);
-    
-    // For USD, use standard US formatting
-    if (currencyCode?.toUpperCase() === 'USD') {
+    if (currencyCode?.toUpperCase() === "USD") {
       return `${symbol}${Number(amount).toLocaleString("en-US", {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
       })}`;
     }
-    
-    // For INR, use Indian formatting
-    if (currencyCode?.toUpperCase() === 'INR') {
+    if (currencyCode?.toUpperCase() === "INR") {
       return `${symbol} ${Number(amount).toLocaleString("en-IN")}`;
     }
-    
-    // Default formatting for other currencies
     return `${symbol}${Number(amount).toLocaleString("en-US", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     })}`;
   };
 
@@ -118,7 +112,7 @@ const PoPaymentDetails = () => {
     const docs = request.docsVerification?.status;
     const admin = request.adminVerification?.status;
     const accounts = request.accountsVerification?.status;
-    
+
     if (accounts === true) return "Completed";
     if (accounts === false) return "Rejected by Accounts";
     if (admin === true) return "Admin Approved";
@@ -132,7 +126,8 @@ const PoPaymentDetails = () => {
     const status = getOverallStatus(request);
     if (status === "Completed") return "bg-green-100 text-green-800";
     if (status.includes("Rejected")) return "bg-red-100 text-red-800";
-    if (status.includes("Approved") || status.includes("Verified")) return "bg-blue-100 text-blue-800";
+    if (status.includes("Approved") || status.includes("Verified"))
+      return "bg-blue-100 text-blue-800";
     return "bg-yellow-100 text-yellow-800";
   };
 
@@ -144,13 +139,31 @@ const PoPaymentDetails = () => {
     setSearchTerm("");
   };
 
+  const handleCancel = async (paymentRequestId) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to cancel this payment request? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+    try {
+      setCancelingRequestId(paymentRequestId);
+      await Api.put(`/purchase/purchase-orders/payments/reject?id=${paymentRequestId}`);
+      await fetchPaymentRequests();
+    } catch (err) {
+      setError("Error", err?.response?.data?.message);
+      console.log("Cancel error:", err?.response?.data?.message);
+    } finally {
+      setCancelingRequestId(null);
+    }
+  };
+
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">
-          Payment Requests
-        </h2>
-        
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+        <h2 className="text-2xl font-semibold">Payment Requests</h2>
+
         <div className="flex items-center space-x-4">
           <div className="relative">
             <input
@@ -172,7 +185,7 @@ const PoPaymentDetails = () => {
               </button>
             )}
           </div>
-          
+
           <span className="text-sm text-gray-500 whitespace-nowrap">
             {filteredData.length} of {data.length} requests
           </span>
@@ -198,10 +211,7 @@ const PoPaymentDetails = () => {
             {searchTerm ? "No matching payment requests found" : "No payment requests found"}
           </p>
           {searchTerm && (
-            <button
-              onClick={clearSearch}
-              className="mt-2 text-blue-600 hover:text-blue-800"
-            >
+            <button onClick={clearSearch} className="mt-2 text-blue-600 hover:text-blue-800">
               Clear search
             </button>
           )}
@@ -220,115 +230,149 @@ const PoPaymentDetails = () => {
                 <th className="px-6 py-3">Created Date</th>
                 <th className="px-6 py-3">Overall Status</th>
                 <th className="px-6 py-3">Actions</th>
-              </tr>
+               </tr>
             </thead>
 
             <tbody>
               {filteredData.map((request) => (
                 <React.Fragment key={request.paymentRequestId}>
                   <tr className="border-t hover:bg-gray-50 text-sm transition-colors">
-                    <td className="px-6 py-4 font-medium">
-                      {request.poNumber}
-                    </td>
-                    <td className="px-6 py-4">
-                      {request.companyName}
-                    </td>
-                    <td className="px-6 py-4">
-                      {request.vendorName}
-                    </td>
+                    <td className="px-6 py-4 font-medium">{request.poNumber}</td>
+                    <td className="px-6 py-4">{request.companyName}</td>
+                    <td className="px-6 py-4">{request.vendorName}</td>
                     <td className="px-6 py-4">
                       <div className="font-bold text-blue-700">
                         {formatAmount(request.requestedAmount, request.currency)}
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {request.currency}
-                      </div>
+                      <div className="text-xs text-gray-500 mt-1">{request.currency}</div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">
-                      {formatDate(request.createdAt)}
-                    </td>
+                    <td className="px-6 py-4 text-gray-600">{formatDate(request.createdAt)}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 text-xs rounded-full font-medium ${getOverallStatusColor(request)}`}>
+                      <span
+                        className={`px-3 py-1 text-xs rounded-full font-medium ${getOverallStatusColor(
+                          request
+                        )}`}
+                      >
                         {getOverallStatus(request)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={() => toggleRowExpansion(request.paymentRequestId)}
-                        className="flex items-center text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        <span className="mr-2">
-                          {expandedRows[request.paymentRequestId] ? 'Hide' : 'View'} Details
-                        </span>
-                        <span className={`transform transition-transform ${
-                          expandedRows[request.paymentRequestId] ? 'rotate-180' : ''
-                        }`}>
-                          ▼
-                        </span>
-                      </button>
+                      {/* Responsive action buttons: stack on mobile, row on larger screens */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:space-x-2">
+                        <button
+                          onClick={() => toggleRowExpansion(request.paymentRequestId)}
+                          className="flex items-center text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                        >
+                          <span className="mr-2">
+                            {expandedRows[request.paymentRequestId] ? "Hide" : "View"} Details
+                          </span>
+                          <span
+                            className={`transform transition-transform ${
+                              expandedRows[request.paymentRequestId] ? "rotate-180" : ""
+                            }`}
+                          >
+                            ▼
+                          </span>
+                        </button>
+
+                        {getOverallStatus(request) !== "Completed" && (
+                          <button
+                            onClick={() => handleCancel(request.paymentRequestId)}
+                            disabled={cancelingRequestId === request.paymentRequestId}
+                            className="text-red-600 hover:text-red-800 text-sm font-medium whitespace-nowrap"
+                          >
+                            {cancelingRequestId === request.paymentRequestId ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
+                            ) : (
+                              "Cancel"
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                  
+
                   {expandedRows[request.paymentRequestId] && (
                     <tr className="bg-gray-50">
                       <td colSpan="8" className="px-6 py-4">
                         <div className="ml-4 pl-4 border-l-2 border-blue-200">
-                          <div className="flex justify-between items-start mb-4">
-                            <h4 className="font-medium text-gray-700">
-                              Payment Request History
-                            </h4>
+                          <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
+                            <h4 className="font-medium text-gray-700">Payment Request History</h4>
                             <div className="text-sm text-gray-500">
                               Requested by: <span className="font-medium">{request.requestedBy}</span>
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-
                             {/* Docs Verification */}
                             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h5 className="font-semibold text-gray-800 mb-3">Accounts Verification</h5>
+                              <h5 className="font-semibold text-gray-800 mb-3">
+                                Accounts Verification
+                              </h5>
                               <div className="space-y-2 text-sm">
                                 <div>
                                   <span className="text-gray-500">Status:</span>
-                                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(request.docsVerification)}`}>
+                                  <span
+                                    className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(
+                                      request.docsVerification
+                                    )}`}
+                                  >
                                     {getVerificationStatus(request.docsVerification)}
                                   </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Approved By:</span>
-                                  <span className="ml-2 font-medium">{request.docsVerification.approvedBy || "N/A"}</span>
+                                  <span className="ml-2 font-medium">
+                                    {request.docsVerification.approvedBy || "N/A"}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Date:</span>
-                                  <span className="ml-2">{formatDate(request.docsVerification.approvedDate)}</span>
+                                  <span className="ml-2">
+                                    {formatDate(request.docsVerification.approvedDate)}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Remarks:</span>
-                                  <span className="ml-2">{request.docsVerification.remarks || "No remarks"}</span>
+                                  <span className="ml-2">
+                                    {request.docsVerification.remarks || "No remarks"}
+                                  </span>
                                 </div>
                               </div>
                             </div>
 
                             {/* Admin Verification */}
                             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                              <h5 className="font-semibold text-gray-800 mb-3">Payment Approval (Super Admin) </h5>
+                              <h5 className="font-semibold text-gray-800 mb-3">
+                                Payment Approval (Super Admin)
+                              </h5>
                               <div className="space-y-2 text-sm">
                                 <div>
                                   <span className="text-gray-500">Status:</span>
-                                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(request.adminVerification)}`}>
+                                  <span
+                                    className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(
+                                      request.adminVerification
+                                    )}`}
+                                  >
                                     {getVerificationStatus(request.adminVerification)}
                                   </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Approved By:</span>
-                                  <span className="ml-2 font-medium">{request.adminVerification.approvedBy || "N/A"}</span>
+                                  <span className="ml-2 font-medium">
+                                    {request.adminVerification.approvedBy || "N/A"}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Date:</span>
-                                  <span className="ml-2">{formatDate(request.adminVerification.approvedDate)}</span>
+                                  <span className="ml-2">
+                                    {formatDate(request.adminVerification.approvedDate)}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Remarks:</span>
-                                  <span className="ml-2">{request.adminVerification.remarks || "No remarks"}</span>
+                                  <span className="ml-2">
+                                    {request.adminVerification.remarks || "No remarks"}
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -339,21 +383,31 @@ const PoPaymentDetails = () => {
                               <div className="space-y-2 text-sm">
                                 <div>
                                   <span className="text-gray-500">Status:</span>
-                                  <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(request.accountsVerification)}`}>
+                                  <span
+                                    className={`ml-2 px-2 py-1 rounded-full text-xs ${getVerificationColor(
+                                      request.accountsVerification
+                                    )}`}
+                                  >
                                     {getVerificationStatus(request.accountsVerification)}
                                   </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Approved By:</span>
-                                  <span className="ml-2 font-medium">{request.accountsVerification.approvedBy || "N/A"}</span>
+                                  <span className="ml-2 font-medium">
+                                    {request.accountsVerification.approvedBy || "N/A"}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Date:</span>
-                                  <span className="ml-2">{formatDate(request.accountsVerification.approvedDate)}</span>
+                                  <span className="ml-2">
+                                    {formatDate(request.accountsVerification.approvedDate)}
+                                  </span>
                                 </div>
                                 <div>
                                   <span className="text-gray-500">Remarks:</span>
-                                  <span className="ml-2">{request.accountsVerification.remarks || "No remarks"}</span>
+                                  <span className="ml-2">
+                                    {request.accountsVerification.remarks || "No remarks"}
+                                  </span>
                                 </div>
                               </div>
                             </div>
