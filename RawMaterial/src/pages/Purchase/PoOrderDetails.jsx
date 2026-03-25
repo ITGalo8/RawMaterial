@@ -1,11 +1,7 @@
 // import React, { useEffect, useState, useMemo } from "react";
-// import { useNavigate } from "react-router-dom";
 // import Api from "../../auth/Api";
 // import {
 //   Search,
-//   Filter,
-//   ChevronDown,
-//   ChevronUp,
 //   ChevronLeft,
 //   ChevronRight,
 //   ChevronsLeft,
@@ -18,14 +14,9 @@
 //   const [error, setError] = useState(null);
 //   const [expandedRows, setExpandedRows] = useState(new Set());
 //   const [searchTerm, setSearchTerm] = useState("");
-//   const [searchFilter, setSearchFilter] = useState("all");
-//   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-//   const [statusFilter, setStatusFilter] = useState("all");
-//   const [approvalFilter, setApprovalFilter] = useState("all");
 //   const [currentPage, setCurrentPage] = useState(1);
 //   const [itemsPerPage, setItemsPerPage] = useState(50);
 //   const [totalPages, setTotalPages] = useState(1);
-//   const navigate = useNavigate();
 
 //   useEffect(() => {
 //     const fetchData = async () => {
@@ -48,39 +39,25 @@
 //     fetchData();
 //   }, []);
 
+//   // Filter data based on search term only
 //   const filteredData = useMemo(() => {
 //     const filtered = stockReceived.filter((po) => {
-//       if (statusFilter !== "all" && po.status !== statusFilter) return false;
-//       if (approvalFilter !== "all" && po.approvalStatus !== approvalFilter)
-//         return false;
 //       if (!searchTerm.trim()) return true;
 
 //       const term = searchTerm.toLowerCase();
-//       switch (searchFilter) {
-//         case "poNumber":
-//           return po.poNumber.toLowerCase().includes(term);
-//         // case "company":
-//         //   return po.companyName.toLowerCase().includes(term);
-//         case "vendor":
-//           return po.vendorName.toLowerCase().includes(term);
-//         case "status":
-//           return po.status.toLowerCase().includes(term);
-//         case "all":
-//         default:
-//           return (
-//             po.poNumber.toLowerCase().includes(term) ||
-//             po.companyName.toLowerCase().includes(term) ||
-//             po.vendorName.toLowerCase().includes(term) ||
-//             po.warehouseName?.toLowerCase().includes(term) ||
-//             po.status.toLowerCase().includes(term) ||
-//             po.items.some(
-//               (item) =>
-//                 item.itemName.toLowerCase().includes(term) ||
-//                 item.modelNumber?.toLowerCase().includes(term) ||
-//                 item.hsnCode?.toLowerCase().includes(term),
-//             )
-//           );
-//       }
+//       return (
+//         po.poNumber.toLowerCase().includes(term) ||
+//         po.companyName.toLowerCase().includes(term) ||
+//         po.vendorName.toLowerCase().includes(term) ||
+//         po.warehouseName?.toLowerCase().includes(term) ||
+//         po.status.toLowerCase().includes(term) ||
+//         po.items.some(
+//           (item) =>
+//             item.itemName.toLowerCase().includes(term) ||
+//             item.modelNumber?.toLowerCase().includes(term) ||
+//             item.hsnCode?.toLowerCase().includes(term)
+//         )
+//       );
 //     });
 
 //     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
@@ -88,14 +65,7 @@
 //       setCurrentPage(1);
 //     }
 //     return filtered;
-//   }, [
-//     stockReceived,
-//     searchTerm,
-//     searchFilter,
-//     statusFilter,
-//     approvalFilter,
-//     itemsPerPage,
-//   ]);
+//   }, [stockReceived, searchTerm, itemsPerPage, currentPage]);
 
 //   const currentItems = useMemo(() => {
 //     const indexOfLastItem = currentPage * itemsPerPage;
@@ -154,39 +124,8 @@
 
 //   const clearFilters = () => {
 //     setSearchTerm("");
-//     setSearchFilter("all");
-//     setStatusFilter("all");
-//     setApprovalFilter("all");
 //     setCurrentPage(1);
 //   };
-
-//   const getStatusCounts = () => {
-//     const counts = {
-//       Draft: 0,
-//       PartiallyReceived: 0,
-//       FullyReceived: 0,
-//       Received: 0,
-//     };
-//     stockReceived.forEach((po) => {
-//       if (counts[po.status] !== undefined) {
-//         counts[po.status]++;
-//       }
-//     });
-//     return counts;
-//   };
-
-//   const getApprovalCounts = () => {
-//     const counts = { Pending: 0, Approved: 0, Rejected: 0 };
-//     stockReceived.forEach((po) => {
-//       if (counts[po.approvalStatus] !== undefined) {
-//         counts[po.approvalStatus]++;
-//       }
-//     });
-//     return counts;
-//   };
-
-//   const statusCounts = getStatusCounts();
-//   const approvalCounts = getApprovalCounts();
 
 //   const getPageNumbers = () => {
 //     const pageNumbers = [];
@@ -235,10 +174,9 @@
 //           <h1 className="text-2xl font-bold text-gray-900">
 //             PO Stock Receiving
 //           </h1>
-         
 //         </div>
 
-//         {/* Search and Filters */}
+//         {/* Search and Items Per Page */}
 //         <div className="bg-white rounded shadow p-3 mb-4">
 //           <div className="flex flex-col md:flex-row gap-3">
 //             {/* Search Bar */}
@@ -250,47 +188,11 @@
 //                 <input
 //                   type="text"
 //                   className="block w-full pl-9 pr-3 py-1.5 border border-gray-300 rounded text-sm bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-//                   placeholder={`Search ${searchFilter === "all" ? "all fields" : searchFilter}...`}
+//                   placeholder="Search all fields..."
 //                   value={searchTerm}
 //                   onChange={(e) => setSearchTerm(e.target.value)}
 //                 />
 //               </div>
-//             </div>
-
-//             {/* Search Filter Dropdown */}
-//             <div className="w-full md:w-40">
-//               <select
-//                 className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-//                 value={searchFilter}
-//                 onChange={(e) => setSearchFilter(e.target.value)}
-//               >
-//                 <option value="all">All Fields</option>
-//                 <option value="poNumber">PO Number</option>
-//                 {/* <option value="company">Company</option> */}
-//                 <option value="vendor">Vendor</option>
-//                 <option value="status">Status</option>
-//               </select>
-//             </div>
-
-//             {/* Status Filter */}
-//             <div className="w-full md:w-48">
-//               <select
-//                 className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-//                 value={statusFilter}
-//                 onChange={(e) => setStatusFilter(e.target.value)}
-//               >
-//                 <option value="all">All Statuses</option>
-//                 <option value="Draft">Draft ({statusCounts.Draft})</option>
-//                 <option value="PartiallyReceived">
-//                   Partially Received ({statusCounts.PartiallyReceived})
-//                 </option>
-//                 <option value="FullyReceived">
-//                   Fully Received ({statusCounts.FullyReceived})
-//                 </option>
-//                 <option value="Received">
-//                   Received ({statusCounts.Received})
-//                 </option>
-//               </select>
 //             </div>
 
 //             {/* Items Per Page */}
@@ -310,81 +212,20 @@
 //                 <option value="250">250 per page</option>
 //               </select>
 //             </div>
-
-//             {/* Advanced Filters Toggle */}
-//             <button
-//               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-//               className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-//             >
-//               <Filter className="h-4 w-4 mr-1" />
-//               {showAdvancedFilters ? (
-//                 <ChevronUp className="h-4 w-4" />
-//               ) : (
-//                 <ChevronDown className="h-4 w-4" />
-//               )}
-//             </button>
-
-//             {/* Clear Filters */}
-//             {(searchTerm ||
-//               statusFilter !== "all" ||
-//               approvalFilter !== "all") && (
-//               <button
-//                 onClick={clearFilters}
-//                 className="inline-flex items-center px-3 py-1.5 border border-transparent rounded text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-//               >
-//                 Clear Filters
-//               </button>
-//             )}
 //           </div>
 
-//           {/* Advanced Filters */}
-//           {showAdvancedFilters && (
-//             <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4">
-//               <div>
-//                 <label className="block text-xs font-medium text-gray-700 mb-1">
-//                   PO Date Range
-//                 </label>
-//                 <div className="flex space-x-2">
-//                   <input
-//                     type="date"
-//                     className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-//                     placeholder="From"
-//                   />
-//                   <input
-//                     type="date"
-//                     className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-//                     placeholder="To"
-//                   />
-//                 </div>
-//               </div>
-
-//               <div>
-//                 <label className="block text-xs font-medium text-gray-700 mb-1">
-//                   Warehouse
-//                 </label>
-//                 <select className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-//                   <option value="">All Warehouses</option>
-//                   <option value="Main">Main Warehouse</option>
-//                   <option value="East">East Warehouse</option>
-//                   <option value="West">West Warehouse</option>
-//                 </select>
-//               </div>
-//             </div>
-//           )}
-
+//           {/* Filter summary and clear button */}
 //           <div className="mt-3 flex justify-between items-center">
 //             <p className="text-xs text-gray-600">
 //               Showing <span className="font-medium">{currentItems.length}</span>{" "}
 //               of <span className="font-medium">{filteredData.length}</span>{" "}
 //               filtered POs (Total: {stockReceived.length} POs)
-//               {(searchTerm ||
-//                 statusFilter !== "all" ||
-//                 approvalFilter !== "all") && (
+//               {searchTerm && (
 //                 <button
 //                   onClick={clearFilters}
 //                   className="ml-1 text-xs text-blue-600 hover:text-blue-800"
 //                 >
-//                   Clear filters
+//                   Clear search
 //                 </button>
 //               )}
 //             </p>
@@ -402,15 +243,15 @@
 //             <p className="text-gray-500">No POs found matching your criteria</p>
 //             {searchTerm && (
 //               <p className="text-gray-400 text-sm mt-1">
-//                 Try adjusting your search or filters
+//                 Try adjusting your search
 //               </p>
 //             )}
-//             {(statusFilter !== "all" || approvalFilter !== "all") && (
+//             {searchTerm && (
 //               <button
 //                 onClick={clearFilters}
 //                 className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
 //               >
-//                 Clear All Filters
+//                 Clear Search
 //               </button>
 //             )}
 //           </div>
@@ -421,29 +262,35 @@
 //                 <table className="min-w-full divide-y divide-gray-200 text-sm">
 //                   <thead className="bg-gray-50">
 //                     <tr>
-//                       {[
-//                         "PO Details",
-//                         // "Company",
-//                         "Vendor",
-//                         "Warehouse Name",
-//                         "Status",
-//                         "Items",
-//                         "Actions",
-//                       ].map((header) => (
-//                         <th
-//                           key={header}
-//                           className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-//                         >
-//                           {header}
-//                         </th>
-//                       ))}
+//                       {/* Sticky first column header */}
+//                       <th
+//                         className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10"
+//                       >
+//                         PO Details
+//                       </th>
+//                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                         Vendor
+//                       </th>
+//                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                         Warehouse Name
+//                       </th>
+//                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                         Status
+//                       </th>
+//                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                         Items
+//                       </th>
+//                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+//                         Actions
+//                       </th>
 //                     </tr>
 //                   </thead>
 //                   <tbody className="bg-white divide-y divide-gray-200">
 //                     {currentItems.map((po) => (
 //                       <React.Fragment key={po.id}>
 //                         <tr className="hover:bg-gray-50">
-//                           <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900">
+//                           {/* Sticky first column data */}
+//                           <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900 sticky left-0 bg-white z-10">
 //                             <div>{po.poNumber}</div>
 //                             <div className="text-xs text-gray-500">
 //                               {po.poDate
@@ -451,9 +298,6 @@
 //                                 : "N/A"}
 //                             </div>
 //                           </td>
-//                           {/* <td className="px-4 py-2 whitespace-nowrap text-gray-900">
-//                             {po.companyName}
-//                           </td> */}
 //                           <td className="px-4 py-2 whitespace-nowrap text-gray-900">
 //                             {po.vendorName}
 //                           </td>
@@ -475,9 +319,6 @@
 //                           </td>
 //                           <td className="px-4 py-2 whitespace-nowrap text-gray-500">
 //                             {po.items.length} item(s)
-//                             {/* <div className="text-xs text-gray-500">
-//                               Total: {po.items.reduce((sum, item) => sum + item.quantity, 0).toLocaleString()} units
-//                             </div> */}
 //                           </td>
 //                           <td className="px-4 py-2 whitespace-nowrap">
 //                             <div className="flex space-x-2">
@@ -494,7 +335,7 @@
 //                         </tr>
 //                         {expandedRows.has(po.id) && (
 //                           <tr>
-//                             <td colSpan="7" className="px-4 py-2 bg-gray-50">
+//                             <td colSpan="6" className="px-4 py-2 bg-gray-50">
 //                               <div className="border border-gray-200 rounded overflow-hidden">
 //                                 <table className="min-w-full divide-y divide-gray-200 text-sm">
 //                                   <thead className="bg-gray-100">
@@ -525,8 +366,6 @@
 //                                       const isPartiallyReceived =
 //                                         item.receivedQty > 0 &&
 //                                         item.receivedQty < item.quantity;
-//                                       const isNotReceived =
-//                                         item.receivedQty === 0;
 
 //                                       return (
 //                                         <tr
@@ -598,6 +437,7 @@
 //                   onClick={prevPage}
 //                   disabled={currentPage === 1}
 //                   className={`px-3 py-1 border border-gray-300 text-sm rounded ${currentPage === 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+//                   aria-label="Previous page"
 //                 >
 //                   Previous
 //                 </button>
@@ -605,6 +445,7 @@
 //                   onClick={nextPage}
 //                   disabled={currentPage === totalPages}
 //                   className={`ml-2 px-3 py-1 border border-gray-300 text-sm rounded ${currentPage === totalPages ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+//                   aria-label="Next page"
 //                 >
 //                   Next
 //                 </button>
@@ -633,6 +474,7 @@
 //                     onClick={() => goToPage(1)}
 //                     disabled={currentPage === 1}
 //                     className={`px-1.5 py-1 rounded-l border border-gray-300 ${currentPage === 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-gray-50"}`}
+//                     aria-label="First page"
 //                   >
 //                     <ChevronsLeft className="h-4 w-4" />
 //                   </button>
@@ -640,6 +482,7 @@
 //                     onClick={prevPage}
 //                     disabled={currentPage === 1}
 //                     className={`px-1.5 py-1 border border-gray-300 ${currentPage === 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-gray-50"}`}
+//                     aria-label="Previous page"
 //                   >
 //                     <ChevronLeft className="h-4 w-4" />
 //                   </button>
@@ -648,6 +491,8 @@
 //                       key={pageNum}
 //                       onClick={() => goToPage(pageNum)}
 //                       className={`px-2.5 py-1 border text-sm ${currentPage === pageNum ? "bg-blue-50 border-blue-500 text-blue-600" : "border-gray-300 text-gray-500 hover:bg-gray-50"}`}
+//                       aria-label={`Page ${pageNum}`}
+//                       aria-current={currentPage === pageNum ? "page" : undefined}
 //                     >
 //                       {pageNum}
 //                     </button>
@@ -656,6 +501,7 @@
 //                     onClick={nextPage}
 //                     disabled={currentPage === totalPages}
 //                     className={`px-1.5 py-1 border border-gray-300 ${currentPage === totalPages ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-gray-50"}`}
+//                     aria-label="Next page"
 //                   >
 //                     <ChevronRight className="h-4 w-4" />
 //                   </button>
@@ -663,6 +509,7 @@
 //                     onClick={() => goToPage(totalPages)}
 //                     disabled={currentPage === totalPages}
 //                     className={`px-1.5 py-1 rounded-r border border-gray-300 ${currentPage === totalPages ? "text-gray-300 cursor-not-allowed" : "text-gray-500 hover:bg-gray-50"}`}
+//                     aria-label="Last page"
 //                   >
 //                     <ChevronsRight className="h-4 w-4" />
 //                   </button>
@@ -684,6 +531,7 @@
 //                     if (page >= 1 && page <= totalPages) goToPage(page);
 //                   }}
 //                   className="w-16 px-2 py-0.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+//                   aria-label="Jump to page"
 //                 />
 //                 <span className="text-sm text-gray-700">of {totalPages}</span>
 //               </div>
@@ -696,7 +544,6 @@
 // };
 
 // export default PoOrderDetails;
-
 
 import React, { useEffect, useState, useMemo } from "react";
 import Api from "../../auth/Api";
@@ -714,6 +561,7 @@ const PoOrderDetails = () => {
   const [error, setError] = useState(null);
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState("");
+  const [warehouseFilter, setWarehouseFilter] = useState(""); // "" means "All"
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
@@ -739,11 +587,38 @@ const PoOrderDetails = () => {
     fetchData();
   }, []);
 
-  // Filter data based on search term only
+  // Extract unique warehouses from the data (handle null/empty)
+  const warehouseOptions = useMemo(() => {
+    const warehouses = new Set();
+    stockReceived.forEach((po) => {
+      const name = po.warehouseName?.trim();
+      if (name) {
+        warehouses.add(name);
+      } else {
+        warehouses.add("__none__"); // special marker for no warehouse
+      }
+    });
+    return Array.from(warehouses).map((w) => ({
+      value: w,
+      label: w === "__none__" ? "No Warehouse" : w,
+    }));
+  }, [stockReceived]);
+
+  // Filter data based on search term and warehouse filter
   const filteredData = useMemo(() => {
     const filtered = stockReceived.filter((po) => {
-      if (!searchTerm.trim()) return true;
+      // Warehouse filter
+      if (warehouseFilter) {
+        const poWarehouse = po.warehouseName?.trim();
+        if (warehouseFilter === "__none__") {
+          if (poWarehouse) return false; // has warehouse, exclude
+        } else {
+          if (poWarehouse !== warehouseFilter) return false;
+        }
+      }
 
+      // Search filter
+      if (!searchTerm.trim()) return true;
       const term = searchTerm.toLowerCase();
       return (
         po.poNumber.toLowerCase().includes(term) ||
@@ -765,7 +640,7 @@ const PoOrderDetails = () => {
       setCurrentPage(1);
     }
     return filtered;
-  }, [stockReceived, searchTerm, itemsPerPage, currentPage]);
+  }, [stockReceived, searchTerm, warehouseFilter, itemsPerPage, currentPage]);
 
   const currentItems = useMemo(() => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -824,6 +699,7 @@ const PoOrderDetails = () => {
 
   const clearFilters = () => {
     setSearchTerm("");
+    setWarehouseFilter("");
     setCurrentPage(1);
   };
 
@@ -876,7 +752,7 @@ const PoOrderDetails = () => {
           </h1>
         </div>
 
-        {/* Search and Items Per Page */}
+        {/* Search, Warehouse Filter, and Items Per Page */}
         <div className="bg-white rounded shadow p-3 mb-4">
           <div className="flex flex-col md:flex-row gap-3">
             {/* Search Bar */}
@@ -893,6 +769,25 @@ const PoOrderDetails = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+            </div>
+
+            {/* Warehouse Filter */}
+            <div className="w-full md:w-48">
+              <select
+                className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={warehouseFilter}
+                onChange={(e) => {
+                  setWarehouseFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="">All Warehouses</option>
+                {warehouseOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Items Per Page */}
@@ -920,12 +815,12 @@ const PoOrderDetails = () => {
               Showing <span className="font-medium">{currentItems.length}</span>{" "}
               of <span className="font-medium">{filteredData.length}</span>{" "}
               filtered POs (Total: {stockReceived.length} POs)
-              {searchTerm && (
+              {(searchTerm || warehouseFilter) && (
                 <button
                   onClick={clearFilters}
                   className="ml-1 text-xs text-blue-600 hover:text-blue-800"
                 >
-                  Clear search
+                  Clear all filters
                 </button>
               )}
             </p>
@@ -941,17 +836,17 @@ const PoOrderDetails = () => {
           <div className="bg-white rounded shadow p-6 text-center">
             <Search className="h-10 w-10 text-gray-400 mx-auto mb-3" />
             <p className="text-gray-500">No POs found matching your criteria</p>
-            {searchTerm && (
+            {(searchTerm || warehouseFilter) && (
               <p className="text-gray-400 text-sm mt-1">
-                Try adjusting your search
+                Try adjusting your filters
               </p>
             )}
-            {searchTerm && (
+            {(searchTerm || warehouseFilter) && (
               <button
                 onClick={clearFilters}
                 className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
               >
-                Clear Search
+                Clear All Filters
               </button>
             )}
           </div>
@@ -962,10 +857,7 @@ const PoOrderDetails = () => {
                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      {/* Sticky first column header */}
-                      <th
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10"
-                      >
+                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
                         PO Details
                       </th>
                       <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -989,7 +881,6 @@ const PoOrderDetails = () => {
                     {currentItems.map((po) => (
                       <React.Fragment key={po.id}>
                         <tr className="hover:bg-gray-50">
-                          {/* Sticky first column data */}
                           <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900 sticky left-0 bg-white z-10">
                             <div>{po.poNumber}</div>
                             <div className="text-xs text-gray-500">

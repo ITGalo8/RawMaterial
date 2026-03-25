@@ -53,6 +53,7 @@ import AddUnit from "./pages/Purchase/AddUnit";
 import ApprovalPOInvoice from "./pages/Purchase/ApprovalPOInvoice";
 import InvoicePO from "./pages/Purchase/InvoicePO";
 import VendorAllDetails from "./pages/Production/VendorAllDetails";
+import Installation from "./pages/InstallationData/Installation";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -568,6 +569,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Store", "Purchase", "Production", "Admin"]}>
               <RawMaterialStock />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="installation"
+          element={
+            <ProtectedRoute allowedRoles={["Store", "Purchase", "Production", "Admin"]}>
+              <Installation />
             </ProtectedRoute>
           }
         />

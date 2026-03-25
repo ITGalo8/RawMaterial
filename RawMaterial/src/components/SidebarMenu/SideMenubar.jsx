@@ -515,6 +515,24 @@ const SideMenubar = () => {
                     Installation Stock Data
                   </NavLink>
                 </li>
+
+                <li>
+                  <NavLink
+                    to="Installation"
+                    className={({ isActive }) =>
+                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${
+                       isActive
+                         ? "bg-yellow-300 text-black border-yellow-600"
+                         : ""
+                     }`
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FaCogs className="text-lg" />
+                    Installation
+                  </NavLink>
+                </li>
               </>
             )}
 
