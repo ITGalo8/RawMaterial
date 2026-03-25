@@ -63,13 +63,17 @@ const Installation = () => {
 
       setLoadingPumpData(true);
       try {
-        const response = await Api.get(`/common/pump-data?systemId=${selectedSystem}`);
+        const response = await Api.get(
+          `/common/pump-data?systemId=${selectedSystem}`,
+        );
         const data = response?.data?.data || [];
         setPumpData(data);
         setSelectedPump("");
       } catch (error) {
         console.error("Error fetching pump data:", error);
-        alert(`Error: ${error?.response?.data?.message || "Failed to load pump data"}`);
+        alert(
+          `Error: ${error?.response?.data?.message || "Failed to load pump data"}`,
+        );
         setPumpData([]);
       } finally {
         setLoadingPumpData(false);
@@ -119,7 +123,9 @@ const Installation = () => {
       setShortageData(response?.data?.data || response?.data);
     } catch (error) {
       console.error("Error fetching shortage data:", error);
-      alert(`Error: ${error?.response?.data?.message || "Failed to load shortage data"}`);
+      alert(
+        `Error: ${error?.response?.data?.message || "Failed to load shortage data"}`,
+      );
       setShortageData(null);
     } finally {
       setLoadingShortage(false);
@@ -131,7 +137,7 @@ const Installation = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-          Installation System Calculation
+          Installation Shortage Calculation
         </h1>
       </div>
 
@@ -140,7 +146,7 @@ const Installation = () => {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           Filter Stock
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
           {/* Warehouse */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -184,37 +190,40 @@ const Installation = () => {
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Pump Dropdown */}
-        {selectedSystem && (
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Pump
-            </label>
-            {loadingPumpData ? (
-              <p className="text-sm text-gray-500">Loading pumps...</p>
-            ) : pumpData.length > 0 ? (
-              <select
-                value={selectedPump}
-                onChange={(e) => setSelectedPump(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg 
+          {selectedSystem && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Pump
+              </label>
+              {loadingPumpData ? (
+                <p className="text-sm text-gray-500">Loading pumps...</p>
+              ) : pumpData.length > 0 ? (
+                <select
+                  value={selectedPump}
+                  onChange={(e) => setSelectedPump(e.target.value)}
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg 
                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                   transition duration-150 ease-in-out bg-white
                   hover:border-gray-400 cursor-pointer text-sm sm:text-base"
-              >
-                <option value="">-- Select Pump --</option>
-                {getPumpOptions().map((pump) => (
-                  <option key={pump.value} value={pump.value}>
-                    {pump.label}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <p className="text-sm text-gray-500">No pumps available for this system.</p>
-            )}
-          </div>
-        )}
+                >
+                  <option value="">-- Select Pump --</option>
+                  {getPumpOptions().map((pump) => (
+                    <option key={pump.value} value={pump.value}>
+                      {pump.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  No pumps available for this system.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Pump Dropdown */}
 
         {/* Shortage Check Section */}
         {selectedWarehouse && selectedSystem && selectedPump && (
@@ -277,10 +286,12 @@ const Installation = () => {
                           .map(([key, value]) => (
                             <div key={key} className="mb-2 last:mb-0">
                               <span className="text-xs font-medium text-gray-500 uppercase block">
-                                {key.replace(/_/g, ' ')}
+                                {key.replace(/_/g, " ")}
                               </span>
                               <span className="text-sm text-gray-900 break-words">
-                                {value !== null && value !== undefined ? String(value) : '-'}
+                                {value !== null && value !== undefined
+                                  ? String(value)
+                                  : "-"}
                               </span>
                             </div>
                           ))}
@@ -292,12 +303,17 @@ const Installation = () => {
                         {Object.entries(shortageData)
                           .filter(([key]) => key !== "itemId")
                           .map(([key, value]) => (
-                            <div key={key} className="border-b border-gray-100 pb-2 last:border-0">
+                            <div
+                              key={key}
+                              className="border-b border-gray-100 pb-2 last:border-0"
+                            >
                               <span className="text-xs font-medium text-gray-500 uppercase block">
-                                {key.replace(/_/g, ' ')}
+                                {key.replace(/_/g, " ")}
                               </span>
                               <span className="text-sm text-gray-900 break-words">
-                                {value !== null && value !== undefined ? String(value) : '-'}
+                                {value !== null && value !== undefined
+                                  ? String(value)
+                                  : "-"}
                               </span>
                             </div>
                           ))}

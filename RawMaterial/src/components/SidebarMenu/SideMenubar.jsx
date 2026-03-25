@@ -530,7 +530,7 @@ const SideMenubar = () => {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <FaCogs className="text-lg" />
-                    Installation
+                    Installation Shortage
                   </NavLink>
                 </li>
               </>
