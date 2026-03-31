@@ -103,7 +103,7 @@ const SideMenubar = () => {
                 {user.name || user.email}
               </div>
               <div className="text-gray-300 text-sm capitalize">
-                {user?.role === "Admin" ? "Super Admin" :user?.role }
+                {user?.role === "Admin" ? "Super Admin" : user?.role}
               </div>
             </div>
           </div>
@@ -316,26 +316,26 @@ const SideMenubar = () => {
           )}
 
           {(user.role === "Purchase" || user.role === "Admin") && (
-              <>
-                <li>
-                  <NavLink
-                    to="purchase-dashboard"
-                    className={({ isActive }) =>
-                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+            <>
+              <li>
+                <NavLink
+                  to="purchase-dashboard"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
                        isActive
                          ? "bg-yellow-300 text-black border-yellow-600"
                          : ""
                      }`
-                    }
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <MdDashboard className="text-lg" />
-                    Purchase Dashboard
-                  </NavLink>
-                </li>
-              </>
-            )}
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <MdDashboard className="text-lg" />
+                  Purchase Dashboard
+                </NavLink>
+              </li>
+            </>
+          )}
 
           {(user.role === "Store" ||
             user.role === "Production" ||
@@ -361,7 +361,9 @@ const SideMenubar = () => {
             </>
           )}
 
-          {(user.role === "Verification" || user.role === "Admin" || user.role === "Accounts" )  && (
+          {(user.role === "Verification" ||
+            user.role === "Admin" ||
+            user.role === "Accounts") && (
             <>
               <li>
                 <NavLink
@@ -382,7 +384,6 @@ const SideMenubar = () => {
               </li>
             </>
           )}
-          
 
           {/* Admin Dashboard */}
           {(user.role === "Superadmin" || user.role === "Admin") && (
@@ -496,45 +497,47 @@ const SideMenubar = () => {
             </>
           )}
 
-          {(user?.role === "Purchase" || user?.role === "Admin" || user?.role ==="Production") && (
-              <>
-                <li>
-                  <NavLink
-                    to="installation-stock"
-                    className={({ isActive }) =>
-                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+          {(user?.role === "Purchase" ||
+            user?.role === "Admin" ||
+            user?.role === "Production") && (
+            <>
+              <li>
+                <NavLink
+                  to="installation-stock"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
                        isActive
                          ? "bg-yellow-300 text-black border-yellow-600"
                          : ""
                      }`
-                    }
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <FaCogs className="text-lg" />
-                    Installation Stock Data
-                  </NavLink>
-                </li>
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FaCogs className="text-lg" />
+                  Installation Stock Data
+                </NavLink>
+              </li>
 
-                <li>
-                  <NavLink
-                    to="Installation"
-                    className={({ isActive }) =>
-                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+              <li>
+                <NavLink
+                  to="Installation"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
                      border-l-4 border-transparent transition-all gap-3 ${
                        isActive
                          ? "bg-yellow-300 text-black border-yellow-600"
                          : ""
                      }`
-                    }
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <FaCogs className="text-lg" />
-                    Installation Shortage
-                  </NavLink>
-                </li>
-              </>
-            )}
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <FaCogs className="text-lg" />
+                  Installation Shortage
+                </NavLink>
+              </li>
+            </>
+          )}
 
           {user.role === "Purchase" && (
             <>
@@ -911,9 +914,7 @@ const SideMenubar = () => {
             </NavLink>
           </li> */}
 
-
-          {(user.role === "Purchase" ||
-            user.role === "Admin") && (
+          {(user.role === "Purchase" || user.role === "Admin") && (
             <li>
               <NavLink
                 to="po-payment-details"
@@ -933,7 +934,7 @@ const SideMenubar = () => {
             </li>
           )}
 
-          {(user.role === "Admin"  || user.role === "Production")  && (
+          {(user.role === "Admin" || user.role === "Production") && (
             <>
               <li>
                 <NavLink
