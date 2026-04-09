@@ -977,6 +977,27 @@ const SideMenubar = () => {
               </NavLink>
             </li>
           )}
+
+
+          {(user.role === "Store") && (
+            <li>
+              <NavLink
+                to="stock-update"
+                className={({ isActive }) =>
+                  `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                   border-l-4 border-transparent transition-all gap-3 ${
+                     isActive
+                       ? "bg-yellow-300 text-black border-yellow-600"
+                       : ""
+                   }`
+                }
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <MdOutlinePayment className="text-lg" />
+                Raw Material Stock Add
+              </NavLink>
+            </li>
+          )}
         </ul>
 
         {/* Logout */}
