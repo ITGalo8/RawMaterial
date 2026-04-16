@@ -780,7 +780,7 @@ const ReceivedPurchaseStock = () => {
   useEffect(() => {
     const fetchSelectVehicle = async () => {
       try {
-        const response = await axios.post(`/api/vehicleIN/getVehicleSummary`);
+        const response = await axios.post(`https://logistics.umanerp.com/api/vehicleIN/getVehicleSummary`);
         const vehicleData = response?.data?.data || [];
         
         // Only show vehicles if user has warehouse ID "67446a8b27dae6f7f4d985dd"
