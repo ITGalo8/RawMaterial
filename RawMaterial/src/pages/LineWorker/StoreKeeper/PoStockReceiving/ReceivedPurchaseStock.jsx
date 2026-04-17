@@ -721,6 +721,24 @@ const ReceivedPurchaseStock = () => {
   const [isVehicleDropdownOpen, setIsVehicleDropdownOpen] = useState(false);
   const vehicleSearchRef = useRef(null);
 
+  async function fetchvehicle () {
+    const response = await fetch(
+      "https://logistics.umanerp.com/api/vehicleIN/getVehicleSummary",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": null,
+        }
+      }
+    );
+    const data = await response.json();
+    console.log("fetch vehicle entry: ", data?.data);
+    setFetchVehicle(data?.data);
+  }
+  useEffect(() => {
+    fetchvehicle();
+  }, [])
   // Get warehouse ID from logged-in user data
   useEffect(() => {
     // Try to get warehouseId from multiple sources
@@ -777,37 +795,6 @@ const ReceivedPurchaseStock = () => {
     }
   }, [poData]);
 
-  useEffect(() => {
-    const fetchSelectVehicle = async () => {
-      try {
-        const response = await axios.post(`https://logistics.umanerp.com/api/vehicleIN/getVehicleSummary`);
-        const vehicleData = response?.data?.data || [];
-        
-        // Only show vehicles if user has warehouse ID "67446a8b27dae6f7f4d985dd"
-        const TARGET_WAREHOUSE_ID = "67446a8b27dae6f7f4d985dd";
-        
-        if (userWarehouseId === TARGET_WAREHOUSE_ID) {
-          // Show all vehicles for this specific warehouse
-          setFetchVehicle(vehicleData);
-          console.log(`Vehicles shown for warehouse ${userWarehouseId}:`, vehicleData);
-        } else {
-          // Don't show any vehicles for other warehouses
-          setFetchVehicle([]);
-          console.log(`No vehicles shown for warehouse ${userWarehouseId}`);
-        }
-      } catch (error) {
-        console.log("Error fetching vehicles:", error?.response?.data?.message || error?.message);
-        if (userWarehouseId === "67446a8b27dae6f7f4d985dd") {
-          alert("Error fetching vehicles: " + (error?.response?.data?.message || error?.message));
-        }
-      }
-    };
-
-    // Only fetch vehicles if userWarehouseId is available
-    if (userWarehouseId !== null) {
-      fetchSelectVehicle();
-    }
-  }, [userWarehouseId]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -969,7 +956,7 @@ const ReceivedPurchaseStock = () => {
       }
 
       const response = await Api.post(
-        "/store-keeper/purchaseOrder/receive",
+        "/store-keeper/purchaseOrder/receive", 
         formData,
         {
           headers: {
