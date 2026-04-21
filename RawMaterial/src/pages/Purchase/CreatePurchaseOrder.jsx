@@ -2826,187 +2826,366 @@ const CreatePurchaseOrder = () => {
   };
 
   // Updated handleItemSelect with cheapest price API
+  // const handleItemSelect = async (id, itemId) => {
+  //   console.log(`Item changed: ${itemId} for item ${id}`);
+
+  //   if (!itemId) {
+  //     setItemDetails(
+  //       itemDetails.map((item) => {
+  //         if (item.id === id) {
+  //           return {
+  //             ...item,
+  //             selectedItem: "",
+  //             hsnCode: "",
+  //             modelNumber: "",
+  //             selectedUnit: "",
+  //             rate: "",
+  //             itemDetail: "",
+  //           };
+  //         }
+  //         return item;
+  //       }),
+  //     );
+
+  //     setEditableHsn((prev) => ({ ...prev, [id]: false }));
+  //     setLoadingItems((prev) => ({ ...prev, [id]: false }));
+      
+  //     // Clear cheapest price data for this item
+  //     const selectedItemData = itemList.find((item) => item.id === itemId);
+  //     if (selectedItemData) {
+  //       setCheapestPriceData((prev) => {
+  //         const updated = { ...prev };
+  //         delete updated[selectedItemData.name];
+  //         return updated;
+  //       });
+  //     }
+      
+  //     return;
+  //   }
+
+  //   const selectedItemData = itemList.find((item) => item.id === itemId);
+  //   if (selectedItemData) {
+  //     setLoadingItems((prev) => ({ ...prev, [id]: true }));
+
+  //     try {
+  //       // Fetch cheapest price using item NAME
+  //       const cheapestPrice = await fetchCheapestPrice(selectedItemData.name);
+        
+  //       const hasHsnCode =
+  //         selectedItemData.hsnCode && selectedItemData.hsnCode.trim() !== "";
+
+  //       let initialRate = selectedItemData.rate || "";
+  //       if (cheapestPrice && cheapestPrice.rate) {
+  //         initialRate = cheapestPrice.rate.toString();
+  //         console.log(`Using cheapest price: ${cheapestPrice.rate} from vendor ${cheapestPrice.vendor}`);
+  //       }
+
+  //       let updatedItemDetails = itemDetails.map((item) => {
+  //         if (item.id === id) {
+  //           const updatedItem = {
+  //             ...item,
+  //             selectedItem: itemId,
+  //             hsnCode: hasHsnCode ? selectedItemData.hsnCode : "",
+  //             modelNumber: selectedItemData.modelNumber || "",
+  //             selectedUnit: "",
+  //             rate: initialRate,
+  //             itemDetail: selectedItemData.itemDetail || "",
+  //           };
+
+  //           const calculatedAmounts = calculateItemAmounts(updatedItem);
+  //           return {
+  //             ...updatedItem,
+  //             rate: calculatedAmounts.rate.toString(),
+  //             quantity: calculatedAmounts.quantity.toString(),
+  //             amount: calculatedAmounts.amount.toString(),
+  //             taxableAmount: calculatedAmounts.taxableAmount,
+  //             gstAmount: calculatedAmounts.gstAmount,
+  //             totalAmount: calculatedAmounts.totalAmount,
+  //           };
+  //         }
+  //         return item;
+  //       });
+
+  //       setItemDetails(updatedItemDetails);
+
+  //       setEditableHsn((prev) => ({
+  //         ...prev,
+  //         [id]: !hasHsnCode,
+  //       }));
+
+  //       // Fetch detailed item information from the API
+  //       try {
+  //         const response = await Api.get(`/purchase/items/details/${itemId}`);
+
+  //         if (response.data.success) {
+  //           const detailedItem = response.data.item;
+  //           const apiHasHsnCode =
+  //             detailedItem.hsnCode && detailedItem.hsnCode.trim() !== "";
+
+  //           setItemDetails((prevItemDetails) =>
+  //             prevItemDetails.map((item) => {
+  //               if (item.id === id) {
+  //                 const apiUnit = detailedItem.unit;
+  //                 let newUnit = "";
+
+  //                 if (
+  //                   apiUnit !== undefined &&
+  //                   apiUnit !== null &&
+  //                   apiUnit.toString().trim() !== ""
+  //                 ) {
+  //                   newUnit = apiUnit.toString().trim();
+  //                 }
+
+  //                 const apiDescription = detailedItem.description;
+  //                 let newDescription = "";
+
+  //                 if (
+  //                   apiDescription !== undefined &&
+  //                   apiDescription !== null &&
+  //                   apiDescription.toString().trim() !== ""
+  //                 ) {
+  //                   newDescription = apiDescription.toString().trim();
+  //                 }
+
+  //                 let newHsnCode = item.hsnCode;
+  //                 if (apiHasHsnCode) {
+  //                   newHsnCode = detailedItem.hsnCode.trim();
+  //                 }
+
+  //                 const updatedItem = {
+  //                   ...item,
+  //                   selectedUnit: newUnit,
+  //                   itemDetail: newDescription,
+  //                   hsnCode: newHsnCode,
+  //                 };
+
+  //                 setEditableHsn((prev) => ({
+  //                   ...prev,
+  //                   [id]: !apiHasHsnCode,
+  //                 }));
+
+  //                 const calculatedAmounts = calculateItemAmounts(updatedItem);
+
+  //                 return {
+  //                   ...updatedItem,
+  //                   rate: calculatedAmounts.rate.toString(),
+  //                   quantity: calculatedAmounts.quantity.toString(),
+  //                   amount: calculatedAmounts.amount.toString(),
+  //                   taxableAmount: calculatedAmounts.taxableAmount,
+  //                   gstAmount: calculatedAmounts.gstAmount,
+  //                   totalAmount: calculatedAmounts.totalAmount,
+  //                 };
+  //               }
+  //               return item;
+  //             }),
+  //           );
+  //         }
+  //       } catch (apiError) {
+  //         console.error("Error fetching item details:", apiError);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error in handleItemSelect:", error);
+  //     } finally {
+  //       setLoadingItems((prev) => ({ ...prev, [id]: false }));
+  //     }
+  //   } else {
+  //     setItemDetails(
+  //       itemDetails.map((item) => {
+  //         if (item.id === id) {
+  //           return {
+  //             ...item,
+  //             selectedItem: itemId,
+  //             selectedUnit: "",
+  //             hsnCode: "",
+  //           };
+  //         }
+  //         return item;
+  //       }),
+  //     );
+
+  //     setEditableHsn((prev) => ({ ...prev, [id]: true }));
+  //     setLoadingItems((prev) => ({ ...prev, [id]: false }));
+  //   }
+  // };
+
   const handleItemSelect = async (id, itemId) => {
-    console.log(`Item changed: ${itemId} for item ${id}`);
+  console.log(`Item changed: ${itemId} for item ${id}`);
 
-    if (!itemId) {
-      setItemDetails(
-        itemDetails.map((item) => {
-          if (item.id === id) {
-            return {
-              ...item,
-              selectedItem: "",
-              hsnCode: "",
-              modelNumber: "",
-              selectedUnit: "",
-              rate: "",
-              itemDetail: "",
-            };
-          }
-          return item;
-        }),
-      );
+  if (!itemId) {
+    setItemDetails(
+      itemDetails.map((item) => {
+        if (item.id === id) {
+          return {
+            ...item,
+            selectedItem: "",
+            hsnCode: "",
+            modelNumber: "",
+            selectedUnit: "",
+            rate: "",
+            itemDetail: "",
+          };
+        }
+        return item;
+      }),
+    );
 
-      setEditableHsn((prev) => ({ ...prev, [id]: false }));
-      setLoadingItems((prev) => ({ ...prev, [id]: false }));
-      
-      // Clear cheapest price data for this item
-      const selectedItemData = itemList.find((item) => item.id === itemId);
-      if (selectedItemData) {
-        setCheapestPriceData((prev) => {
-          const updated = { ...prev };
-          delete updated[selectedItemData.name];
-          return updated;
-        });
-      }
-      
-      return;
-    }
-
+    setEditableHsn((prev) => ({ ...prev, [id]: false }));
+    setLoadingItems((prev) => ({ ...prev, [id]: false }));
+    
+    // Clear cheapest price data for this item
     const selectedItemData = itemList.find((item) => item.id === itemId);
     if (selectedItemData) {
-      setLoadingItems((prev) => ({ ...prev, [id]: true }));
+      setCheapestPriceData((prev) => {
+        const updated = { ...prev };
+        delete updated[selectedItemData.name];
+        return updated;
+      });
+    }
+    
+    return;
+  }
 
+  const selectedItemData = itemList.find((item) => item.id === itemId);
+  if (selectedItemData) {
+    setLoadingItems((prev) => ({ ...prev, [id]: true }));
+
+    try {
+      // Fetch cheapest price using item NAME (for display only)
+      await fetchCheapestPrice(selectedItemData.name);
+      
+      const hasHsnCode =
+        selectedItemData.hsnCode && selectedItemData.hsnCode.trim() !== "";
+
+      // Use the default item rate, NOT the cheapest price
+      let initialRate = selectedItemData.rate || "";
+
+      let updatedItemDetails = itemDetails.map((item) => {
+        if (item.id === id) {
+          const updatedItem = {
+            ...item,
+            selectedItem: itemId,
+            hsnCode: hasHsnCode ? selectedItemData.hsnCode : "",
+            modelNumber: selectedItemData.modelNumber || "",
+            selectedUnit: "",
+            rate: initialRate, // This will use default item rate only
+            itemDetail: selectedItemData.itemDetail || "",
+          };
+
+          const calculatedAmounts = calculateItemAmounts(updatedItem);
+          return {
+            ...updatedItem,
+            rate: calculatedAmounts.rate.toString(),
+            quantity: calculatedAmounts.quantity.toString(),
+            amount: calculatedAmounts.amount.toString(),
+            taxableAmount: calculatedAmounts.taxableAmount,
+            gstAmount: calculatedAmounts.gstAmount,
+            totalAmount: calculatedAmounts.totalAmount,
+          };
+        }
+        return item;
+      });
+
+      setItemDetails(updatedItemDetails);
+
+      setEditableHsn((prev) => ({
+        ...prev,
+        [id]: !hasHsnCode,
+      }));
+
+      // Fetch detailed item information from the API
       try {
-        // Fetch cheapest price using item NAME
-        const cheapestPrice = await fetchCheapestPrice(selectedItemData.name);
-        
-        const hasHsnCode =
-          selectedItemData.hsnCode && selectedItemData.hsnCode.trim() !== "";
+        const response = await Api.get(`/purchase/items/details/${itemId}`);
 
-        let initialRate = selectedItemData.rate || "";
-        if (cheapestPrice && cheapestPrice.rate) {
-          initialRate = cheapestPrice.rate.toString();
-          console.log(`Using cheapest price: ${cheapestPrice.rate} from vendor ${cheapestPrice.vendor}`);
-        }
+        if (response.data.success) {
+          const detailedItem = response.data.item;
+          const apiHasHsnCode =
+            detailedItem.hsnCode && detailedItem.hsnCode.trim() !== "";
 
-        let updatedItemDetails = itemDetails.map((item) => {
-          if (item.id === id) {
-            const updatedItem = {
-              ...item,
-              selectedItem: itemId,
-              hsnCode: hasHsnCode ? selectedItemData.hsnCode : "",
-              modelNumber: selectedItemData.modelNumber || "",
-              selectedUnit: "",
-              rate: initialRate,
-              itemDetail: selectedItemData.itemDetail || "",
-            };
+          setItemDetails((prevItemDetails) =>
+            prevItemDetails.map((item) => {
+              if (item.id === id) {
+                const apiUnit = detailedItem.unit;
+                let newUnit = "";
 
-            const calculatedAmounts = calculateItemAmounts(updatedItem);
-            return {
-              ...updatedItem,
-              rate: calculatedAmounts.rate.toString(),
-              quantity: calculatedAmounts.quantity.toString(),
-              amount: calculatedAmounts.amount.toString(),
-              taxableAmount: calculatedAmounts.taxableAmount,
-              gstAmount: calculatedAmounts.gstAmount,
-              totalAmount: calculatedAmounts.totalAmount,
-            };
-          }
-          return item;
-        });
-
-        setItemDetails(updatedItemDetails);
-
-        setEditableHsn((prev) => ({
-          ...prev,
-          [id]: !hasHsnCode,
-        }));
-
-        // Fetch detailed item information from the API
-        try {
-          const response = await Api.get(`/purchase/items/details/${itemId}`);
-
-          if (response.data.success) {
-            const detailedItem = response.data.item;
-            const apiHasHsnCode =
-              detailedItem.hsnCode && detailedItem.hsnCode.trim() !== "";
-
-            setItemDetails((prevItemDetails) =>
-              prevItemDetails.map((item) => {
-                if (item.id === id) {
-                  const apiUnit = detailedItem.unit;
-                  let newUnit = "";
-
-                  if (
-                    apiUnit !== undefined &&
-                    apiUnit !== null &&
-                    apiUnit.toString().trim() !== ""
-                  ) {
-                    newUnit = apiUnit.toString().trim();
-                  }
-
-                  const apiDescription = detailedItem.description;
-                  let newDescription = "";
-
-                  if (
-                    apiDescription !== undefined &&
-                    apiDescription !== null &&
-                    apiDescription.toString().trim() !== ""
-                  ) {
-                    newDescription = apiDescription.toString().trim();
-                  }
-
-                  let newHsnCode = item.hsnCode;
-                  if (apiHasHsnCode) {
-                    newHsnCode = detailedItem.hsnCode.trim();
-                  }
-
-                  const updatedItem = {
-                    ...item,
-                    selectedUnit: newUnit,
-                    itemDetail: newDescription,
-                    hsnCode: newHsnCode,
-                  };
-
-                  setEditableHsn((prev) => ({
-                    ...prev,
-                    [id]: !apiHasHsnCode,
-                  }));
-
-                  const calculatedAmounts = calculateItemAmounts(updatedItem);
-
-                  return {
-                    ...updatedItem,
-                    rate: calculatedAmounts.rate.toString(),
-                    quantity: calculatedAmounts.quantity.toString(),
-                    amount: calculatedAmounts.amount.toString(),
-                    taxableAmount: calculatedAmounts.taxableAmount,
-                    gstAmount: calculatedAmounts.gstAmount,
-                    totalAmount: calculatedAmounts.totalAmount,
-                  };
+                if (
+                  apiUnit !== undefined &&
+                  apiUnit !== null &&
+                  apiUnit.toString().trim() !== ""
+                ) {
+                  newUnit = apiUnit.toString().trim();
                 }
-                return item;
-              }),
-            );
-          }
-        } catch (apiError) {
-          console.error("Error fetching item details:", apiError);
-        }
-      } catch (error) {
-        console.error("Error in handleItemSelect:", error);
-      } finally {
-        setLoadingItems((prev) => ({ ...prev, [id]: false }));
-      }
-    } else {
-      setItemDetails(
-        itemDetails.map((item) => {
-          if (item.id === id) {
-            return {
-              ...item,
-              selectedItem: itemId,
-              selectedUnit: "",
-              hsnCode: "",
-            };
-          }
-          return item;
-        }),
-      );
 
-      setEditableHsn((prev) => ({ ...prev, [id]: true }));
+                const apiDescription = detailedItem.description;
+                let newDescription = "";
+
+                if (
+                  apiDescription !== undefined &&
+                  apiDescription !== null &&
+                  apiDescription.toString().trim() !== ""
+                ) {
+                  newDescription = apiDescription.toString().trim();
+                }
+
+                let newHsnCode = item.hsnCode;
+                if (apiHasHsnCode) {
+                  newHsnCode = detailedItem.hsnCode.trim();
+                }
+
+                const updatedItem = {
+                  ...item,
+                  selectedUnit: newUnit,
+                  itemDetail: newDescription,
+                  hsnCode: newHsnCode,
+                };
+
+                setEditableHsn((prev) => ({
+                  ...prev,
+                  [id]: !apiHasHsnCode,
+                }));
+
+                const calculatedAmounts = calculateItemAmounts(updatedItem);
+
+                return {
+                  ...updatedItem,
+                  rate: calculatedAmounts.rate.toString(),
+                  quantity: calculatedAmounts.quantity.toString(),
+                  amount: calculatedAmounts.amount.toString(),
+                  taxableAmount: calculatedAmounts.taxableAmount,
+                  gstAmount: calculatedAmounts.gstAmount,
+                  totalAmount: calculatedAmounts.totalAmount,
+                };
+              }
+              return item;
+            }),
+          );
+        }
+      } catch (apiError) {
+        console.error("Error fetching item details:", apiError);
+      }
+    } catch (error) {
+      console.error("Error in handleItemSelect:", error);
+    } finally {
       setLoadingItems((prev) => ({ ...prev, [id]: false }));
     }
-  };
+  } else {
+    setItemDetails(
+      itemDetails.map((item) => {
+        if (item.id === id) {
+          return {
+            ...item,
+            selectedItem: itemId,
+            selectedUnit: "",
+            hsnCode: "",
+          };
+        }
+        return item;
+      }),
+    );
+
+    setEditableHsn((prev) => ({ ...prev, [id]: true }));
+    setLoadingItems((prev) => ({ ...prev, [id]: false }));
+  }
+};
 
   // Function to toggle HSN edit mode
   const toggleHsnEditMode = (itemId) => {

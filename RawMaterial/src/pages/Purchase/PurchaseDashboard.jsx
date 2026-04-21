@@ -523,7 +523,7 @@ const PurchaseDashboard = () => {
       // Fetch both APIs in parallel
       const [purchaseRes, paymentsRes] = await Promise.all([
         Api.get("/purchase/dashboard"),
-        Api.get("/common/payments/dashboard").then(res => res.json())
+        Api.get("/common/payments/dashboard").then((res=[]) => res)
       ]);
 
       setDashboardData(purchaseRes.data.data);
