@@ -54,6 +54,7 @@ import ApprovalPOInvoice from "./pages/Purchase/ApprovalPOInvoice";
 import InvoicePO from "./pages/Purchase/InvoicePO";
 import VendorAllDetails from "./pages/Production/VendorAllDetails";
 import Installation from "./pages/InstallationData/Installation";
+import PriceComparision from "./pages/Purchase/PriceComparison";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -81,7 +82,7 @@ const getRedirectPath = (role) => {
   if (role === "Purchase") return "/purchase-dashboard";
   if (role === "Verification") return "/po-invoice";
   if (role === "Accounts") return "/payment-request-details";
-   if (role === "Production") return "/po-order-details";
+  if (role === "Production") return "/po-order-details";
 
   if (
     [
@@ -470,7 +471,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="add-unit"
           element={
@@ -615,6 +616,15 @@ const AppRoutes = () => {
               ]}
             >
               <UserItemStock />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="price-comparision"
+          element={
+            <ProtectedRoute allowedRoles={["Admin", "Purchase"]}>
+              <PriceComparision />
             </ProtectedRoute>
           }
         />
