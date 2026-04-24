@@ -17,10 +17,19 @@ const PurchaseDashboard = () => {
     vendorWise: []
   });
 
+  const [unsettledPayments, setUnsettledPayments] = useState([]);
+  const [filteredUnsettledPayments, setFilteredUnsettledPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState("monthly");
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Unsettled Payments Filters
+  const [unsettledSearchTerm, setUnsettledSearchTerm] = useState("");
+  const [selectedUnsettledVendor, setSelectedUnsettledVendor] = useState("");
+  const [unsettledDateFrom, setUnsettledDateFrom] = useState("");
+  const [unsettledDateTo, setUnsettledDateTo] = useState("");
+  const [loadingUnsettled, setLoadingUnsettled] = useState(false);
 
   useEffect(() => {
     fetchAllData();
@@ -39,7 +48,6 @@ const PurchaseDashboard = () => {
 
       setDashboardData(purchaseRes?.data?.data);
 
-      // FIXED: Check the response structure correctly
       if (paymentsRes?.data?.success) {
         setPaymentsData(paymentsRes.data.data);
       } else if (paymentsRes?.success) {
@@ -48,6 +56,9 @@ const PurchaseDashboard = () => {
         console.log("Payments API returned unsuccessful response", paymentsRes);
       }
 
+      // Fetch unsettled payments
+      await fetchUnsettledPayments();
+
     } catch (err) {
       setError("Failed to fetch dashboard data");
       console.error("Dashboard fetch error:", err);
@@ -55,6 +66,57 @@ const PurchaseDashboard = () => {
       setLoading(false);
     }
   };
+
+  const fetchUnsettledPayments = async () => {
+    try {
+      setLoadingUnsettled(true);
+      const response = await Api.get("/common/payments/advance/unsettled");
+      
+      if (response.data?.success) {
+        setUnsettledPayments(response.data.data);
+        setFilteredUnsettledPayments(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching unsettled payments:", err);
+    } finally {
+      setLoadingUnsettled(false);
+    }
+  };
+
+  // Filter unsettled payments
+  useEffect(() => {
+    let filtered = [...unsettledPayments];
+    
+    if (unsettledSearchTerm) {
+      const searchLower = unsettledSearchTerm.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.poNumber?.toLowerCase().includes(searchLower) ||
+        p.vendorName?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    if (selectedUnsettledVendor) {
+      filtered = filtered.filter(p => p.vendorId === selectedUnsettledVendor);
+    }
+    
+    if (unsettledDateFrom) {
+      filtered = filtered.filter(p => new Date(p.paymentDate) >= new Date(unsettledDateFrom));
+    }
+    
+    if (unsettledDateTo) {
+      filtered = filtered.filter(p => new Date(p.paymentDate) <= new Date(unsettledDateTo));
+    }
+    
+    setFilteredUnsettledPayments(filtered);
+  }, [unsettledSearchTerm, selectedUnsettledVendor, unsettledDateFrom, unsettledDateTo, unsettledPayments]);
+
+  // Get unique vendors for unsettled payments filter
+  const uniqueUnsettledVendors = [...new Map(unsettledPayments.map(p => [p.vendorId, p.vendorName])).entries()]
+    .map(([id, name]) => ({ id, name }));
+
+  // Calculate unsettled payments totals
+  const totalUnsettledAmount = filteredUnsettledPayments.reduce((sum, p) => sum + (p.advanceAmount || 0), 0);
+  const uniqueUnsettledVendorsCount = new Set(filteredUnsettledPayments.map(p => p.vendorId)).size;
 
   const formatCurrency = (amount) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -101,6 +163,17 @@ const PurchaseDashboard = () => {
     return new Intl.NumberFormat("en-IN").format(num);
   };
 
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const timeRangeLabel = {
     today: "Today",
     weekly: "This Week",
@@ -126,6 +199,40 @@ const PurchaseDashboard = () => {
   const calculatePercentage = (current, total) => {
     if (total === 0) return 0;
     return Math.round((current / total) * 100);
+  };
+
+  // Export unsettled payments to CSV
+  const exportUnsettledPaymentsToCSV = () => {
+    try {
+      const headers = ["PO Number", "PO Date", "Vendor Name", "Currency", "Advance Amount", "Payment Date"];
+      const rows = filteredUnsettledPayments.map(p => [
+        p.poNumber,
+        formatDateTime(p.poDate),
+        p.vendorName,
+        p.currency,
+        p.advanceAmount,
+        formatDateTime(p.paymentDate)
+      ]);
+
+      let csvContent = headers.join(",") + "\n";
+      rows.forEach(row => {
+        const escapedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`);
+        csvContent += escapedRow.join(",") + "\n";
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.setAttribute("download", `unsettled_advances_${new Date().toISOString().split("T")[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error exporting unsettled payments:", err);
+      alert("Failed to export unsettled payments data.");
+    }
   };
 
   if (loading) {
@@ -161,7 +268,6 @@ const PurchaseDashboard = () => {
   const currentPaymentsAmount = getPaymentsAmount(timeRange);
   const totalPaymentsAmount = getPaymentsAmount("total");
 
-  // Get top 5 companies and vendors for display
   const topCompanies = [...(paymentsData.companyWise || [])]
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 5);
@@ -176,7 +282,6 @@ const PurchaseDashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Purchase & Payments Dashboard</h1>
-            <p className="text-xs md:text-sm text-gray-600 mt-1">Overview of purchase orders, spending, and payments</p>
           </div>
           <button
             onClick={fetchAllData}
@@ -204,27 +309,42 @@ const PurchaseDashboard = () => {
             ? "border-b-2 border-yellow-500 text-yellow-700"
             : "text-gray-600 hover:text-gray-900"}`}
         >
-          Payments Overview
+          Advance Payments Overview
+        </button>
+        <button
+          onClick={() => setActiveTab("unsettled")}
+          className={`px-3 py-2 text-sm font-medium whitespace-nowrap flex items-center gap-1 ${activeTab === "unsettled"
+            ? "border-b-2 border-yellow-500 text-yellow-700"
+            : "text-gray-600 hover:text-gray-900"}`}
+        >
+          ADVANCE PAYMENT - ITEMS UNSETTLED
+          {unsettledPayments.length > 0 && (
+            <span className="ml-1 bg-yellow-100 text-yellow-800 text-xs px-1.5 py-0.5 rounded-full">
+              {unsettledPayments.length}
+            </span>
+          )}
         </button>
       </div>
 
-      {/* Time Range Filter */}
-      <div className="mb-4 md:mb-6">
-        <div className="flex flex-wrap gap-1 md:gap-2">
-          {["today", "weekly", "monthly", "yearly", "total"].map((range) => (
-            <button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={`px-2 md:px-3 py-1.5 rounded text-xs md:text-sm font-medium transition-all ${timeRange === range
+      {/* Time Range Filter - Only for Overview and Payments tabs */}
+      {(activeTab === "overview" || activeTab === "payments") && (
+        <div className="mb-4 md:mb-6">
+          <div className="flex flex-wrap gap-1 md:gap-2">
+            {["today", "weekly", "monthly", "yearly", "total"].map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-2 md:px-3 py-1.5 rounded text-xs md:text-sm font-medium transition-all ${timeRange === range
                   ? "bg-yellow-500 text-white shadow-sm"
                   : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                }`}
-            >
-              {timeRangeLabel[range]}
-            </button>
-          ))}
+                  }`}
+              >
+                {timeRangeLabel[range]}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Overview Section */}
       {activeTab === "overview" && (
@@ -309,7 +429,7 @@ const PurchaseDashboard = () => {
             {/* Payments Made Card */}
             <div className="bg-white rounded-lg p-3 md:p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-2">
-                <div className="text-lg bg-blue-50 p-1.5 rounded">💳</div>
+              
                 <span className="text-xs font-medium text-gray-500">
                   {timeRangeLabel[timeRange]}
                 </span>
@@ -425,6 +545,143 @@ const PurchaseDashboard = () => {
               </details>
             </div>
           )}
+        </div>
+      )}
+      {activeTab === "unsettled" && (
+        <div className="space-y-4 md:space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 ">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Total Unsettled Amount</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrencyFull(totalUnsettledAmount)}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 ">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Total Transactions</p>
+                  <p className="text-2xl font-bold text-gray-900">{filteredUnsettledPayments.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow-sm p-4 border-l-4 ">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Unique Vendors</p>
+                  <p className="text-2xl font-bold text-gray-900">{uniqueUnsettledVendorsCount}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search by PO/Vendor..."
+                  value={unsettledSearchTerm}
+                  onChange={(e) => setUnsettledSearchTerm(e.target.value)}
+                  className="border rounded-md px-3 py-2 pl-9 w-full text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                />
+              </div>
+              
+              <select
+                value={selectedUnsettledVendor}
+                onChange={(e) => setSelectedUnsettledVendor(e.target.value)}
+                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              >
+                <option value="">All Vendors</option>
+                {uniqueUnsettledVendors.map(vendor => (
+                  <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
+                ))}
+              </select>
+              
+              <input
+                type="date"
+                value={unsettledDateFrom}
+                onChange={(e) => setUnsettledDateFrom(e.target.value)}
+                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+              
+              <input
+                type="date"
+                value={unsettledDateTo}
+                onChange={(e) => setUnsettledDateTo(e.target.value)}
+                className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              />
+            </div>
+            
+            <div className="mt-3 flex justify-end">
+              <button
+                onClick={exportUnsettledPaymentsToCSV}
+                className="px-4 py-2 bg-green-600 text-white rounded-md text-sm flex items-center gap-2 hover:bg-green-700 transition-colors"
+              >
+                📥 Export to CSV
+              </button>
+            </div>
+          </div>
+
+          {/* Unsettled Payments Table */}
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              {loadingUnsettled ? (
+                <div className="flex justify-center items-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+                  <span className="ml-3 text-gray-600">Loading unsettled payments...</span>
+                </div>
+              ) : (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Advance Amount</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredUnsettledPayments.length > 0 ? (
+                      filteredUnsettledPayments.map((payment) => (
+                        <tr key={payment.paymentId} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{payment.poNumber}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{payment.vendorName}</td>
+                          <td className="px-4 py-3 text-sm text-right font-semibold text-green-600">
+                            {formatCurrencyFull(payment.advanceAmount)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500">{formatDateTime(payment.poDate)}</td>
+                          <td className="px-4 py-3 text-sm text-gray-500">{formatDateTime(payment.paymentDate)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                          No unsettled advance payments found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  {/* {filteredUnsettledPayments.length > 0 && (
+                    <tfoot className="bg-gray-50">
+                      <tr>
+                        <td colSpan="2" className="px-4 py-3 text-sm font-semibold text-gray-900">Total</td>
+                        <td className="px-4 py-3 text-sm font-semibold text-right text-green-600">
+                          {formatCurrencyFull(totalUnsettledAmount)}
+                        </td>
+                        <td colSpan="2"></td>
+                      </tr>
+                    </tfoot>
+                  )} */}
+                </table>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

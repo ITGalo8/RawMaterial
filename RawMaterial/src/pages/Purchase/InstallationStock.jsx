@@ -46,7 +46,6 @@ const InstallationStock = () => {
     fetchSystems();
   }, []);
 
-  /* ---------------- Fetch Stock Data ---------------- */
   useEffect(() => {
     if (!selectedWarehouse || !selectedSystem) {
       setStockData(null);
