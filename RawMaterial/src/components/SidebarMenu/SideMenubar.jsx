@@ -87,10 +87,9 @@ const SideMenubar = () => {
         className={`w-64 text-white h-screen fixed left-0 top-0 overflow-y-auto flex flex-col 
           bg-gradient-to-b from-[#F9EA76] to-[#FFF9DD] z-40
           transition-transform duration-300 ease-in-out
-          ${
-            mobileMenuOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
+          ${mobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0"
           }`}
       >
         <div className="bg-gray-700 border-b border-gray-600 p-4">
@@ -116,11 +115,10 @@ const SideMenubar = () => {
                 to="Item-Request"
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive
-                       ? "bg-yellow-300 text-black border-yellow-600"
-                       : ""
-                   }`
+                   border-l-4 border-transparent transition-all gap-3 ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -136,11 +134,10 @@ const SideMenubar = () => {
                 to="Item-Request-history"
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive
-                       ? "bg-yellow-300 text-black border-yellow-600"
-                       : ""
-                   }`
+                   border-l-4 border-transparent transition-all gap-3 ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -156,11 +153,10 @@ const SideMenubar = () => {
                 to="user-Stock"
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive
-                       ? "bg-yellow-300 text-black border-yellow-600"
-                       : ""
-                   }`
+                   border-l-4 border-transparent transition-all gap-3 ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -176,11 +172,10 @@ const SideMenubar = () => {
                 to="pending-process"
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive
-                       ? "bg-yellow-300 text-black border-yellow-600"
-                       : ""
-                   }`
+                   border-l-4 border-transparent transition-all gap-3 ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -197,11 +192,10 @@ const SideMenubar = () => {
                   to="service-process-request"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -220,11 +214,10 @@ const SideMenubar = () => {
                   to="store-keeper"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -238,11 +231,10 @@ const SideMenubar = () => {
                   to="single-out"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -256,11 +248,10 @@ const SideMenubar = () => {
                   to="po-stock-receiving"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -278,11 +269,10 @@ const SideMenubar = () => {
                   to="user-stock-data"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -300,11 +290,10 @@ const SideMenubar = () => {
                   to="direct-item-issue-history"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -322,11 +311,10 @@ const SideMenubar = () => {
                   to="purchase-dashboard"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -340,11 +328,10 @@ const SideMenubar = () => {
                   to="price-comparision"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -358,50 +345,48 @@ const SideMenubar = () => {
           {(user.role === "Store" ||
             user.role === "Production" ||
             user.role === "Admin") && (
-            <>
-              <li>
-                <NavLink
-                  to="store-tracking"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <IoStorefrontSharp className="text-lg" />
-                  Service Tracking
-                </NavLink>
-              </li>
-            </>
-          )}
+              <>
+                <li>
+                  <NavLink
+                    to="store-tracking"
+                    className={({ isActive }) =>
+                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                        ? "bg-yellow-300 text-black border-yellow-600"
+                        : ""
+                      }`
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <IoStorefrontSharp className="text-lg" />
+                    Service Tracking
+                  </NavLink>
+                </li>
+              </>
+            )}
 
           {(user.role === "Verification" ||
             user.role === "Admin" ||
             user.role === "Accounts") && (
-            <>
-              <li>
-                <NavLink
-                  to="po-invoice"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FaFileInvoice className="text-lg" />
-                  PO Invoice
-                </NavLink>
-              </li>
-            </>
-          )}
+              <>
+                <li>
+                  <NavLink
+                    to="po-invoice"
+                    className={({ isActive }) =>
+                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                        ? "bg-yellow-300 text-black border-yellow-600"
+                        : ""
+                      }`
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FaFileInvoice className="text-lg" />
+                    PO Invoice
+                  </NavLink>
+                </li>
+              </>
+            )}
 
           {/* Admin Dashboard */}
           {(user.role === "Superadmin" || user.role === "Admin") && (
@@ -410,11 +395,10 @@ const SideMenubar = () => {
                 to="admin-dashboard"
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive
-                       ? "bg-yellow-300 text-black border-yellow-600"
-                       : ""
-                   }`
+                   border-l-4 border-transparent transition-all gap-3 ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -431,11 +415,10 @@ const SideMenubar = () => {
                   to="approval-po-invoice"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -453,11 +436,10 @@ const SideMenubar = () => {
                   to="payment-request-details"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -475,11 +457,10 @@ const SideMenubar = () => {
                   to="account-details"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -494,68 +475,72 @@ const SideMenubar = () => {
             user.role === "Purchase" ||
             user.role === "Production" ||
             user.role === "Admin") && (
-            <>
-              <li>
-                <NavLink
-                  to="raw-material-stock"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <IoStorefrontSharp className="text-lg" />
-                  Raw Material Stock
-                </NavLink>
-              </li>
-            </>
-          )}
+              <>
+                <li>
+                  <NavLink
+                    to="raw-material-stock"
+                    className={({ isActive }) =>
+                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                        ? "bg-yellow-300 text-black border-yellow-600"
+                        : ""
+                      }`
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <IoStorefrontSharp className="text-lg" />
+                    Raw Material Stock
+                  </NavLink>
+                </li>
+              </>
+            )}
+
+          {(user?.role === "Purchase" ||
+            user?.role === "Admin" ||
+            user?.role === "Production" ||
+            user?.role === "Store") && (
+              <>
+                <li>
+                  <NavLink
+                    to="installation-stock"
+                    className={({ isActive }) =>
+                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                        ? "bg-yellow-300 text-black border-yellow-600"
+                        : ""
+                      }`
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FaCogs className="text-lg" />
+                    Installation Stock Data
+                  </NavLink>
+                </li>
+              </>
+            )}
 
           {(user?.role === "Purchase" ||
             user?.role === "Admin" ||
             user?.role === "Production") && (
-            <>
-              <li>
-                <NavLink
-                  to="installation-stock"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FaCogs className="text-lg" />
-                  Installation Stock Data
-                </NavLink>
-              </li>
-
-              <li>
-                <NavLink
-                  to="Installation"
-                  className={({ isActive }) =>
-                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
-                  }
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <FaCogs className="text-lg" />
-                  Installation Shortage
-                </NavLink>
-              </li>
-            </>
-          )}
+              <>
+                <li>
+                  <NavLink
+                    to="Installation"
+                    className={({ isActive }) =>
+                      `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                        ? "bg-yellow-300 text-black border-yellow-600"
+                        : ""
+                      }`
+                    }
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FaCogs className="text-lg" />
+                    Installation Shortage
+                  </NavLink>
+                </li>
+              </>
+            )}
 
           {user.role === "Purchase" && (
             <>
@@ -564,11 +549,10 @@ const SideMenubar = () => {
                   to="add-warehouse"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -586,11 +570,10 @@ const SideMenubar = () => {
                   to="add-unit"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -626,11 +609,10 @@ const SideMenubar = () => {
                         to="add-raw-material"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -643,11 +625,10 @@ const SideMenubar = () => {
                         to="item-details"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -686,11 +667,10 @@ const SideMenubar = () => {
                         to="add-company"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -703,11 +683,10 @@ const SideMenubar = () => {
                         to="update-company"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -720,11 +699,10 @@ const SideMenubar = () => {
                         to="active-deactivate-company"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -758,11 +736,10 @@ const SideMenubar = () => {
                         to="add-vendor"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -775,11 +752,10 @@ const SideMenubar = () => {
                         to="update-vendor"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -792,11 +768,10 @@ const SideMenubar = () => {
                         to="active-deactivate-vendor"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -830,11 +805,10 @@ const SideMenubar = () => {
                         to="create-purchase-order"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -846,11 +820,10 @@ const SideMenubar = () => {
                         to="show-purchase-orders"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -862,11 +835,10 @@ const SideMenubar = () => {
                         to="invoice-po"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -898,11 +870,10 @@ const SideMenubar = () => {
                         to="payment-pending"
                         className={({ isActive }) =>
                           `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
-                           border-transparent transition-all relative text-sm ${
-                             isActive
-                               ? "bg-yellow-300 text-black border-yellow-600"
-                               : ""
-                           }`
+                           border-transparent transition-all relative text-sm ${isActive
+                            ? "bg-yellow-300 text-black border-yellow-600"
+                            : ""
+                          }`
                         }
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -938,11 +909,10 @@ const SideMenubar = () => {
                 to="po-payment-details"
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive
-                       ? "bg-yellow-300 text-black border-yellow-600"
-                       : ""
-                   }`
+                   border-l-4 border-transparent transition-all gap-3 ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -959,11 +929,10 @@ const SideMenubar = () => {
                   to="vendor-all-details"
                   className={({ isActive }) =>
                     `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                     border-l-4 border-transparent transition-all gap-3 ${
-                       isActive
-                         ? "bg-yellow-300 text-black border-yellow-600"
-                         : ""
-                     }`
+                     border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
                   }
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -977,24 +946,23 @@ const SideMenubar = () => {
           {(user.role === "Purchase" ||
             user.role === "Production" ||
             user.role === "Admin") && (
-            <li>
-              <NavLink
-                to="po-order-details"
-                className={({ isActive }) =>
-                  `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive
-                       ? "bg-yellow-300 text-black border-yellow-600"
-                       : ""
-                   }`
-                }
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <MdOutlinePayment className="text-lg" />
-                PO Received Details
-              </NavLink>
-            </li>
-          )}
+              <li>
+                <NavLink
+                  to="po-order-details"
+                  className={({ isActive }) =>
+                    `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
+                   border-l-4 border-transparent transition-all gap-3 ${isActive
+                      ? "bg-yellow-300 text-black border-yellow-600"
+                      : ""
+                    }`
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <MdOutlinePayment className="text-lg" />
+                  PO Received Details
+                </NavLink>
+              </li>
+            )}
 
 
           {(user.role === "Store") && (
@@ -1003,11 +971,10 @@ const SideMenubar = () => {
                 to="stock-update"
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-                   border-l-4 border-transparent transition-all gap-3 ${
-                     isActive
-                       ? "bg-yellow-300 text-black border-yellow-600"
-                       : ""
-                   }`
+                   border-l-4 border-transparent transition-all gap-3 ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -1026,9 +993,8 @@ const SideMenubar = () => {
                 to="change-password"
                 className={({ isActive }) =>
                   `flex items-center px-5 py-3 text-gray-700 hover:text-black hover:bg-yellow-100 
-         border-l-4 border-transparent transition-all gap-3 ${
-           isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
-         }`
+         border-l-4 border-transparent transition-all gap-3 ${isActive ? "bg-yellow-300 text-black border-yellow-600" : ""
+                  }`
                 }
                 onClick={() => setMobileMenuOpen(false)}
               >

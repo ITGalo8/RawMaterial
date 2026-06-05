@@ -2500,8 +2500,7 @@ const statusOptions = [
           </div>
         )}
 
-        {/* Empty States */}
-        {selectedCompany && !selectedOrder && purchaseOrders.length > 0 && (
+        {/* {selectedCompany && !selectedOrder && purchaseOrders.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
             <div className="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <svg
@@ -2526,7 +2525,7 @@ const statusOptions = [
               details.
             </p>
           </div>
-        )}
+        )} */}
 
         {selectedCompany &&
           !selectedOrder &&

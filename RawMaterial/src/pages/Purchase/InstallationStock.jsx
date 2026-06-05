@@ -956,7 +956,7 @@ const InstallationStock = () => {
           </div>
 
           {/* Footer Summary - Desktop */}
-          <div className="hidden sm:block mt-8 p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200">
+          {/* <div className="hidden sm:block mt-8 p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200">
             <div className="flex flex-wrap items-center justify-between">
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-3">Stock Analysis Summary</h4>
@@ -989,7 +989,7 @@ const InstallationStock = () => {
               </div>
             
             </div>
-          </div>
+          </div> */}
         </>
       )}
     </div>
