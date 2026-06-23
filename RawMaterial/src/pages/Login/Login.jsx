@@ -84,6 +84,10 @@ const Login = () => {
           navigate("/pending-process");
           break;
 
+        case "PrePurchase":
+          navigate("/pre-po");
+          break;
+
         case "SFG Work":
         case "Assemble":
         case "Disassemble":

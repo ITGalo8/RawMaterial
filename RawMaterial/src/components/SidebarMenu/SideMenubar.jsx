@@ -830,6 +830,8 @@ const SideMenubar = () => {
                         Show Purchase Orders
                       </NavLink>
                     </li>
+
+
                     <li>
                       <NavLink
                         to="invoice-po"
@@ -983,6 +985,45 @@ const SideMenubar = () => {
               </NavLink>
             </li>
           )}
+
+          {(user.role === "PrePurchase") && (
+
+            <>
+            <li>
+              <NavLink
+                to="pre-po"
+                className={({ isActive }) =>
+                  `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
+                }
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pre Po
+              </NavLink>
+            </li>
+
+            <li>
+              <NavLink
+                to="pre-po-request-history"
+                className={({ isActive }) =>
+                  `block py-2 px-5 pl-14 text-gray-700 hover:text-black hover:bg-yellow-100 border-l-4 
+                           border-transparent transition-all relative text-sm ${isActive
+                    ? "bg-yellow-300 text-black border-yellow-600"
+                    : ""
+                  }`
+                }
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pre Po Request History
+              </NavLink>
+            </li>
+
+            </>
+          )}
+
         </ul>
 
         {/* Logout */}

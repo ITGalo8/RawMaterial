@@ -55,6 +55,7 @@ import InvoicePO from "./pages/Purchase/InvoicePO";
 import VendorAllDetails from "./pages/Production/VendorAllDetails";
 import Installation from "./pages/InstallationData/Installation";
 import PriceComparision from "./pages/Purchase/PriceComparison";
+import PrePo from "./pages/Production/PrePo";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -84,6 +85,7 @@ const getRedirectPath = (role) => {
   if (role === "Accounts") return "/payment-request-details";
   if (role === "Production") return "/po-order-details";
 
+
   if (
     [
       "SFG Work",
@@ -106,8 +108,11 @@ const getRedirectPath = (role) => {
   }
 
   if (role === "Testing") return "/pending-process";
+  if (role === "PrePurchase") return "/pre-po";
   return "/login";
 };
+
+
 
 const AppRoutes = () => {
   const { user, loading } = useUser();
@@ -375,6 +380,15 @@ const AppRoutes = () => {
         />
 
         <Route
+          path="pre-po"
+          element={
+            <ProtectedRoute allowedRoles={["PrePurchase"]}>
+              <PrePo />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="po-order-details"
           element={
             <ProtectedRoute allowedRoles={["Purchase", "Production", "Admin"]}>
@@ -596,6 +610,15 @@ const AppRoutes = () => {
           path="vendor-all-details"
           element={
             <ProtectedRoute allowedRoles={["Admin", "Production"]}>
+              <VendorAllDetails />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="pre-po-request-history"
+          element={
+            <ProtectedRoute allowedRoles={["PrePurchase", "Purchase"]}>
               <VendorAllDetails />
             </ProtectedRoute>
           }
