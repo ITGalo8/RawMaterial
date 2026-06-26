@@ -56,6 +56,7 @@ import VendorAllDetails from "./pages/Production/VendorAllDetails";
 import Installation from "./pages/InstallationData/Installation";
 import PriceComparision from "./pages/Purchase/PriceComparison";
 import PrePo from "./pages/Production/PrePo";
+import PrePoRequestHistory from "./pages/Production/PrePoRequestHistory";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -346,7 +347,7 @@ const AppRoutes = () => {
         <Route
           path="add-vendor"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase"]}>
               <AddVendor />
             </ProtectedRoute>
           }
@@ -355,7 +356,7 @@ const AppRoutes = () => {
         <Route
           path="update-vendor"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase"]}>
               <UpdateVendor />
             </ProtectedRoute>
           }
@@ -418,7 +419,7 @@ const AppRoutes = () => {
         <Route
           path="active-deactivate-vendor"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase"]}>
               <ActiveDeactivateVendor />
             </ProtectedRoute>
           }
@@ -619,7 +620,7 @@ const AppRoutes = () => {
           path="pre-po-request-history"
           element={
             <ProtectedRoute allowedRoles={["PrePurchase", "Purchase"]}>
-              <VendorAllDetails />
+              <PrePoRequestHistory />
             </ProtectedRoute>
           }
         />

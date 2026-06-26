@@ -95,112 +95,48 @@ const AddVendor = () => {
   // Track last valid pincode to avoid refetching same data
   const [lastFetchedPincode, setLastFetchedPincode] = useState("");
 
-  // Fetch countries and currencies on component mount
+  // Fetch countries and currencies on component mount – NO fallbacks
   useEffect(() => {
     const fetchCountries = async () => {
       setLoadingCountries(true);
+      setError(""); // clear previous errors
       try {
         const response = await Api.get(`/common/countries`);
         if (response.data?.success) {
           setCountries(response.data.countries || []);
         } else {
-          // Fallback to default countries if API fails
-          setCountries([
-            "India",
-            "United States",
-            "United Kingdom",
-            "Canada",
-            "Australia",
-            "Germany",
-            "France",
-            "Japan",
-            "China",
-            "Singapore",
-            "United Arab Emirates",
-            "Saudi Arabia"
-          ]);
+          throw new Error("Invalid response from server");
         }
       } catch (error) {
-        console.log(
+        console.error(
           "Error fetching countries: ",
-          error?.response?.data?.message || error?.message,
+          error?.response?.data?.message || error?.message
         );
         setError("Failed to load countries. Please refresh the page.");
-        // Fallback to default countries
-        setCountries([
-          "India",
-          "United States",
-          "United Kingdom",
-          "Canada",
-          "Australia",
-          "Germany",
-          "France",
-          "Japan",
-          "China",
-          "Singapore"
-        ]);
+        setCountries([]); // keep empty – no fallback
       } finally {
         setLoadingCountries(false);
       }
     };
 
     const fetchAllCurrencies = async () => {
+      setLoadingCurrency(true);
       try {
         const response = await Api.get(`/common/currencies`);
         if (response.data?.success) {
           setCurrencies(response.data.currencies || []);
         } else {
-          // Fallback to default currencies if API fails
-          setCurrencies([
-            "INR - Indian Rupee",
-            "USD - US Dollar",
-            "EUR - Euro",
-            "GBP - British Pound",
-            "JPY - Japanese Yen",
-            "AUD - Australian Dollar",
-            "CAD - Canadian Dollar",
-            "SGD - Singapore Dollar",
-            "AED - UAE Dirham"
-          ]);
+          throw new Error("Invalid response from server");
         }
       } catch (error) {
-        console.log(
+        console.error(
           "Error fetching currencies: ",
-          error?.response?.data?.message || error?.message,
+          error?.response?.data?.message || error?.message
         );
-        // If API fails, use a default list of common currencies
-        setCurrencies([
-          "USD - US Dollar",
-          "EUR - Euro",
-          "GBP - British Pound",
-          "INR - Indian Rupee",
-          "JPY - Japanese Yen",
-          "AUD - Australian Dollar",
-          "CAD - Canadian Dollar",
-          "CHF - Swiss Franc",
-          "CNY - Chinese Yuan",
-          "SGD - Singapore Dollar",
-          "AED - UAE Dirham",
-          "SAR - Saudi Riyal",
-          "MYR - Malaysian Ringgit",
-          "THB - Thai Baht",
-          "IDR - Indonesian Rupiah",
-          "KRW - South Korean Won",
-          "PHP - Philippine Peso",
-          "VND - Vietnamese Dong",
-          "BDT - Bangladeshi Taka",
-          "PKR - Pakistani Rupee",
-          "LKR - Sri Lankan Rupee",
-          "NPR - Nepalese Rupee",
-          "MMK - Myanmar Kyat",
-          "BRL - Brazilian Real",
-          "RUB - Russian Ruble",
-          "ZAR - South African Rand",
-          "NGN - Nigerian Naira",
-          "EGP - Egyptian Pound",
-          "KES - Kenyan Shilling",
-          "ETB - Ethiopian Birr"
-        ]);
+        setError("Failed to load currencies. Please refresh the page.");
+        setCurrencies([]);
+      } finally {
+        setLoadingCurrency(false);
       }
     };
 
@@ -208,39 +144,30 @@ const AddVendor = () => {
     fetchAllCurrencies();
   }, []);
 
-  // Fetch default currency when country changes
+  // Fetch default currency when country changes – no hardcoded map
   useEffect(() => {
     const fetchCurrency = async () => {
       if (companyData.country) {
         setLoadingCurrency(true);
         try {
           const response = await Api.get(
-            `/common/currency/${encodeURIComponent(companyData.country)}`,
+            `/common/currency/${encodeURIComponent(companyData.country)}`
           );
-          if (response.data?.success) {
+          if (response.data?.success && response.data.currency) {
             setCompanyData((prev) => ({
               ...prev,
-              currency: response.data.currency || "",
+              currency: response.data.currency,
             }));
           } else {
-            // Fallback to default currency
-            const defaultCurrency = getDefaultCurrency(companyData.country);
-            setCompanyData((prev) => ({
-              ...prev,
-              currency: defaultCurrency,
-            }));
+            // If API doesn't return a currency, clear it – user must select manually
+            setCompanyData((prev) => ({ ...prev, currency: "" }));
           }
         } catch (error) {
-          console.log(
+          console.error(
             "Error fetching currency: ",
-            error?.response?.data?.message || error?.message,
+            error?.response?.data?.message || error?.message
           );
-          // Set default currency based on country
-          const defaultCurrency = getDefaultCurrency(companyData.country);
-          setCompanyData((prev) => ({
-            ...prev,
-            currency: defaultCurrency,
-          }));
+          setCompanyData((prev) => ({ ...prev, currency: "" }));
         } finally {
           setLoadingCurrency(false);
         }
@@ -250,87 +177,47 @@ const AddVendor = () => {
     fetchCurrency();
   }, [companyData.country]);
 
-  // Helper function to get default currency for a country
-  const getDefaultCurrency = (country) => {
-    const currencyMap = {
-      "India": "INR - Indian Rupee",
-      "United States": "USD - US Dollar",
-      "United Kingdom": "GBP - British Pound",
-      "Germany": "EUR - Euro",
-      "France": "EUR - Euro",
-      "Italy": "EUR - Euro",
-      "Spain": "EUR - Euro",
-      "Canada": "CAD - Canadian Dollar",
-      "Australia": "AUD - Australian Dollar",
-      "Japan": "JPY - Japanese Yen",
-      "China": "CNY - Chinese Yuan",
-      "Singapore": "SGD - Singapore Dollar",
-      "United Arab Emirates": "AED - UAE Dirham",
-      "Saudi Arabia": "SAR - Saudi Riyal",
-      "Malaysia": "MYR - Malaysian Ringgit",
-      "Thailand": "THB - Thai Baht",
-      "Indonesia": "IDR - Indonesian Rupiah",
-      "South Korea": "KRW - South Korean Won",
-      "Philippines": "PHP - Philippine Peso",
-      "Vietnam": "VND - Vietnamese Dong",
-      "Bangladesh": "BDT - Bangladeshi Taka",
-      "Pakistan": "PKR - Pakistani Rupee",
-      "Sri Lanka": "LKR - Sri Lankan Rupee",
-      "Nepal": "NPR - Nepalese Rupee",
-      "Myanmar": "MMK - Myanmar Kyat",
-      "Brazil": "BRL - Brazilian Real",
-      "Russia": "RUB - Russian Ruble",
-      "South Africa": "ZAR - South African Rand",
-      "Nigeria": "NGN - Nigerian Naira",
-      "Egypt": "EGP - Egyptian Pound",
-      "Kenya": "KES - Kenyan Shilling",
-      "Ethiopia": "ETB - Ethiopian Birr"
-    };
-    
-    return currencyMap[country] || "USD - US Dollar";
-  };
-
   // Function to fetch pincode details (only for India)
   const fetchPincodeDetails = useCallback(async (pincode) => {
     // Don't fetch if we already fetched this pincode
     if (pincode === lastFetchedPincode) return;
-    
+
     setDetectingState(true);
     try {
       const response = await Api.get(`/common/address/pincode/${pincode}`);
       if (response.data?.success) {
         const { city, state } = response.data.data;
-        
+
         setCompanyData(prev => {
           // Create new object to avoid mutating state
           const newData = { ...prev };
-          
+
           // Only update city if it's currently empty OR was auto-filled previously
           if (autoFilledFields.city || prev.city === "") {
             newData.city = city;
           }
-          
+
           // Only update state if it's currently empty OR was auto-filled previously
           if (autoFilledFields.state || prev.state === "") {
             newData.state = state;
           }
-          
+
           return newData;
         });
-        
+
         // Mark as auto-filled if we updated them
         setAutoFilledFields({
           city: autoFilledFields.city || companyData.city === "",
           state: autoFilledFields.state || companyData.state === ""
         });
-        
+
         // Store this pincode as last fetched
         setLastFetchedPincode(pincode);
       }
     } catch (error) {
-      console.log(
+      console.error(
         "Error fetching pincode details: ",
-        error?.response?.data?.message || error?.message,
+        error?.response?.data?.message || error?.message
       );
       // Reset last fetched pincode on error
       setLastFetchedPincode("");
@@ -348,7 +235,7 @@ const AddVendor = () => {
 
     // Only fetch if it's India and zipCode is exactly 6 digits
     if (
-      companyData.zipCode.length === 6 && 
+      companyData.zipCode.length === 6 &&
       companyData.country.toLowerCase() === "india" &&
       companyData.zipCode !== lastFetchedPincode
     ) {
@@ -376,14 +263,14 @@ const AddVendor = () => {
   const filteredCountries = useMemo(() => {
     if (!countrySearch) return countries;
     return countries.filter((country) =>
-      country.toLowerCase().includes(countrySearch.toLowerCase()),
+      country.toLowerCase().includes(countrySearch.toLowerCase())
     );
   }, [countries, countrySearch]);
 
   const filteredCurrencies = useMemo(() => {
     if (!currencySearch) return currencies;
     return currencies.filter((currency) =>
-      currency.toLowerCase().includes(currencySearch.toLowerCase()),
+      currency.toLowerCase().includes(currencySearch.toLowerCase())
     );
   }, [currencies, currencySearch]);
 
@@ -417,7 +304,7 @@ const AddVendor = () => {
         setShowCountryDropdown(false);
         setCountrySearch("");
       }
-      
+
       // Close currency dropdown
       if (currencyDropdownRef.current && !currencyDropdownRef.current.contains(event.target)) {
         setShowCurrencyDropdown(false);
@@ -448,7 +335,7 @@ const AddVendor = () => {
   }, [showCountryDropdown, showCurrencyDropdown]);
 
   const formatGSTNumber = (value) => {
-    const cleaned = value ? value.toUpperCase().replace(/[^0-9A-Z]/g, ""): "";
+    const cleaned = value ? value.toUpperCase().replace(/[^0-9A-Z]/g, "") : "";
     return cleaned.slice(0, 15);
   };
 
@@ -504,7 +391,7 @@ const AddVendor = () => {
     if (!companyData.referenceBy.trim()) errors.referenceBy = "referenceBy required";
     if (!companyData.country.trim()) errors.country = "Country is required";
     if (!companyData.currency.trim()) errors.currency = "Currency is required";
-    
+
     // Validate zipCode based on country
     if (companyData.country.toLowerCase() === "india") {
       // For India, validate as 6-digit pincode if provided
@@ -524,7 +411,7 @@ const AddVendor = () => {
     } else if (!/^\d{10,15}$/.test(companyData.contactNumber)) {
       errors.contactNumber = "Contact number must be 10-15 digits";
     }
-    
+
     return errors;
   };
 
@@ -542,7 +429,7 @@ const AddVendor = () => {
         processedValue = value.replace(/[^0-9]/g, "").slice(0, 6);
       } else {
         // For other countries, allow alphanumeric and spaces
-        processedValue = value ? value.toUpperCase().slice(0, 20): "";
+        processedValue = value ? value.toUpperCase().slice(0, 20) : "";
       }
       // Reset last fetched pincode when user starts typing new pincode (India only)
       if (processedValue !== lastFetchedPincode && companyData.country.toLowerCase() === "india") {
@@ -552,18 +439,16 @@ const AddVendor = () => {
       processedValue = formatEmail(value);
     } else if (name === "contactPerson") {
       processedValue = value.replace(/[^a-zA-Z\s.'-]/g, "");
-    }
-      else if (name === "referenceBy") {
+    } else if (name === "referenceBy") {
       processedValue = value.replace(/[^a-zA-Z\s.'-]/g, "");
-
     } else if (name === "vendorAadhaar") {
       processedValue = value.replace(/[^0-9]/g, "").slice(0, 12);
     } else if (name === "vendorPanCard") {
-      processedValue = value ? value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10): "";
+      processedValue = value ? value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10) : "";
     } else if (name === "accountNumber") {
       processedValue = value.replace(/[^0-9]/g, "").slice(0, 18);
     } else if (name === "ifscCode") {
-      processedValue = value ? value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11): "";
+      processedValue = value ? value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11) : "";
     }
 
     setCompanyData((prevState) => ({
@@ -671,7 +556,7 @@ const AddVendor = () => {
   // Get file icon based on type
   const getFileIcon = (file) => {
     if (!file) return null;
-    
+
     if (file.type === 'application/pdf') {
       return <DocumentIcon className="h-5 w-5 text-red-500" />;
     } else if (file.type.startsWith('image/')) {
@@ -698,7 +583,7 @@ const AddVendor = () => {
     }));
     setShowCountryDropdown(false);
     setCountrySearch("");
-    
+
     // Reset auto-filled fields when country changes
     setAutoFilledFields({
       city: false,
@@ -731,7 +616,7 @@ const AddVendor = () => {
   // Handle zipCode/pincode blur - trigger immediate fetch (India only)
   const handleZipCodeBlur = () => {
     if (
-      companyData.zipCode.length === 6 && 
+      companyData.zipCode.length === 6 &&
       companyData.country.toLowerCase() === "india" &&
       companyData.zipCode !== lastFetchedPincode
     ) {
@@ -782,7 +667,7 @@ const AddVendor = () => {
       if (aadhaarFile) {
         formData.append('aadhaarFile', aadhaarFile);
       }
-      
+
       if (panCardFile) {
         formData.append('pancardFile', panCardFile);
       }
@@ -807,29 +692,29 @@ const AddVendor = () => {
       }
     } catch (err) {
       console.error("Error adding vendor:", err);
-      
+
       // More detailed error handling
       if (err.response) {
         console.error("Response error:", err.response.data);
         console.error("Response status:", err.response.status);
-        
-        let errorMessage = err.response.data?.message || 
-                          err.response.data?.error || 
-                          `Failed to add vendor. Server responded with: ${err.response.status}`;
-        
+
+        let errorMessage = err.response.data?.message ||
+          err.response.data?.error ||
+          `Failed to add vendor. Server responded with: ${err.response.status}`;
+
         // Handle validation errors from server
         if (err.response.data?.errors) {
           const serverErrors = err.response.data.errors;
           const fieldErrorObj = {};
-          
+
           Object.keys(serverErrors).forEach(key => {
             fieldErrorObj[key] = serverErrors[key];
           });
-          
+
           setFieldErrors(fieldErrorObj);
           errorMessage = "Please fix the errors in the form";
         }
-        
+
         setError(errorMessage);
       } else if (err.request) {
         setError("No response from server. Please check your network connection.");
@@ -905,7 +790,7 @@ const AddVendor = () => {
   // Get field label and placeholder based on country
   const getZipCodeFieldInfo = () => {
     const isIndia = companyData.country.toLowerCase() === "india";
-    
+
     return {
       label: isIndia ? "Pincode" : "Postal/Zip Code",
       placeholder: isIndia ? "Enter 6-digit pincode" : "Enter postal/zip code",
@@ -1003,7 +888,7 @@ const AddVendor = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-             
+
                   <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="name"
@@ -1040,8 +925,7 @@ const AddVendor = () => {
                     )}
                   </div>
 
-
-                    <div className="md:col-span-2 lg:col-span-1">
+                  <div className="md:col-span-2 lg:col-span-1">
                     <label
                       htmlFor="referenceBy"
                       className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
@@ -1341,9 +1225,14 @@ const AddVendor = () => {
                         </div>
                       )}
                     </div>
-                    {companyData.country && (
+                    {companyData.country && !loadingCurrency && (
                       <p className="text-xs text-gray-500 mt-1">
                         Default currency for {companyData.country}. Click to select different currency.
+                      </p>
+                    )}
+                    {loadingCurrency && (
+                      <p className="text-xs text-blue-500 mt-1">
+                        Fetching currency...
                       </p>
                     )}
                   </div>
@@ -1807,7 +1696,7 @@ const AddVendor = () => {
                         </span>
                       )}
                     </div>
-                    
+
                     {/* Selected Aadhaar File Preview */}
                     {aadhaarFile && (
                       <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-md flex items-center justify-between">
@@ -1923,7 +1812,7 @@ const AddVendor = () => {
                         </span>
                       )}
                     </div>
-                    
+
                     {/* Selected PAN Card File Preview */}
                     {panCardFile && (
                       <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded-md flex items-center justify-between">
@@ -2128,7 +2017,7 @@ const AddVendor = () => {
                     <Button
                       type="submit"
                       title={loading ? "Adding Vendor..." : "Add Vendor"}
-                      disabled={loading || !isFormValid()}
+                      disabled={loading || !isFormValid() || loadingCountries || loadingCurrency}
                       variant="primary"
                       className="px-4 py-2 rounded-md font-medium flex items-center justify-center text-sm"
                       onClick={null}
@@ -2139,7 +2028,13 @@ const AddVendor = () => {
                       {!loading && (
                         <CheckCircleIcon className="h-4 w-4 mr-1.5" />
                       )}
-                      <span>{loading ? "Adding..." : "Add Vendor"}</span>
+                      <span>
+                        {loadingCountries || loadingCurrency
+                          ? "Loading data..."
+                          : loading
+                          ? "Adding..."
+                          : "Add Vendor"}
+                      </span>
                     </Button>
                   </div>
                 </div>
