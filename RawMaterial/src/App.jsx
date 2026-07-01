@@ -57,6 +57,7 @@ import Installation from "./pages/InstallationData/Installation";
 import PriceComparision from "./pages/Purchase/PriceComparison";
 import PrePo from "./pages/Production/PrePo";
 import PrePoRequestHistory from "./pages/Production/PrePoRequestHistory";
+import RegisterEmployee from "./pages/auth/RegisterEmployee";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useUser();
@@ -347,7 +348,7 @@ const AppRoutes = () => {
         <Route
           path="add-vendor"
           element={
-            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase", "Production"]}>
               <AddVendor />
             </ProtectedRoute>
           }
@@ -356,7 +357,7 @@ const AppRoutes = () => {
         <Route
           path="update-vendor"
           element={
-            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase", "Production"]}>
               <UpdateVendor />
             </ProtectedRoute>
           }
@@ -383,7 +384,7 @@ const AppRoutes = () => {
         <Route
           path="pre-po"
           element={
-            <ProtectedRoute allowedRoles={["PrePurchase"]}>
+            <ProtectedRoute allowedRoles={["PrePurchase", "Production"]}>
               <PrePo />
             </ProtectedRoute>
           }
@@ -419,7 +420,7 @@ const AppRoutes = () => {
         <Route
           path="active-deactivate-vendor"
           element={
-            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "PrePurchase", "Production"]}>
               <ActiveDeactivateVendor />
             </ProtectedRoute>
           }
@@ -501,6 +502,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Purchase"]}>
               <InvoicePO />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="register-employee"
+          element={
+            <ProtectedRoute allowedRoles={["Production"]}>
+              <RegisterEmployee />
             </ProtectedRoute>
           }
         />
@@ -619,7 +629,7 @@ const AppRoutes = () => {
          <Route
           path="pre-po-request-history"
           element={
-            <ProtectedRoute allowedRoles={["PrePurchase", "Purchase"]}>
+            <ProtectedRoute allowedRoles={["PrePurchase", "Purchase", "Production",]}>
               <PrePoRequestHistory />
             </ProtectedRoute>
           }

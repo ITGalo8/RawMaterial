@@ -950,7 +950,7 @@ const ShowPurchaseOrder = () => {
     setUpdateLoading(true);
     try {
       const response = await Api.put(
-        `/purchase/purchase-orders/update2/${selectedOrder}`,
+        `/purchase/purchase-orders/update/${selectedOrder}`,
         submitData,
       );
 
