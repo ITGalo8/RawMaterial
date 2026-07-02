@@ -294,7 +294,7 @@ const SideMenubar = () => {
       key: "createStock",
       label: "Stock",
       icon: FaBox,
-      roles: ["Purchase", "Admin", "Production", "Store"], // union of sub‑item roles
+      roles: ["Purchase", "Admin", "Production", "Store"],
       items: [
         { path: "raw-material-stock", label: "Raw Material Stock", roles: ["Store", "Purchase", "Production", "Admin"] },
         { path: "installation-stock", label: "Installation Stock Data", roles: ["Purchase", "Admin", "Production", "Store"] },
