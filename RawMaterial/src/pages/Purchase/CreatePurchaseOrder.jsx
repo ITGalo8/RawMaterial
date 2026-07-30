@@ -810,6 +810,7 @@ const CreatePurchaseOrder = () => {
   // Add Item form (not just the name), falling back to the refreshed item list
   // only for whatever the register didn't return.
   const handleNewItemCreated = async (createdItem) => {
+    console.log("new item:",createdItem);
     setShowAddItemModal(false);
 
     try {
@@ -818,9 +819,16 @@ const CreatePurchaseOrder = () => {
       setItemList(freshList);
 
       let newItem = null;
+      // mysql
       if (createdItem?.id) {
         newItem = freshList.find((i) => String(i.id) === String(createdItem.id));
       }
+      
+      //mongo 
+      if(createdItem?._id){
+        newItem = freshList.find((i) => String(i._id) === String(createdItem._id));
+      }
+
       if (!newItem && createdItem?.name) {
         newItem = freshList.find(
           (i) => i.name.toLowerCase() === createdItem.name.toLowerCase()
@@ -829,9 +837,16 @@ const CreatePurchaseOrder = () => {
 
       const rowId = addItemRowId;
       if (rowId) {
+         
         // Prefer the values the user just typed into the Add Item form.
         // Only fall back to the refreshed item-list record for anything missing.
-        const resolvedId = newItem?.id ?? createdItem?.id ?? "";
+        let resolvedId;
+        if(createdItem?.id){
+           resolvedId = newItem?.id ?? createdItem?.id ?? "";
+          }
+          if(createdItem?._id){
+          resolvedId = newItem?._id ?? createdItem?._id ?? "";
+        }
         const resolvedName = createdItem?.name || newItem?.name || "";
         const resolvedHsn = (
           createdItem?.hsnCode ?? newItem?.hsnCode ?? ""
@@ -1387,7 +1402,9 @@ const CreatePurchaseOrder = () => {
                       </label>
                       <select value={item.selectedUnit} onChange={(e) => updateItemDetail(item.id, "selectedUnit", e.target.value)} disabled={loadingItems[item.id]} className={`w-full px-4 py-2.5 border ${item.selectedItem && !item.selectedUnit ? "border-orange-300" : "border-gray-300"} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${loadingItems[item.id] ? "opacity-50" : ""}`}>
                         <option value="">-- Choose Unit --</option>
-                        {unitTypes.length === 0 ? <option value="" disabled>Loading units...</option> : unitTypes.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
+
+                        {unitTypes.length === 0 ? <option value="" disabled>Loading units...</option>
+                         : unitTypes.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
                       </select>
                       {item.selectedUnit ? (
                         <p className="mt-1 text-xs text-green-600">Current unit: {item.selectedUnit}</p>
