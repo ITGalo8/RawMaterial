@@ -806,7 +806,9 @@ const CreatePurchaseOrder = () => {
     setOpenItemDropdown(null);
   };
 
-  // NEW: handle created item, refetch and select it
+  // NEW: handle created item — populate the row with everything entered in the
+  // Add Item form (not just the name), falling back to the refreshed item list
+  // only for whatever the register didn't return.
   const handleNewItemCreated = async (createdItem) => {
     setShowAddItemModal(false);
 
@@ -825,11 +827,71 @@ const CreatePurchaseOrder = () => {
         );
       }
 
-      if (newItem && addItemRowId) {
-        await handleItemSelect(addItemRowId, newItem.id);
+      const rowId = addItemRowId;
+      if (rowId) {
+        // Prefer the values the user just typed into the Add Item form.
+        // Only fall back to the refreshed item-list record for anything missing.
+        const resolvedId = newItem?.id ?? createdItem?.id ?? "";
+        const resolvedName = createdItem?.name || newItem?.name || "";
+        const resolvedHsn = (
+          createdItem?.hsnCode ?? newItem?.hsnCode ?? ""
+        ).toString();
+        const resolvedModel = (
+          createdItem?.modelNumber ?? newItem?.modelNumber ?? ""
+        ).toString();
+        const resolvedUnit = (
+          createdItem?.unit ?? newItem?.unit ?? ""
+        ).toString();
+        const resolvedRate = (
+          createdItem?.rate ?? newItem?.rate ?? ""
+        ).toString();
+        const resolvedDetail = (
+          createdItem?.itemDetail ??
+          createdItem?.description ??
+          newItem?.itemDetail ??
+          ""
+        ).toString();
+        const resolvedGstRate = (createdItem?.gstRate ?? "").toString();
+
+        setItemDetails((prev) =>
+          prev.map((item) => {
+            if (item.id !== rowId) return item;
+            const merged = {
+              ...item,
+              selectedItem: resolvedId,
+              hsnCode: resolvedHsn,
+              modelNumber: resolvedModel,
+              selectedUnit: resolvedUnit,
+              rate: resolvedRate,
+              itemDetail: resolvedDetail,
+              ...(isItemWiseGST ? { gstRate: resolvedGstRate } : {}),
+            };
+            const calculatedAmounts = calculateItemAmounts(merged);
+            return {
+              ...merged,
+              rate: calculatedAmounts.rate.toString(),
+              quantity: calculatedAmounts.quantity.toString(),
+              amount: calculatedAmounts.amount.toString(),
+              taxableAmount: calculatedAmounts.taxableAmount,
+              gstAmount: calculatedAmounts.gstAmount,
+              totalAmount: calculatedAmounts.totalAmount,
+            };
+          }),
+        );
+
+        setEditableHsn((prev) => ({
+          ...prev,
+          [rowId]: !resolvedHsn || resolvedHsn.trim() === "",
+        }));
+        setLoadingItems((prev) => ({ ...prev, [rowId]: false }));
+
+        if (resolvedName) {
+          fetchCheapestPrice(resolvedName);
+        }
       }
     } catch (err) {
       console.error("Error refreshing item list after add:", err);
+      toast.error("Item was added, but refreshing its details failed. Please re-select it from the list.");
     } finally {
       setAddItemRowId(null);
       setAddItemDefaultName("");
