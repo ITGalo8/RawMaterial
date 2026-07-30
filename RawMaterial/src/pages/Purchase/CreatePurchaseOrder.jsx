@@ -3,6 +3,7 @@ import Api from "../../auth/Api";
 import { useLocation } from "react-router-dom";
 import { removeStartingZero } from "../../utils/number/removeStartingZero";
 import AddRawMaterial from "./AddRawMaterial";
+import toast from "react-hot-toast";
 
 const CreatePurchaseOrder = () => {
   const location = useLocation();
@@ -190,7 +191,7 @@ const CreatePurchaseOrder = () => {
       }));
       setWarehouseList(formatted);
     } catch (err) {
-      alert("Error loading warehouses: ", err?.response?.data?.message);
+      toast.error("Error loading warehouses: " + (err?.response?.data?.message || err?.message || ""));
     }
   };
 
@@ -200,7 +201,7 @@ const CreatePurchaseOrder = () => {
       const response = await Api.get("/purchase/companies");
       setCompanies(response?.data?.data || []);
     } catch (error) {
-      alert("Error: " + (error?.response?.data?.message || error?.message));
+      toast.error("Error: " + (error?.response?.data?.message || error?.message));
     } finally {
       setLoading(false);
     }
@@ -212,7 +213,7 @@ const CreatePurchaseOrder = () => {
       const response = await Api.get("/purchase/vendors");
       setVendorsList(response?.data?.data || []);
     } catch (error) {
-      alert("Error: " + (error?.response?.data?.message || error?.message));
+      toast.error("Error: " + (error?.response?.data?.message || error?.message));
     } finally {
       setLoading(false);
     }
@@ -225,7 +226,7 @@ const CreatePurchaseOrder = () => {
       setItemList(response?.data?.items || []);
       setIsItemListLoaded(true);
     } catch (error) {
-      alert("Error: " + (error?.response?.data?.message || error?.message));
+      toast.error("Error: " + (error?.response?.data?.message || error?.message));
     } finally {
       setLoading(false);
     }
@@ -890,7 +891,7 @@ const CreatePurchaseOrder = () => {
       setDownloadLoading(false);
     } catch (error) {
       console.error("Error downloading purchase order:", error);
-      alert(
+      toast.error(
         "Error downloading purchase order: " +
           (error?.response?.data?.message || error?.message),
       );
@@ -900,26 +901,26 @@ const CreatePurchaseOrder = () => {
 
   const handleSubmit = async () => {
     if (!selectedWarehouse) {
-      alert("Please select a warehouse");
+      toast.error("Please select a warehouse");
       return;
     }
     if (!expectedDeliveryDate) {
-      alert("Please select expected delivery date");
+      toast.error("Please select expected delivery date");
       return;
     }
     if (!selectedVendor) {
-      alert("Please select a vendor");
+      toast.error("Please select a vendor");
       return;
     }
     if (!selectedGstType) {
-      alert("Please select a GST type");
+      toast.error("Please select a GST type");
       return;
     }
     if (
       currency !== "INR" &&
       (!exchangeRate || parseFloat(exchangeRate) <= 0)
     ) {
-      alert("Please enter a valid exchange rate for non-INR currency");
+      toast.error("Please enter a valid exchange rate for non-INR currency");
       return;
     }
 
@@ -927,7 +928,7 @@ const CreatePurchaseOrder = () => {
       (item) => !item.hsnCode || item.hsnCode.trim() === "",
     );
     if (itemsWithoutHsn.length > 0) {
-      alert("Please enter HSN code for all items");
+      toast.error("Please enter HSN code for all items");
       return;
     }
 
@@ -935,7 +936,7 @@ const CreatePurchaseOrder = () => {
       (item) => !item.selectedUnit || item.selectedUnit.trim() === ""
     );
     if (itemsWithoutUnit.length > 0) {
-      alert("Please select a unit for all items");
+      toast.error("Please select a unit for all items");
       return;
     }
 
@@ -944,7 +945,7 @@ const CreatePurchaseOrder = () => {
         !item.selectedItem || !item.hsnCode || !item.rate || !item.quantity || !item.selectedUnit
     );
     if (invalidItems.length > 0) {
-      alert("Please fill all required fields for all items (item, HSN, rate, quantity, unit)");
+      toast.error("Please fill all required fields for all items (item, HSN, rate, quantity, unit)");
       return;
     }
 
@@ -997,7 +998,8 @@ const CreatePurchaseOrder = () => {
       if (response.data.success) {
         const poId = response.data.data.id;
         const poNumber = response.data.data.poNumber;
-        alert("Purchase Order created successfully!");
+        toast.success("Purchase Order created successfully!");
+        // Keep this one as a native confirm dialog for the PDF download prompt
         const shouldDownload = window.confirm(
           "Do you want to download the purchase order PDF?",
         );
@@ -1006,11 +1008,11 @@ const CreatePurchaseOrder = () => {
         }
         handleReset();
       } else {
-        alert("Error creating purchase order: " + response.data.message);
+        toast.error("Error creating purchase order: " + response.data.message);
       }
     } catch (error) {
       console.log("Error creating purchase order:", error);
-      alert(
+      toast.error(
         "Error creating purchase order: " +
           (error?.response?.data?.message || error?.message),
       );
