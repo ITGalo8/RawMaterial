@@ -1599,8 +1599,26 @@ const CreatePurchaseOrder = () => {
 
       {/* Add Item Modal */}
       {showAddItemModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+          onClick={(e) => {
+            // close when clicking the backdrop (not the modal content itself)
+            if (e.target === e.currentTarget) {
+              setShowAddItemModal(false);
+            }
+          }}
+        >
+          <div className="bg-white rounded-xl shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+            <button
+              type="button"
+              onClick={() => setShowAddItemModal(false)}
+              className="absolute top-3 right-3 z-10 p-1.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <AddRawMaterial
               onSuccess={handleNewItemCreated}
               closeModal={() => setShowAddItemModal(false)}
