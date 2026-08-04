@@ -42,6 +42,8 @@ const AddVendor = () => {
     alternateNumber: "",
     email: "",
     currency: "",
+    // itemava
+    itemsAvailable: [],
     zipCode: "",
     vendorAadhaar: "",
     vendorPanCard: "",
@@ -65,7 +67,11 @@ const AddVendor = () => {
   const [currencies, setCurrencies] = useState([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingCurrency, setLoadingCurrency] = useState(false);
-
+// items add
+const [items, setItems] = useState([]);
+const [loadingItems, setLoadingItems] = useState(false);
+const [itemsSearch, setItemsSearch] = useState("");
+const [showItemsDropdown, setShowItemsDropdown] = useState(false);
   // File states
   const [aadhaarFile, setAadhaarFile] = useState(null);
   const [panCardFile, setPanCardFile] = useState(null);
@@ -85,6 +91,8 @@ const AddVendor = () => {
   const pincodeTimeoutRef = useRef(null);
   const aadhaarFileInputRef = useRef(null);
   const panCardFileInputRef = useRef(null);
+  const itemsDropdownRef = useRef(null);
+const itemsSearchInputRef = useRef(null);
 
   // Track if city/state was auto-filled from pincode
   const [autoFilledFields, setAutoFilledFields] = useState({
@@ -95,6 +103,26 @@ const AddVendor = () => {
   // Track last valid pincode to avoid refetching same data
   const [lastFetchedPincode, setLastFetchedPincode] = useState("");
 
+  // items fetch
+  useEffect(() => {
+  const fetchItems = async () => {
+    try {
+      setLoadingItems(true);
+
+      const res = await Api.get("/purchase/items");
+
+      setItems(res?.data?.items || []);
+    } catch (err) {
+      console.error("Failed to fetch items:", err);
+      setError("Failed to fetch items");
+      setItems([]);
+    } finally {
+      setLoadingItems(false);
+    }
+  };
+
+  fetchItems();
+}, []);
   // Fetch countries and currencies on component mount – NO fallbacks
   useEffect(() => {
     const fetchCountries = async () => {
@@ -273,6 +301,14 @@ const AddVendor = () => {
       currency.toLowerCase().includes(currencySearch.toLowerCase())
     );
   }, [currencies, currencySearch]);
+  // items filtered
+  const filteredItems = useMemo(() => {
+  if (!itemsSearch) return items;
+
+  return items.filter((item) =>
+    item.name?.toLowerCase().includes(itemsSearch.toLowerCase())
+  );
+}, [items, itemsSearch]);
 
   useEffect(() => {
     if (message) {
@@ -296,6 +332,32 @@ const AddVendor = () => {
     }
   }, [showCurrencyDropdown]);
 
+  // items dropdown focus
+  const handleItemsDropdownToggle = () => {
+  setShowItemsDropdown((prev) => !prev);
+};
+const handleItemSelect = (item) => {
+  setCompanyData((prev) => {
+    const exists = prev.itemsAvailable.some(
+      (selectedItem) =>
+        selectedItem.id === item.id &&
+        selectedItem.source === item.source
+    );
+
+    return {
+      ...prev,
+      itemsAvailable: exists
+        ? prev.itemsAvailable.filter(
+            (selectedItem) =>
+              !(
+                selectedItem.id === item.id &&
+                selectedItem.source === item.source
+              )
+          )
+        : [...prev.itemsAvailable, item],
+    };
+  });
+};
   // Handle click outside for both dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1236,6 +1298,183 @@ const AddVendor = () => {
                       </p>
                     )}
                   </div>
+                 {/* Items available from vendor */}
+<div
+  className="md:col-span-1 relative"
+  ref={itemsDropdownRef}
+>
+  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+    <span className="flex items-center">
+      <DocumentTextIcon className="h-3 w-3 mr-1 text-gray-400" />
+
+      Items Available
+      <span className="text-red-500 ml-0.5">*</span>
+
+      {loadingItems && (
+        <ArrowPathIcon className="h-3 w-3 ml-1 animate-spin text-blue-500" />
+      )}
+    </span>
+  </label>
+
+  <div className="relative">
+
+    {/* Selected items / dropdown button */}
+    <div
+      className={`w-full px-3 py-2 border rounded-md bg-white cursor-pointer flex justify-between items-center transition-colors text-sm ${
+        showItemsDropdown
+          ? "border-blue-500 ring-1 ring-blue-200"
+          : fieldErrors.itemsAvailable
+            ? "border-red-300 bg-red-50"
+            : "border-gray-300 hover:border-gray-400"
+      } ${
+        loadingItems
+          ? "opacity-50 cursor-not-allowed"
+          : ""
+      }`}
+      onClick={() =>
+        !loadingItems && handleItemsDropdownToggle()
+      }
+      tabIndex={loadingItems ? -1 : 0}
+      role="button"
+      aria-expanded={showItemsDropdown}
+      aria-haspopup="listbox"
+      aria-disabled={loadingItems}
+    >
+
+      <span className="truncate flex items-center">
+
+        <DocumentTextIcon className="h-4 w-4 text-gray-400 mr-1.5" />
+
+        {loadingItems
+          ? "Loading items..."
+          : companyData.itemsAvailable.length > 0
+            ? `${companyData.itemsAvailable.length} item${
+                companyData.itemsAvailable.length > 1 ? "s" : ""
+              } selected`
+            : "Select items"}
+      </span>
+
+      <span className="text-gray-400 ml-1 text-xs">
+        {loadingItems ? (
+          <ArrowPathIcon className="h-3 w-3 animate-spin" />
+        ) : showItemsDropdown ? (
+          "▲"
+        ) : (
+          "▼"
+        )}
+      </span>
+    </div>
+
+    {/* Validation error */}
+    {fieldErrors.itemsAvailable && (
+      <span className="text-red-600 text-xs mt-0.5 flex items-center">
+        <XCircleIcon className="h-3 w-3 mr-0.5" />
+        {fieldErrors.itemsAvailable}
+      </span>
+    )}
+
+    {/* Dropdown */}
+    {showItemsDropdown && !loadingItems && (
+      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-sm overflow-hidden">
+
+        {/* Search */}
+        <div className="p-2 border-b border-gray-200 bg-gray-50">
+          <div className="relative">
+
+            <input
+              ref={itemsSearchInputRef}
+              type="text"
+              placeholder="Search items..."
+              value={itemsSearch}
+              onChange={(e) => setItemsSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+            />
+
+            <MagnifyingGlassIcon className="h-4 w-4 text-gray-400 absolute left-2.5 top-1/2 transform -translate-y-1/2" />
+
+          </div>
+        </div>
+
+        {/* Items */}
+        <div className="max-h-48 overflow-y-auto">
+
+          {filteredItems.length > 0 ? (
+            filteredItems.map((item) => {
+
+              const isSelected =
+                companyData.itemsAvailable.some(
+                  (selectedItem) =>
+                    selectedItem.id === item.id &&
+                    selectedItem.source === item.source
+                );
+
+              return (
+                <div
+                  key={`${item.source}-${item.id}`}
+                  className={`px-3 py-2 cursor-pointer transition-colors flex items-center text-sm ${
+                    isSelected
+                      ? "bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                  onClick={() => handleItemSelect(item)}
+                  role="option"
+                  aria-selected={isSelected}
+                >
+
+                  {isSelected && (
+                    <CheckCircleIcon className="h-4 w-4 text-blue-500 mr-2" />
+                  )}
+
+                  <span>
+                    {item.name}
+                  </span>
+
+                  <span className="ml-auto text-xs text-gray-400">
+                    {item.source}
+                  </span>
+
+                </div>
+              );
+            })
+          ) : (
+            <div className="px-3 py-2 text-gray-500 text-center text-sm">
+              No items found
+            </div>
+          )}
+
+        </div>
+      </div>
+    )}
+  </div>
+
+  {/* Selected item names */}
+  {companyData.itemsAvailable.length > 0 && (
+    <div className="flex flex-wrap gap-1 mt-2">
+
+      {companyData.itemsAvailable.map((item) => (
+        <span
+          key={`${item.source}-${item.id}`}
+          className="inline-flex items-center bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-1 text-xs"
+        >
+          {item.name}
+
+          <button
+            type="button"
+            className="ml-1 text-blue-500 hover:text-red-500"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleItemSelect(item);
+            }}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+
+    </div>
+  )}
+</div>
                 </div>
               </div>
 
