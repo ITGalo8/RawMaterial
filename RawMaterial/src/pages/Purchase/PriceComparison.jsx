@@ -10,7 +10,7 @@ const PriceComparision = () => {
     const [loading, setLoading] = useState(false);
     const [cheapestItem, setCheapestItem] = useState(null);
 
-    // 🔽 Dropdown states
+    // 🔽 Dropdown states   
     const [isOpen, setIsOpen] = useState(false);
     const [isVendorOpen, setIsVendorOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
