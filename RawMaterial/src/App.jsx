@@ -402,7 +402,7 @@ const AppRoutes = () => {
         <Route
           path="add-raw-material"
           element={
-            <ProtectedRoute allowedRoles={["Purchase"]}>
+            <ProtectedRoute allowedRoles={["Purchase", "Production"]}>
               <AddRawMaterial />
             </ProtectedRoute>
           }

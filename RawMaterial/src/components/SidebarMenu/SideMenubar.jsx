@@ -305,7 +305,7 @@ const SideMenubar = () => {
       key: "Item",
       label: "Item",
       icon: FaBuilding,
-      roles: ["Purchase"],
+      roles: ["Purchase", "Production"],
       items: [
         { path: "add-raw-material", label: "Add Raw Material" },
         { path: "item-details", label: "Item Detail" },
