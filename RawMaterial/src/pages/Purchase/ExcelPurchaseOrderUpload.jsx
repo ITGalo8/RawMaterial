@@ -626,7 +626,7 @@ const ExcelPurchaseOrderUpload = ({
             Review the data. Click "Auto-fill Form" to fill the form with selected PO data.
           </p>
         </div>
-        <div className="space-x-2">
+        {/* <div className="space-x-2">
           <button
             onClick={() => {
               setStep(1);
@@ -645,7 +645,7 @@ const ExcelPurchaseOrderUpload = ({
           >
             Process All POs
           </button>
-        </div>
+        </div> */}
       </div>
 
       {loading && (
