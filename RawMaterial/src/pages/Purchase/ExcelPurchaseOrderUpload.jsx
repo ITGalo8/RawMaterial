@@ -324,7 +324,7 @@ const ExcelPurchaseOrderUpload = ({
             gstType: normalizeGstType(row['GST Type']),
             gstTypeRaw: String(row['GST Type'] || ''),
             currency: String(row['Currency'] || 'INR'),
-            exchangeRate: String(row['Exchange Rate'] || '1.00'),
+            exchangeRate: String(row['Exchange Rate'] ?? '1.00'),
             warehouseId: warehouse?.value || '',
             warehouseName: String(row['Warehouse Name'] || ''),
             expectedDeliveryDateRaw: String(row['Expected Delivery Date'] || ''),
@@ -339,12 +339,13 @@ const ExcelPurchaseOrderUpload = ({
             hsnCode: String(row['HSN Code'] || ''),
             modelNumber: String(row['Model Number'] || ''),
             unit: String(row['Unit'] || ''),
-            quantity: String(row['Quantity'] || ''),
-            rate: String(row['Rate'] || ''),
-            gstRate: String(row['GST Rate (%)'] || ''),
+            // Use ?? so a legitimate numeric 0 doesn't get collapsed to ''
+            quantity: String(row['Quantity'] ?? ''),
+            rate: String(row['Rate'] ?? ''),
+            gstRate: String(row['GST Rate (%)'] ?? ''),
             itemDetail: String(row['Item Description'] || ''),
             otherChargeName: String(row['Other Charge Name'] || ''),
-            otherChargeAmount: String(row['Other Charge Amount'] || ''),
+            otherChargeAmount: String(row['Other Charge Amount'] ?? ''),
             _raw: row
           };
         });
@@ -476,13 +477,17 @@ const ExcelPurchaseOrderUpload = ({
         errors.push(`Row ${index + 1}: Unit is required`);
       }
 
-      const quantity = parseNumericAmount(row.quantity);
-      if (!row.quantity || isNaN(quantity) || quantity <= 0) {
+      // Quantity: must be present and > 0 (a zero-quantity line makes no sense)
+      const quantityRaw = String(row.quantity ?? '').trim();
+      const quantity = parseNumericAmount(quantityRaw);
+      if (!quantityRaw || isNaN(quantity) || quantity <= 0) {
         errors.push(`Row ${index + 1}: Valid quantity is required`);
       }
 
-      const rate = parseNumericAmount(row.rate);
-      if (!row.rate || isNaN(rate) || rate <= 0) {
+      // Rate: must be present and >= 0 (0 is a valid rate, e.g. free samples)
+      const rateRaw = String(row.rate ?? '').trim();
+      const rate = parseNumericAmount(rateRaw);
+      if (!rateRaw || isNaN(rate) || rate < 0) {
         errors.push(`Row ${index + 1}: Valid rate is required`);
       }
     });
@@ -504,14 +509,15 @@ const ExcelPurchaseOrderUpload = ({
       amount: charge.amount.toString()
     }));
 
-    // Prepare data for auto-fill
+    // Prepare data for auto-fill.
+    // Use ?? (not ||) so numeric 0 values are preserved.
     const autoFillData = {
       // Header information
       companyId: group.companyId,
       vendorId: group.vendorId,
       gstType: group.gstType,
       currency: group.currency || 'INR',
-      exchangeRate: group.exchangeRate || '1.00',
+      exchangeRate: group.exchangeRate ?? '1.00',
       warehouseId: group.warehouseId,
       expectedDeliveryDate: group.expectedDeliveryDate,
       paymentTerms: group.paymentTerms || '',
@@ -524,13 +530,13 @@ const ExcelPurchaseOrderUpload = ({
       items: group.rows.map(row => ({
         id: row.itemId,
         name: row.itemName,
-        hsnCode: row.hsnCode || '',
-        modelNumber: row.modelNumber || '',
-        unit: row.unit || '',
-        quantity: row.quantity || '',
-        rate: row.rate || '',
-        gstRate: row.gstRate || '',
-        itemDetail: row.itemDetail || '',
+        hsnCode: row.hsnCode ?? '',
+        modelNumber: row.modelNumber ?? '',
+        unit: row.unit ?? '',
+        quantity: row.quantity ?? '',
+        rate: row.rate ?? '',
+        gstRate: row.gstRate ?? '',
+        itemDetail: row.itemDetail ?? '',
       }))
     };
 
@@ -569,7 +575,7 @@ const ExcelPurchaseOrderUpload = ({
             vendorId: group.vendorId,
             gstType: group.gstType,
             currency: group.currency || 'INR',
-            exchangeRate: group.exchangeRate || '1.00',
+            exchangeRate: group.exchangeRate ?? '1.00',
             paymentTerms: group.paymentTerms || '',
             deliveryTerms: group.deliveryTerms || '',
             warranty: group.warranty || '',
@@ -584,9 +590,11 @@ const ExcelPurchaseOrderUpload = ({
               modelNumber: row.modelNumber || '',
               itemDetail: row.itemDetail || '',
               unit: row.unit,
-              quantity: row.quantity.toString(),
-              rate: row.rate.toString(),
-              ...(row.gstRate ? { gstRate: row.gstRate.toString() } : {})
+              quantity: String(row.quantity ?? ''),
+              rate: String(row.rate ?? ''),
+              ...(row.gstRate !== '' && row.gstRate !== undefined && row.gstRate !== null
+                ? { gstRate: String(row.gstRate) }
+                : {})
             })),
             otherCharges: group.otherCharges.map(charge => ({
               name: charge.name,
@@ -665,6 +673,7 @@ const ExcelPurchaseOrderUpload = ({
             {VALID_GST_TYPE_LABELS.join(', ')}
           </li>
           <li><strong>Expected Delivery Date</strong> must be in mm/dd/yyyy format (e.g., 09/01/2026)</li>
+          <li><strong>Rate</strong> can be 0 (useful for free samples / warranty replacements)</li>
           <li><strong>Other Charge Name</strong> and <strong>Other Charge Amount</strong>: add multiple charges per PO – rows with the same PO Reference will aggregate charges with the same name (sum amounts)</li>
           <li>Amounts can include commas (e.g., 20,650,000) – they will be automatically removed.</li>
         </ul>
