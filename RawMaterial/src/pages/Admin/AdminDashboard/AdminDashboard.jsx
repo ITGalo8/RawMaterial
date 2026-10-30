@@ -647,12 +647,6 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900"></h1>
-        
-      </div>
-
       {/* Selection Summary Bar */}
       {selectedRequests.length > 0 && (
         <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 shadow-sm">

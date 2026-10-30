@@ -542,18 +542,6 @@ const PendingProcess = () => {
 
       {/* Main Content */}
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 max-w-7xl mx-auto animate-fadeIn">
-        {/* Header Section */}
-        <div className="mb-8 text-center">
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-800 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Pending Process List
-            </h1>
-            <p className="text-gray-600 text-lg mb-4">
-              Manage your pending MOTOR, PUMP, and CONTROLLER service processes
-            </p>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto"></div>
-          </div>
-        </div>
 
         {/* Filter Section */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-8 shadow-sm">

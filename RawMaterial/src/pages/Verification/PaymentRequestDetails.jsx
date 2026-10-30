@@ -1046,12 +1046,7 @@ const PaymentRequestDetails = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Payment Request Details
-              </h1>
-            </div>
+          <div className="flex flex-col md:flex-row md:items-center justify-end">
             <div className="mt-4 md:mt-0 flex space-x-3">
               <button
                 onClick={fetchPaymentRequests}
