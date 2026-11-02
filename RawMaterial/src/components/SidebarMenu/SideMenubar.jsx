@@ -21,8 +21,8 @@ const linkClass = (isActive, collapsed) =>
     collapsed ? "justify-center px-0 py-2" : "px-3 py-2"
   } ${
     isActive
-      ? "bg-ink-950 text-brand-400 shadow-sm"
-      : "text-ink-900 hover:bg-ink-950/10 hover:text-ink-950"
+      ? "bg-ink-950 text-white shadow-sm"
+      : "text-ink-700 hover:bg-ink-100 hover:text-ink-950"
   }`;
 
 const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, onCloseMobile }) => {
@@ -46,7 +46,7 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
   }, [pathname]);
 
   if (!user) {
-    return <div className="w-64 bg-brand-400 text-ink-900 h-screen p-4">Loading...</div>;
+    return <div className="w-64 bg-white text-ink-700 h-screen p-4">Loading...</div>;
   }
 
   const toggleMenu = (key) => setOpenMenus((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -93,8 +93,8 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
             collapsed ? "justify-center px-0 py-2" : "px-3 py-2"
           } ${
             hasActiveChild
-              ? "bg-ink-950/10 text-ink-950 font-semibold"
-              : "text-ink-900 hover:bg-ink-950/10 hover:text-ink-950"
+              ? "bg-ink-100 text-ink-950 font-semibold"
+              : "text-ink-700 hover:bg-ink-100 hover:text-ink-950"
           }`}
         >
           <Icon className="text-[18px] shrink-0" />
@@ -108,7 +108,7 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
           )}
         </button>
         {isOpen && !collapsed && (
-          <ul className="mt-0.5 mb-1 ml-5 pl-3 border-l border-ink-950/20 space-y-0.5 animate-slideDown">
+          <ul className="mt-0.5 mb-1 ml-5 pl-3 border-l border-ink-200 space-y-0.5 animate-slideDown">
             {menu.items.map((subItem) => (
               <li key={subItem.path}>
                 <NavLink
@@ -116,8 +116,8 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
                   className={({ isActive }) =>
                     `block rounded-md px-3 py-1.5 text-[13px] transition-colors ${
                       isActive
-                        ? "bg-ink-950 text-brand-400 font-semibold"
-                        : "text-ink-800 hover:text-ink-950 hover:bg-ink-950/10"
+                        ? "bg-ink-950 text-white font-semibold"
+                        : "text-ink-600 hover:text-ink-950 hover:bg-ink-100"
                     }`
                   }
                   onClick={onCloseMobile}
@@ -147,13 +147,13 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
 
       <aside
         className={`fixed top-0 left-0 bottom-0 z-50 h-screen shrink-0 flex flex-col
-          bg-brand-400 text-ink-950 border-r border-ink-950/10
+          bg-white text-ink-950 border-r border-ink-200
           transition-all duration-300 ease-in-out
           ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           ${collapsed ? "lg:w-[76px] w-72" : "w-72 lg:w-64"}`}
       >
         {/* Brand */}
-        <div className={`h-16 flex items-center gap-3 border-b border-ink-950/10 ${collapsed ? "justify-center px-2" : "px-5"}`}>
+        <div className={`h-16 shrink-0 flex items-center gap-3 bg-brand-400 text-ink-950 ${collapsed ? "justify-center px-2" : "px-5"}`}>
           <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center shrink-0 overflow-hidden">
             <img src="/Galo.png" alt="Galo" className="h-7 w-7 object-contain" />
           </div>
@@ -175,19 +175,19 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
         </div>
 
         {/* Menu */}
-        <nav className={`flex-1 overflow-y-auto sidebar-scroll py-3 px-3`}>
+        <nav className={`flex-1 overflow-y-auto sidebar-scroll bg-white py-3 px-3`}>
           {visibleFlat.length > 0 && (
             <>
-              {!collapsed && <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-700">Menu</p>}
+              {!collapsed && <p className="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-500">Menu</p>}
               <ul className="space-y-0.5">{visibleFlat.map(renderFlatItem)}</ul>
             </>
           )}
           {visibleNested.length > 0 && (
             <>
               {!collapsed ? (
-                <p className="px-3 mt-4 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-700">Modules</p>
+                <p className="px-3 mt-4 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-500">Modules</p>
               ) : (
-                <div className="my-3 border-t border-ink-950/15" />
+                <div className="my-3 border-t border-ink-200" />
               )}
               <ul className="space-y-0.5">{visibleNested.map(renderNestedMenu)}</ul>
             </>
@@ -195,7 +195,7 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
         </nav>
 
         {/* Footer: user, password, logout */}
-        <div className="border-t border-ink-950/10 p-2.5 space-y-1">
+        <div className="border-t border-ink-200 bg-white p-2.5 space-y-1">
           {CHANGE_PASSWORD_ROLES.includes(user.role) && (
             <NavLink
               to="change-password"
@@ -208,21 +208,21 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
             </NavLink>
           )}
 
-          <div className={`flex items-center gap-3 rounded-xl bg-ink-950/10 p-2 ${collapsed ? "flex-col" : ""}`}>
-            <div className="h-9 w-9 rounded-full bg-ink-950 text-brand-400 font-bold text-sm flex items-center justify-center shrink-0">
+          <div className={`flex items-center gap-3 rounded-xl bg-ink-100 p-2 ${collapsed ? "flex-col" : ""}`}>
+            <div className="h-9 w-9 rounded-full bg-ink-950 text-white font-bold text-sm flex items-center justify-center shrink-0">
               {getInitials(user.name || user.email)}
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold truncate">{user.name || user.email}</div>
-                <div className="text-xs text-ink-700 capitalize truncate">{roleLabel}</div>
+                <div className="text-xs text-ink-500 capitalize truncate">{roleLabel}</div>
               </div>
             )}
             <button
               onClick={logout}
               title="Logout"
               aria-label="Logout"
-              className="h-8 w-8 rounded-lg flex items-center justify-center text-ink-800 hover:text-white hover:bg-red-500 transition-colors"
+              className="h-8 w-8 rounded-lg flex items-center justify-center text-ink-600 hover:text-white hover:bg-red-500 transition-colors"
             >
               <FaSignOutAlt />
             </button>
@@ -230,7 +230,7 @@ const SideMenubar = ({ collapsed = false, mobileOpen = false, onToggleCollapse, 
 
           {/* Collapse toggle (desktop only) */}
           <button
-            className="hidden lg:flex w-full items-center justify-center gap-2 py-1.5 text-xs text-ink-700 hover:text-ink-950 transition-colors"
+            className="hidden lg:flex w-full items-center justify-center gap-2 py-1.5 text-xs text-ink-500 hover:text-ink-950 transition-colors"
             onClick={onToggleCollapse}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >

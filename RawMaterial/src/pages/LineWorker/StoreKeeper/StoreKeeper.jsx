@@ -351,10 +351,10 @@ const StoreKeeper = () => {
                       {status === "pending" &&
                         (!showRemarksField[request.id] ? (
                           <div className="grid grid-cols-2 gap-3">
-                            <button className="btn bg-green-600 text-white hover:bg-green-700" onClick={() => handleApprove(request.id)}>
+                            <button className="btn btn-approve" onClick={() => handleApprove(request.id)}>
                               <FaCheck /> Approve
                             </button>
-                            <button className="btn-outline text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDeclineClick(request.id)}>
+                            <button className="btn btn-decline" onClick={() => handleDeclineClick(request.id)}>
                               <FaTimes /> Decline
                             </button>
                           </div>
@@ -372,7 +372,7 @@ const StoreKeeper = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                               <button
-                                className="btn-danger"
+                                className="btn btn-decline"
                                 onClick={() => handleDecline(request.id)}
                                 disabled={!declineRemarks[request.id]?.trim()}
                               >

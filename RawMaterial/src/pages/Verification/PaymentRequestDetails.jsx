@@ -697,7 +697,7 @@
 //                             disabled={
 //                               processingRequest === request.paymentRequestId
 //                             }
-//                             className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition flex-1 sm:flex-none ${
+//                             className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm btn-approve focus:outline-none focus:ring-2 focus:ring-offset-2 transition flex-1 sm:flex-none ${
 //                               processingRequest === request.paymentRequestId
 //                                 ? "opacity-70 cursor-not-allowed"
 //                                 : ""
@@ -756,7 +756,7 @@
 //                             disabled={
 //                               processingRequest === request.paymentRequestId
 //                             }
-//                             className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition flex-1 sm:flex-none ${
+//                             className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm btn-decline focus:outline-none focus:ring-2 focus:ring-offset-2 transition flex-1 sm:flex-none ${
 //                               processingRequest === request.paymentRequestId
 //                                 ? "opacity-70 cursor-not-allowed"
 //                                 : ""
@@ -1395,7 +1395,7 @@ const PaymentRequestDetails = () => {
                               )
                             }
                             disabled={processingRequest === request.paymentRequestId}
-                            className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition flex-1 sm:flex-none ${
+                            className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-lg shadow-sm btn-approve transition flex-1 sm:flex-none ${
                               processingRequest === request.paymentRequestId
                                 ? "opacity-70 cursor-not-allowed"
                                 : ""
@@ -1451,7 +1451,7 @@ const PaymentRequestDetails = () => {
                               )
                             }
                             disabled={processingRequest === request.paymentRequestId}
-                            className={`inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition flex-1 sm:flex-none ${
+                            className={`inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-lg shadow-sm btn-decline transition flex-1 sm:flex-none ${
                               processingRequest === request.paymentRequestId
                                 ? "opacity-70 cursor-not-allowed"
                                 : ""
@@ -1621,11 +1621,11 @@ const PaymentRequestDetails = () => {
                   type="button"
                   onClick={handleRemarkSubmit}
                   disabled={processingRequest === modalRequestId}
-                  className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white ${
+                  className={`w-full inline-flex justify-center rounded-md shadow-sm px-4 py-2 text-base font-medium ${
                     modalAction === "approve"
-                      ? "bg-green-600 hover:bg-green-700 focus:ring-green-500"
-                      : "bg-red-600 hover:bg-red-700 focus:ring-red-500"
-                  } focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm ${
+                      ? "btn-approve"
+                      : "btn-decline"
+                  } sm:ml-3 sm:w-auto sm:text-sm ${
                     processingRequest === modalRequestId
                       ? "opacity-70 cursor-not-allowed"
                       : ""

@@ -13,7 +13,39 @@ import {
   BeakerIcon,
   ShoppingCartIcon,
   BuildingLibraryIcon,
+  ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
+
+const toNum = (v) => {
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+};
+
+// Container-wise stock may arrive as a { "<container name>": qty } map (same shape
+// the PO receiving screen sends) or as an array of { containerName, quantity } rows
+const getContainerStock = (item) => {
+  const source =
+    item.containerStock ??
+    item.containers ??
+    (item.stock && typeof item.stock === "object" ? item.stock : null);
+  if (!source) return [];
+
+  const rows = Array.isArray(source)
+    ? source.map((c) => ({
+        name: c.containerName ?? c.name ?? c.container?.name ?? c.container ?? "Unknown",
+        qty: toNum(c.quantity ?? c.qty ?? c.stock),
+      }))
+    : Object.entries(source).map(([name, qty]) => ({ name, qty: toNum(qty) }));
+
+  return rows.filter((c) => c.qty > 0).sort((a, b) => a.name.localeCompare(b.name));
+};
+
+const getTotalStock = (item, containers) =>
+  item.stock && typeof item.stock === "object"
+    ? containers.reduce((sum, c) => sum + c.qty, 0)
+    : item.stock;
+
+const NO_CONTAINER = "__none__";
 
 const RawMaterialStock = () => {
   const [rawMaterials, setRawMaterials] = useState([]);
@@ -27,6 +59,7 @@ const RawMaterialStock = () => {
   const [warehouseList, setWarehouseList] = useState([]);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   const [warehouseLoading, setWarehouseLoading] = useState(true);
+  const [containerFilter, setContainerFilter] = useState("all");
 
   const role = localStorage.getItem("roleName");
 
@@ -69,7 +102,10 @@ const RawMaterialStock = () => {
       }`;
 
       const res = await Api.get(url);
-      const list = res.data.data || [];
+      const list = (res.data.data || []).map((item) => {
+        const containers = getContainerStock(item);
+        return { ...item, containers, stock: getTotalStock(item, containers) };
+      });
       setRawMaterials(list);
       setFiltered(list);
     } catch (error) {
@@ -93,7 +129,16 @@ const RawMaterialStock = () => {
         (item) =>
           item.name?.toLowerCase().includes(s) ||
           item.unit?.toLowerCase().includes(s) ||
-          item.stock?.toString().includes(s)
+          item.stock?.toString().includes(s) ||
+          item.containers.some((c) => c.name.toLowerCase().includes(s))
+      );
+    }
+
+    if (containerFilter !== "all") {
+      results = results.filter((item) =>
+        containerFilter === NO_CONTAINER
+          ? toNum(item.stock) > item.containers.reduce((sum, c) => sum + c.qty, 0)
+          : item.containers.some((c) => c.name === containerFilter)
       );
     }
 
@@ -101,7 +146,7 @@ const RawMaterialStock = () => {
     if (stockFilter === "in-stock") results = results.filter((item) => item.isUsed && !item.outOfStock);
 
     setFiltered(results);
-  }, [search, rawMaterials, stockFilter]);
+  }, [search, rawMaterials, stockFilter, containerFilter]);
 
   const toggleMaterialUsage = async (id, currentStatus) => {
     if (updating) return;
@@ -140,6 +185,27 @@ const RawMaterialStock = () => {
     outOfStock: rawMaterials.filter(isOutOfStock).length,
     inStock: rawMaterials.filter((item) => item.isUsed && !item.outOfStock).length,
   };
+
+  const containerNames = [...new Set(rawMaterials.flatMap((item) => item.containers.map((c) => c.name)))].sort(
+    (a, b) => a.localeCompare(b)
+  );
+
+  // Group the current list by container; a material kept in several containers appears under each
+  const containerGroups = (() => {
+    const groups = new Map();
+    currentList.forEach((item) => {
+      const unassigned = toNum(item.stock) - item.containers.reduce((sum, c) => sum + c.qty, 0);
+      const entries = unassigned > 0 ? [...item.containers, { name: NO_CONTAINER, qty: unassigned }] : item.containers;
+      entries.forEach((c) => {
+        if (containerFilter !== "all" && c.name !== containerFilter) return;
+        if (!groups.has(c.name)) groups.set(c.name, []);
+        groups.get(c.name).push({ item, qty: c.qty });
+      });
+    });
+    return [...groups.entries()]
+      .sort(([a], [b]) => (a === NO_CONTAINER ? 1 : b === NO_CONTAINER ? -1 : a.localeCompare(b)))
+      .map(([name, rows]) => ({ name, rows }));
+  })();
 
   const pct = (n) => (stats.total > 0 ? `${Math.round((n / stats.total) * 100)}%` : "0%");
 
@@ -199,6 +265,28 @@ const RawMaterialStock = () => {
       </span>
     );
 
+  const ContainerBreakdown = ({ item }) =>
+    item.containers.length === 0 ? (
+      <span className="text-xs text-ink-400">No container assigned</span>
+    ) : (
+      <div className="flex flex-wrap gap-1.5">
+        {item.containers.map((c) => (
+          <span
+            key={c.name}
+            className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs ${
+              containerFilter === c.name
+                ? "border-brand-400 bg-brand-100 text-ink-950"
+                : "border-ink-200 bg-white text-ink-700"
+            }`}
+          >
+            <ArchiveBoxIcon className="h-3 w-3 text-ink-400" />
+            {c.name}
+            <span className="font-semibold tabular-nums">{c.qty}</span>
+          </span>
+        ))}
+      </div>
+    );
+
   const renderMaterialCard = (item) => {
     const outOfStock = isOutOfStock(item);
 
@@ -238,6 +326,10 @@ const RawMaterialStock = () => {
             </div>
             <span className="text-sm font-medium text-ink-500 pb-1">{item.unit}</span>
           </div>
+          <div>
+            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-500">By Container</div>
+            <ContainerBreakdown item={item} />
+          </div>
           <UsageButton item={item} full />
         </div>
       </div>
@@ -264,6 +356,9 @@ const RawMaterialStock = () => {
         </span>
       </td>
       <td className="text-ink-600">{item.unit}</td>
+      <td className="min-w-[200px]">
+        <ContainerBreakdown item={item} />
+      </td>
       <td>
         <StockBadge item={item} />
       </td>
@@ -285,7 +380,7 @@ const RawMaterialStock = () => {
     <div className="page space-y-5">
       {/* Toolbar */}
       <div className="card card-body">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[220px_minmax(0,1fr)_180px_auto] xl:items-end">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[220px_minmax(0,1fr)_180px_180px_auto] xl:items-end">
           <div>
             <label className="label">Warehouse</label>
             <div className="relative">
@@ -332,6 +427,22 @@ const RawMaterialStock = () => {
             </select>
           </div>
 
+          <div>
+            <label className="label">Container</label>
+            <div className="relative">
+              <ArchiveBoxIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-400" />
+              <select value={containerFilter} onChange={(e) => setContainerFilter(e.target.value)} className="input pl-9">
+                <option value="all">All Containers</option>
+                {containerNames.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+                <option value={NO_CONTAINER}>No Container</option>
+              </select>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2 sm:col-span-2 xl:col-span-1">
             <div className="flex rounded-lg border border-ink-300 bg-white p-0.5">
               <button
@@ -351,6 +462,15 @@ const RawMaterialStock = () => {
                 }`}
               >
                 <ListBulletIcon className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode("container")}
+                title="Container-wise view"
+                className={`h-8 w-9 rounded-md flex items-center justify-center ${
+                  viewMode === "container" ? "bg-ink-950 text-brand-400" : "text-ink-500 hover:text-ink-900"
+                }`}
+              >
+                <ArchiveBoxIcon className="h-4 w-4" />
               </button>
             </div>
 
@@ -417,12 +537,13 @@ const RawMaterialStock = () => {
             })}
           </div>
 
-          {(stockFilter !== "all" || search) && (
+          {(stockFilter !== "all" || containerFilter !== "all" || search) && (
             <div className="flex items-center gap-2 text-xs text-ink-500 sm:pb-2">
               Filters active
               <button
                 onClick={() => {
                   setStockFilter("all");
+                  setContainerFilter("all");
                   setSearch("");
                 }}
                 className="font-semibold text-ink-900 underline underline-offset-2 hover:text-brand-600"
@@ -433,7 +554,7 @@ const RawMaterialStock = () => {
           )}
         </div>
 
-        <div className={viewMode === "grid" ? "p-4" : ""}>
+        <div className={viewMode === "list" ? "" : "p-4"}>
           {loading ? (
             <div className="py-16 flex justify-center">
               <ArrowPathIcon className="h-6 w-6 animate-spin text-ink-400" />
@@ -447,12 +568,63 @@ const RawMaterialStock = () => {
                 No {usageTab === "used" ? "materials in use" : "unused materials"} found
               </p>
               <p className="text-sm text-ink-500">
-                {search || stockFilter !== "all"
+                {search || stockFilter !== "all" || containerFilter !== "all"
                   ? "Try adjusting your search or filter."
                   : usageTab === "used"
                   ? "Mark materials as used from the Not Used tab."
                   : "All materials are currently in use."}
               </p>
+            </div>
+          ) : viewMode === "container" ? (
+            <div className="space-y-4">
+              {containerGroups.map((group) => {
+                const isUnassigned = group.name === NO_CONTAINER;
+                return (
+                  <div key={group.name} className="rounded-lg border border-ink-200 overflow-hidden">
+                    <div className="flex items-center justify-between gap-3 bg-ink-50 border-b border-ink-200 px-4 py-2.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="shrink-0 h-8 w-8 rounded-md bg-ink-950 text-brand-400 flex items-center justify-center">
+                          <ArchiveBoxIcon className="h-4 w-4" />
+                        </div>
+                        <h3 className="font-semibold text-ink-950 truncate">
+                          {isUnassigned ? "No Container" : group.name}
+                        </h3>
+                      </div>
+                      <span className="badge-gray">
+                        {group.rows.length} item{group.rows.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Material</th>
+                            <th className="!text-right">Qty in Container</th>
+                            <th className="!text-right">Total Stock</th>
+                            <th>Unit</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {group.rows.map(({ item, qty }) => (
+                            <tr key={item.id} className={isOutOfStock(item) ? "bg-red-50/50" : ""}>
+                              <td>
+                                <span className="font-medium text-ink-950 break-words">{item.name}</span>
+                              </td>
+                              <td className="text-right font-bold tabular-nums text-ink-950">{qty}</td>
+                              <td className="text-right tabular-nums text-ink-600">{item.stock}</td>
+                              <td className="text-ink-600">{item.unit}</td>
+                              <td>
+                                <StockBadge item={item} />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
@@ -466,6 +638,7 @@ const RawMaterialStock = () => {
                     <th>Material</th>
                     <th className="!text-right">Stock</th>
                     <th>Unit</th>
+                    <th>Containers</th>
                     <th>Status</th>
                     <th className="!text-right">Action</th>
                   </tr>

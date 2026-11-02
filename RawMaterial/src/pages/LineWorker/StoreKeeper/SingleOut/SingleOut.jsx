@@ -1,7 +1,25 @@
 import React, { useEffect, useState, useRef } from "react";
 import Api from "../../../../auth/Api";
+import { ArchiveBoxIcon, ArrowUturnLeftIcon, LockClosedIcon } from "@heroicons/react/24/outline";
+import ContainerMultiSelect from "../../../../components/dropdown/ContainerMultiSelect";
 
 const ISSUE_TYPES = ["PERMANENT", "RETURNABLE"];
+
+const toNum = (value) => parseFloat(value) || 0;
+
+// Containers exactly as the API's containerStock lists them, as [{ name, qty }]
+const getItemContainers = (item) =>
+  Object.entries(item.containerStock || {}).map(([name, qty]) => ({ name, qty: Number(qty) || 0 }));
+
+const hasContainers = (item) => getItemContainers(item).length > 0;
+
+const mergeContainerStock = (a = {}, b = {}) => {
+  const merged = { ...a };
+  Object.entries(b).forEach(([name, qty]) => {
+    merged[name] = (merged[name] || 0) + (Number(qty) || 0);
+  });
+  return merged;
+};
 
 const SingleOut = () => {
   const [itemList, setItemList] = useState([]);
@@ -10,6 +28,10 @@ const SingleOut = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [itemQuantities, setItemQuantities] = useState({});
   const [itemIssueTypes, setItemIssueTypes] = useState({});
+  // Per item: selected container names, and the quantity taken from each
+  const [itemContainers, setItemContainers] = useState({});
+  const [containerQtys, setContainerQtys] = useState({});
+  const [containers, setContainers] = useState([]);
   const [remarks, setRemarks] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -60,8 +82,18 @@ const SingleOut = () => {
       }
     };
 
+    const fetchContainers = async () => {
+      try {
+        const res = await Api.get("/common/container");
+        setContainers(res?.data?.data || []);
+      } catch (err) {
+        alert(err?.response?.data?.message || err.message);
+      }
+    };
+
     fetchItemList();
     fetchLineWorkers();
+    fetchContainers();
   }, []);
 
   useEffect(() => {
@@ -84,11 +116,14 @@ const SingleOut = () => {
 
     itemList.forEach((item) => {
       if (map.has(item.id)) {
-        map.get(item.id).totalStock += item.stock;
+        const existing = map.get(item.id);
+        existing.totalStock += item.stock;
+        existing.containerStock = mergeContainerStock(existing.containerStock, item.containerStock);
       } else {
         map.set(item.id, {
           ...item,
           totalStock: item.stock,
+          containerStock: { ...(item.containerStock || {}) },
         });
       }
     });
@@ -121,13 +156,7 @@ const SingleOut = () => {
     const isSelected = selectedItems.some(selected => selected.id === item.id);
     
     if (isSelected) {
-      setSelectedItems(selectedItems.filter(selected => selected.id !== item.id));
-      const newQuantities = { ...itemQuantities };
-      delete newQuantities[item.id];
-      setItemQuantities(newQuantities);
-      const newIssueTypes = { ...itemIssueTypes };
-      delete newIssueTypes[item.id];
-      setItemIssueTypes(newIssueTypes);
+      handleRemoveItem(item.id);
     } else {
       setSelectedItems([
         ...selectedItems,
@@ -136,13 +165,15 @@ const SingleOut = () => {
           name: item.name,
           unit: item.unit,
           stock: item.totalStock,
+          containerStock: item.containerStock,
           code: item.code,
           category: item.category
         }
       ]);
+      // Container items get their quantity from the per-container inputs
       setItemQuantities({
         ...itemQuantities,
-        [item.id]: "1"
+        [item.id]: hasContainers(item) ? "" : "1"
       });
       setItemIssueTypes({
         ...itemIssueTypes,
@@ -160,9 +191,30 @@ const SingleOut = () => {
     }
   };
 
+  // What can be issued: stock in the selected containers, or total stock for items without containers
+  const getAvailableQty = (item) =>
+    hasContainers(item)
+      ? (itemContainers[item.id] || []).reduce((sum, name) => sum + toNum(item.containerStock?.[name]), 0)
+      : item.stock;
+
+  // Store per-container quantities and keep the item total equal to their sum
+  const applyContainerQtys = (itemId, names, qtys) => {
+    const total = names.reduce((sum, name) => sum + toNum(qtys[name]), 0);
+    setItemContainers(prev => ({ ...prev, [itemId]: names }));
+    setContainerQtys(prev => ({ ...prev, [itemId]: qtys }));
+    setItemQuantities(prev => ({ ...prev, [itemId]: total > 0 ? String(total) : "" }));
+    setErrors(prev => ({ ...prev, [`container_${itemId}`]: undefined, [`quantity_${itemId}`]: undefined }));
+  };
+
   const handleSetMaxQuantity = (itemId) => {
     const item = selectedItems.find(item => item.id === itemId);
-    if (item) {
+    if (!item) return;
+
+    if (hasContainers(item)) {
+      const names = itemContainers[itemId] || [];
+      const qtys = Object.fromEntries(names.map(name => [name, String(toNum(item.containerStock?.[name]))]));
+      applyContainerQtys(itemId, names, qtys);
+    } else {
       setItemQuantities({
         ...itemQuantities,
         [itemId]: String(item.stock)
@@ -171,17 +223,32 @@ const SingleOut = () => {
   };
 
   const handleRemoveItem = (itemId) => {
-    setSelectedItems(selectedItems.filter(item => item.id !== itemId));
-    const newQuantities = { ...itemQuantities };
-    delete newQuantities[itemId];
-    setItemQuantities(newQuantities);
-    const newIssueTypes = { ...itemIssueTypes };
-    delete newIssueTypes[itemId];
-    setItemIssueTypes(newIssueTypes);
+    const omit = (obj) => {
+      const next = { ...obj };
+      delete next[itemId];
+      return next;
+    };
+    setSelectedItems(prev => prev.filter(item => item.id !== itemId));
+    setItemQuantities(omit);
+    setItemIssueTypes(omit);
+    setItemContainers(omit);
+    setContainerQtys(omit);
   };
 
   const handleIssueTypeChange = (itemId, issueType) => {
     setItemIssueTypes({ ...itemIssueTypes, [itemId]: issueType });
+  };
+
+  // Keep quantities of containers still selected; newly added ones start empty
+  const handleContainerChange = (itemId, names) => {
+    const prevQtys = containerQtys[itemId] || {};
+    const qtys = Object.fromEntries(names.map(name => [name, prevQtys[name] ?? ""]));
+    applyContainerQtys(itemId, names, qtys);
+  };
+
+  const handleContainerQtyChange = (itemId, name, value) => {
+    if (value !== "" && !(parseFloat(value) >= 0)) return;
+    applyContainerQtys(itemId, itemContainers[itemId] || [], { ...containerQtys[itemId], [name]: value });
   };
 
   const handleWorkerChange = (e) => {
@@ -235,12 +302,26 @@ const SingleOut = () => {
         newErrors[`quantity_${item.id}`] = "Quantity is required";
       } else if (parseFloat(quantity) <= 0) {
         newErrors[`quantity_${item.id}`] = "Quantity must be greater than 0";
-      } else if (parseFloat(quantity) > item.stock) {
-        newErrors[`quantity_${item.id}`] = `Maximum allowed: ${item.stock} ${item.unit}`;
+      } else if (parseFloat(quantity) > getAvailableQty(item)) {
+        newErrors[`quantity_${item.id}`] = `Maximum allowed: ${getAvailableQty(item)} ${item.unit}`;
       }
 
       if (!issueType || !ISSUE_TYPES.includes(issueType)) {
         newErrors[`issueType_${item.id}`] = "Issue type is required";
+      }
+
+      if (hasContainers(item)) {
+        const names = itemContainers[item.id] || [];
+        const overdrawn = names.find(name => toNum(containerQtys[item.id]?.[name]) > toNum(item.containerStock?.[name]));
+        const missing = names.find(name => toNum(containerQtys[item.id]?.[name]) <= 0);
+
+        if (names.length === 0) {
+          newErrors[`container_${item.id}`] = "Select at least one container";
+        } else if (missing) {
+          newErrors[`container_${item.id}`] = `Enter quantity for ${missing}`;
+        } else if (overdrawn) {
+          newErrors[`container_${item.id}`] = `${overdrawn} has only ${toNum(item.containerStock?.[overdrawn])} ${item.unit}`;
+        }
       }
     });
 
@@ -300,6 +381,11 @@ const SingleOut = () => {
           quantity: String(itemQuantities[item.id]),
           unit: item.unit,
           issueType: itemIssueTypes[item.id] || "PERMANENT",
+          containers: (itemContainers[item.id] || []).map(name => ({
+            containerId: containers.find(c => c.name === name)?.id ?? null,
+            containerName: name,
+            quantity: String(containerQtys[item.id]?.[name]),
+          })),
         })),
         remarks: remarks || undefined,
       };
@@ -332,6 +418,8 @@ const SingleOut = () => {
     setSelectedItems([]);
     setItemQuantities({});
     setItemIssueTypes({});
+    setItemContainers({});
+    setContainerQtys({});
     setSearchTerm("");
     setRemarks("");
     setErrors({});
@@ -579,8 +667,11 @@ const SingleOut = () => {
                         </div>
                       </div>
 
-                      {/* QUANTITY INPUT */}
+                      {/* QUANTITY INPUT (total of containers when the item has container stock) */}
                       <div className="md:col-span-4">
+                        <div className="mb-1 text-xs font-medium text-gray-500">
+                          {hasContainers(item) ? "Total quantity" : "Quantity"}
+                        </div>
                         <div className="flex items-center space-x-3">
                           <div className="relative flex-1">
                             <input
@@ -589,8 +680,12 @@ const SingleOut = () => {
                               step="0.01"
                               value={itemQuantities[item.id] || ""}
                               onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                              placeholder="Enter quantity"
+                              readOnly={hasContainers(item)}
+                              title={hasContainers(item) ? "Sum of the container quantities below" : undefined}
+                              className={`w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition ${
+                                hasContainers(item) ? "bg-gray-50 text-gray-700 cursor-default" : ""
+                              }`}
+                              placeholder={hasContainers(item) ? "From containers" : "Enter quantity"}
                             />
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
                               {item.unit}
@@ -611,13 +706,14 @@ const SingleOut = () => {
 
                       {/* ISSUE TYPE */}
                       <div className="md:col-span-3">
+                        <div className="mb-1 text-xs font-medium text-gray-500">Issue type</div>
                         <div className="flex rounded-lg overflow-hidden border border-gray-300 text-sm">
                           {ISSUE_TYPES.map((type) => (
                             <button
                               key={type}
                               type="button"
                               onClick={() => handleIssueTypeChange(item.id, type)}
-                              className={`flex-1 px-2 py-2 font-medium transition-colors ${
+                              className={`flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 font-medium transition-colors ${
                                 itemIssueTypes[item.id] === type
                                   ? type === "RETURNABLE"
                                     ? "bg-blue-600 text-white"
@@ -625,7 +721,15 @@ const SingleOut = () => {
                                   : "bg-white text-gray-600 hover:bg-gray-100"
                               }`}
                             >
-                              {type === "RETURNABLE" ? "↩ Return" : "⬛ Perm"}
+                              {type === "RETURNABLE" ? (
+                                <>
+                                  <ArrowUturnLeftIcon className="h-4 w-4 shrink-0" /> Return
+                                </>
+                              ) : (
+                                <>
+                                  <LockClosedIcon className="h-4 w-4 shrink-0" /> Permanent
+                                </>
+                              )}
                             </button>
                           ))}
                         </div>
@@ -640,7 +744,7 @@ const SingleOut = () => {
                           <div className="text-sm text-gray-600">
                             <span className="font-semibold text-green-600">
                               {parseFloat(itemQuantities[item.id]) || 0}
-                            </span> / {item.stock} {item.unit}
+                            </span> / {getAvailableQty(item)} {item.unit}
                           </div>
                           <button
                             type="button"
@@ -654,6 +758,64 @@ const SingleOut = () => {
                           </button>
                         </div>
                       </div>
+                    </div>
+
+                    {/* CONTAINERS: pick one or more, then how much to take from each */}
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                        <div className="sm:w-72 shrink-0">
+                          <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                            <ArchiveBoxIcon className="h-4 w-4" />
+                            Containers
+                          </div>
+                          {hasContainers(item) ? (
+                            <ContainerMultiSelect
+                              options={getItemContainers(item).map((c) => ({
+                                id: c.name,
+                                name: c.name,
+                                hint: `${c.qty} ${item.unit}`,
+                                disabled: c.qty <= 0,
+                              }))}
+                              value={itemContainers[item.id] || []}
+                              onChange={(names) => handleContainerChange(item.id, names)}
+                              invalid={!!errors[`container_${item.id}`]}
+                            />
+                          ) : (
+                            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-400">
+                              No container stock
+                            </div>
+                          )}
+                        </div>
+
+                        {(itemContainers[item.id] || []).length > 0 && (
+                          <div className="flex-1 min-w-0">
+                            <div className="mb-1 text-xs font-medium text-gray-500">Quantity by container</div>
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                              {itemContainers[item.id].map((name) => (
+                                <div key={name} className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1.5">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="truncate text-sm font-semibold text-gray-900" title={name}>{name}</div>
+                                    <div className="text-xs text-gray-500">
+                                      Available: {toNum(item.containerStock?.[name])} {item.unit}
+                                    </div>
+                                  </div>
+                                  <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={containerQtys[item.id]?.[name] ?? ""}
+                                    onChange={(e) => handleContainerQtyChange(item.id, name, e.target.value)}
+                                    className="w-20 border border-gray-300 rounded-md px-2 py-1.5 text-right text-sm font-semibold bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="0"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {errors[`container_${item.id}`] && (
+                        <p className="text-red-500 text-xs mt-1">{errors[`container_${item.id}`]}</p>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -46,6 +46,13 @@
   .btn-outline {
     @apply btn border border-ink-400 bg-white text-ink-950 hover:bg-ink-100;
   }
+  /* Approve / decline actions: colour only, so they combine with any button sizing */
+  .btn-approve {
+    @apply border-0 bg-brand-500 text-ink-950 hover:bg-brand-600;
+  }
+  .btn-decline {
+    @apply border-0 bg-red-600 text-white hover:bg-red-700;
+  }
   .btn-danger {
     @apply btn bg-red-500 text-white hover:bg-red-600;
   }

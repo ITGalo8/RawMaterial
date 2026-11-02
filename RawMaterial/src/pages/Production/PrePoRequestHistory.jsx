@@ -204,7 +204,7 @@ const PrePoRequestHistory = () => {
           <button
             onClick={() => handleApprove(request.id)}
             disabled={isUpdating}
-            className={`btn bg-green-600 py-1.5 text-xs text-white hover:bg-green-700 ${full ? "flex-1" : ""}`}
+            className={`btn btn-approve py-1.5 text-xs ${full ? "flex-1" : ""}`}
           >
             {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
             {user?.role === "Purchase" ? "Approve" : "Send Request"}
@@ -212,7 +212,7 @@ const PrePoRequestHistory = () => {
           <button
             onClick={() => handleReject(request.id)}
             disabled={isUpdating}
-            className={`btn border border-red-200 bg-white py-1.5 text-xs text-red-600 hover:bg-red-50 ${full ? "flex-1" : ""}`}
+            className={`btn btn-decline py-1.5 text-xs ${full ? "flex-1" : ""}`}
           >
             <Ban className="h-3.5 w-3.5" /> Reject
           </button>
