@@ -65,6 +65,7 @@ export const flatMenuItems = [
   { path: "return-material", label: "Return Material to Store", icon: MdAssignmentReturn, roles: ["Store"] },
   { path: "po-stock-receiving", label: "PO Stock Receiving", icon: MdMoveToInbox, roles: ["Store"] },
   { path: "add-container", label: "Add Container", icon: MdAllInbox, roles: ["Store"] },
+  { path: "item-wise-container", label: "Item Wise Container", icon: MdInventory, roles: ["Store"] },
   { path: "user-stock-data", label: "User Stock History", icon: MdManageHistory, roles: ["Store", "Production"] },
   { path: "register-employee", label: "Register Employee", icon: MdPersonAdd, roles: ["Production"] },
   { path: "direct-item-issue-history", label: "Direct Item Issue History", icon: MdReceiptLong, roles: ["Store", "Production"] },

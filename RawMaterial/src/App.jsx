@@ -42,6 +42,7 @@ import ReturnMaterial from "./pages/LineWorker/StoreKeeper/ReturnMaterial/Return
 import PoStockReceiving from "./pages/LineWorker/StoreKeeper/PoStockReceiving/PoStockReceiving";
 import ReceivedPurchaseStock from "./pages/LineWorker/StoreKeeper/PoStockReceiving/ReceivedPurchaseStock";
 import AddContainer from "./pages/LineWorker/StoreKeeper/AddContainer/AddContainer";
+import ItemWiseContainer from "./pages/LineWorker/StoreKeeper/ItemWiseContainer/ItemWiseContainer";
 import DirectItemIssueHistory from "./pages/LineWorker/StoreKeeper/SingleOut/DirectItemIssueHistory";
 import PaymentPending from "./pages/Payment/PaymentPending";
 import PaymentRequest from "./pages/Payment/PaymentRequest";
@@ -212,6 +213,15 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute allowedRoles={["Store"]}>
               <AddContainer />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="item-wise-container"
+          element={
+            <ProtectedRoute allowedRoles={["Store"]}>
+              <ItemWiseContainer />
             </ProtectedRoute>
           }
         />
