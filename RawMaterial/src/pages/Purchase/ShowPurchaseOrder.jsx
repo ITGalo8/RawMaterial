@@ -1454,8 +1454,12 @@ const ShowPurchaseOrder = () => {
       { key: "email", show: canSendEmail(po), label: "Email to Vendor", icon: <MdEmail />, onClick: () => handleSendEmail(po.id, po?.poNumber), disabled: emailLoading },
       {
         key: "transfer",
-        // A PO that was itself created by a transfer cannot be transferred again
-        show: !hasSourcePo(po),
+        // Received / Partially Received POs can always be transferred (backend decides).
+        // Otherwise a PO that was itself created by a transfer cannot be transferred again.
+        show:
+          po?.status === "Received" ||
+          po?.status === "PartiallyReceived" ||
+          !hasSourcePo(po),
         label: "Transfer Po",
         icon: <HiSwitchHorizontal />,
         onClick: () => navigate(`/transfer-purchase-order/${po.id}`),
