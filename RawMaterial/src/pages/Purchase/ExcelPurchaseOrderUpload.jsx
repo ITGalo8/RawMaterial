@@ -660,9 +660,9 @@
 //   // Render upload step
 //   const renderUploadStep = () => (
 //     <div>
-//       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-//         <h3 className="font-semibold text-blue-800 mb-2">📋 Instructions:</h3>
-//         <ul className="text-sm text-blue-700 list-disc pl-5 space-y-1">
+//       <div className="bg-brand-50 border border-brand-300 rounded-lg p-4 mb-6">
+//         <h3 className="font-semibold text-ink-950 mb-2">📋 Instructions:</h3>
+//         <ul className="text-sm text-ink-950 list-disc pl-5 space-y-1">
 //           <li>Supported formats: .xlsx, .xls, .csv</li>
 //           <li>
 //             <strong>GST Type</strong> must be one of:{' '}
@@ -685,7 +685,7 @@
 //         Download Template
 //       </button>
 
-//       <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
+//       <div className="border-2 border-dashed border-ink-300 rounded-lg p-8 text-center hover:border-brand-500 transition-colors">
 //         <input
 //           type="file"
 //           accept=".xlsx,.xls,.csv"
@@ -694,23 +694,23 @@
 //           id="excelFileUpload"
 //         />
 //         <label htmlFor="excelFileUpload" className="cursor-pointer block">
-//           <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <svg className="w-16 h-16 text-ink-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
 //           </svg>
-//           <p className="text-gray-600 font-medium">Click to upload or drag and drop</p>
-//           <p className="text-sm text-gray-400 mt-1">Excel or CSV files only</p>
+//           <p className="text-ink-600 font-medium">Click to upload or drag and drop</p>
+//           <p className="text-sm text-ink-400 mt-1">Excel or CSV files only</p>
 //         </label>
 //       </div>
 
 //       {file && (
-//         <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
+//         <div className="mt-4 p-3 bg-ink-50 rounded-lg flex items-center justify-between">
 //           <div className="flex items-center">
 //             <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
 //             </svg>
 //             <div>
-//               <p className="text-sm font-medium text-gray-700">{file.name}</p>
-//               <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
+//               <p className="text-sm font-medium text-ink-700">{file.name}</p>
+//               <p className="text-xs text-ink-500">{(file.size / 1024).toFixed(2)} KB</p>
 //             </div>
 //           </div>
 //           <button
@@ -735,10 +735,10 @@
 //     <div>
 //       <div className="flex justify-between items-center mb-4">
 //         <div>
-//           <h3 className="text-lg font-semibold text-gray-800">
+//           <h3 className="text-lg font-semibold text-ink-800">
 //             Preview Data ({groupedData.length} PO(s), {previewData.length} items)
 //           </h3>
-//           <p className="text-sm text-gray-500">
+//           <p className="text-sm text-ink-500">
 //             Review the data. Click "Auto-fill Form" to fill the form with selected PO data.
 //           </p>
 //         </div>
@@ -746,13 +746,13 @@
 
 //       {loading && (
 //         <div className="mb-4">
-//           <div className="flex justify-between text-sm text-gray-600 mb-1">
+//           <div className="flex justify-between text-sm text-ink-600 mb-1">
 //             <span>Processing...</span>
 //             <span>{uploadProgress}%</span>
 //           </div>
-//           <div className="w-full bg-gray-200 rounded-full h-2.5">
+//           <div className="w-full bg-ink-200 rounded-full h-2.5">
 //             <div
-//               className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+//               className="bg-ink-950 h-2.5 rounded-full transition-all duration-300"
 //               style={{ width: `${uploadProgress}%` }}
 //             />
 //           </div>
@@ -762,19 +762,19 @@
 //       {/* Grouped PO Cards */}
 //       <div className="space-y-6 max-h-96 overflow-y-auto">
 //         {groupedData.map((group, index) => (
-//           <div key={index} className={`border rounded-lg p-4 ${group.isValid ? 'border-gray-200' : 'border-red-300 bg-red-50'}`}>
+//           <div key={index} className={`border rounded-lg p-4 ${group.isValid ? 'border-ink-200' : 'border-red-300 bg-red-50'}`}>
 //             <div className="flex justify-between items-start mb-3">
 //               <div>
-//                 <h4 className="font-semibold text-gray-800">
+//                 <h4 className="font-semibold text-ink-800">
 //                   PO: {group.poReference}
 //                 </h4>
-//                 <p className="text-sm text-gray-500">
+//                 <p className="text-sm text-ink-500">
 //                   {group.rows.length} item(s) |
 //                   Company: {group.companyName || '⚠️'} |
 //                   Vendor: {group.vendorName || '⚠️'} |
 //                   GST Type: {group.gstType ? getGstTypeLabel(group.gstType) : (group.gstTypeRaw || '⚠️')}
 //                   {group.otherCharges.length > 0 && (
-//                     <span className="ml-2 text-blue-600">
+//                     <span className="ml-2 text-brand-700">
 //                       | Other Charges: {group.otherCharges.map(c => `${c.name}(${c.amount})`).join(', ')}
 //                     </span>
 //                   )}
@@ -793,7 +793,7 @@
 //                 {group.isValid && (
 //                   <button
 //                     onClick={() => autoFillForm(group)}
-//                     className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+//                     className="px-3 py-1 text-sm bg-ink-950 text-white rounded hover:bg-ink-800 transition-colors"
 //                   >
 //                     Auto-fill Form
 //                   </button>
@@ -810,26 +810,26 @@
 //             )}
 
 //             <div className="overflow-x-auto">
-//               <table className="min-w-full divide-y divide-gray-200 text-sm">
-//                 <thead className="bg-gray-50">
+//               <table className="min-w-full divide-y divide-ink-200 text-sm">
+//                 <thead className="bg-ink-50">
 //                   <tr>
-//                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-//                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
-//                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">HSN</th>
-//                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
-//                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rate</th>
-//                     <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
+//                     <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">#</th>
+//                     <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">Item</th>
+//                     <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">HSN</th>
+//                     <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">Qty</th>
+//                     <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">Rate</th>
+//                     <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">Unit</th>
 //                   </tr>
 //                 </thead>
-//                 <tbody className="bg-white divide-y divide-gray-200">
+//                 <tbody className="bg-white divide-y divide-ink-200">
 //                   {group.rows.map((row, idx) => (
 //                     <tr key={idx}>
-//                       <td className="px-3 py-2 whitespace-nowrap text-gray-500">{idx + 1}</td>
-//                       <td className="px-3 py-2 whitespace-nowrap text-gray-900">{row.itemName}</td>
-//                       <td className="px-3 py-2 whitespace-nowrap text-gray-500">{row.hsnCode || '-'}</td>
-//                       <td className="px-3 py-2 whitespace-nowrap text-gray-900">{row.quantity}</td>
-//                       <td className="px-3 py-2 whitespace-nowrap text-gray-900">{row.rate}</td>
-//                       <td className="px-3 py-2 whitespace-nowrap text-gray-500">{row.unit}</td>
+//                       <td className="px-3 py-2 whitespace-nowrap text-ink-500">{idx + 1}</td>
+//                       <td className="px-3 py-2 whitespace-nowrap text-ink-900">{row.itemName}</td>
+//                       <td className="px-3 py-2 whitespace-nowrap text-ink-500">{row.hsnCode || '-'}</td>
+//                       <td className="px-3 py-2 whitespace-nowrap text-ink-900">{row.quantity}</td>
+//                       <td className="px-3 py-2 whitespace-nowrap text-ink-900">{row.rate}</td>
+//                       <td className="px-3 py-2 whitespace-nowrap text-ink-500">{row.unit}</td>
 //                     </tr>
 //                   ))}
 //                 </tbody>
@@ -839,8 +839,8 @@
 //         ))}
 //       </div>
 
-//       <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-//         <p className="text-sm text-gray-600">
+//       <div className="mt-4 p-4 bg-ink-50 rounded-lg">
+//         <p className="text-sm text-ink-600">
 //           <span className="font-semibold">Summary:</span>{' '}
 //           {groupedData.filter(g => g.isValid).length} valid PO(s),
 //           {groupedData.filter(g => !g.isValid).length} invalid PO(s),
@@ -858,11 +858,11 @@
 //           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
 //         </svg>
 //       </div>
-//       <h3 className="text-2xl font-bold text-gray-800 mb-2">Upload Complete!</h3>
+//       <h3 className="text-2xl font-bold text-ink-800 mb-2">Upload Complete!</h3>
 //       <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mb-6">
-//         <div className="bg-gray-50 p-4 rounded-lg">
-//           <p className="text-2xl font-bold text-gray-800">{results?.total || 0}</p>
-//           <p className="text-sm text-gray-500">Total POs</p>
+//         <div className="bg-ink-50 p-4 rounded-lg">
+//           <p className="text-2xl font-bold text-ink-800">{results?.total || 0}</p>
+//           <p className="text-sm text-ink-500">Total POs</p>
 //         </div>
 //         <div className="bg-green-50 p-4 rounded-lg">
 //           <p className="text-2xl font-bold text-green-600">{results?.successful || 0}</p>
@@ -896,7 +896,7 @@
 //             setGroupedData([]);
 //             setResults(null);
 //           }}
-//           className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+//           className="px-6 py-2 bg-ink-200 text-ink-700 rounded-lg hover:bg-ink-300 transition-colors"
 //         >
 //           Upload More
 //         </button>
@@ -905,7 +905,7 @@
 //             onSuccess?.(results);
 //             onClose();
 //           }}
-//           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+//           className="px-6 py-2 bg-ink-950 text-white rounded-lg hover:bg-ink-800 transition-colors"
 //         >
 //           Done
 //         </button>
@@ -914,18 +914,18 @@
 //   );
 
 //   return (
-//     <div className="bg-white rounded-xl shadow-2xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+//     <div className="bg-white rounded-xl shadow-card p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
 //       <div className="flex justify-between items-center mb-6">
-//         <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+//         <h2 className="text-2xl font-bold text-ink-800 flex items-center">
 //           <svg className="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 //           </svg>
 //           Bulk Upload Purchase Orders
 //         </h2>
-//         {step !== 4 && !loading && (
+//         {step !== 4 && (
 //           <button
 //             onClick={onClose}
-//             className="text-gray-400 hover:text-gray-600 transition-colors"
+//             className="text-ink-400 hover:text-ink-600 transition-colors"
 //           >
 //             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -947,18 +947,18 @@
 //               <div className="flex flex-col items-center">
 //                 <div className={`
 //                   w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-//                   ${step === item.step ? 'bg-blue-600 text-white' :
+//                   ${step === item.step ? 'bg-ink-950 text-white' :
 //                     step > item.step ? 'bg-green-500 text-white' :
-//                     'bg-gray-200 text-gray-600'}
+//                     'bg-ink-200 text-ink-600'}
 //                 `}>
 //                   {step > item.step ? '✓' : item.step}
 //                 </div>
-//                 <span className={`text-xs mt-1 ${step === item.step ? 'font-medium text-blue-600' : 'text-gray-500'}`}>
+//                 <span className={`text-xs mt-1 ${step === item.step ? 'font-medium text-brand-700' : 'text-ink-500'}`}>
 //                   {item.label}
 //                 </span>
 //               </div>
 //               {index < 3 && (
-//                 <div className={`flex-1 h-0.5 ${step > index + 1 ? 'bg-green-500' : 'bg-gray-300'}`} />
+//                 <div className={`flex-1 h-0.5 ${step > index + 1 ? 'bg-green-500' : 'bg-ink-300'}`} />
 //               )}
 //             </React.Fragment>
 //           ))}
@@ -970,9 +970,9 @@
 //       {step === 2 && renderPreviewStep()}
 //       {step === 3 && (
 //         <div className="text-center py-8">
-//           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4" />
-//           <p className="text-gray-700 font-medium">Processing purchase orders...</p>
-//           <p className="text-sm text-gray-500 mt-2">Please wait</p>
+//           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-500 mx-auto mb-4" />
+//           <p className="text-ink-700 font-medium">Processing purchase orders...</p>
+//           <p className="text-sm text-ink-500 mt-2">Please wait</p>
 //         </div>
 //       )}
 //       {step === 4 && renderSuccessStep()}
@@ -1113,9 +1113,6 @@ const ExcelPurchaseOrderUpload = ({
 }) => {
   const [file, setFile] = useState(null);
   const [previewData, setPreviewData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [errors, setErrors] = useState([]);
   const [step, setStep] = useState(1);
   const [results, setResults] = useState(null);
   const [groupedData, setGroupedData] = useState([]);
@@ -1359,7 +1356,6 @@ const ExcelPurchaseOrderUpload = ({
         setGroupedData(grouped);
         setPreviewData(mappedData);
         setStep(2);
-        setErrors([]);
       } catch (error) {
         console.error('Error reading Excel file:', error);
         alert('Error reading Excel file. Please check the format.');
@@ -1578,124 +1574,13 @@ const ExcelPurchaseOrderUpload = ({
     onClose();
   };
 
-  // Process all grouped data and create multiple POs
-  const processAllGroups = async () => {
-    const validGroups = groupedData.filter(group => group.isValid);
-
-    if (validGroups.length === 0) {
-      alert('No valid PO groups found to process');
-      return;
-    }
-
-    setLoading(true);
-    setUploadProgress(0);
-    setStep(3);
-
-    try {
-      let successCount = 0;
-      let failCount = 0;
-      const failedGroups = [];
-
-      for (let i = 0; i < validGroups.length; i++) {
-        const group = validGroups[i];
-        try {
-          const poData = {
-            companyId: group.companyId,
-            vendorId: group.vendorId,
-            gstType: group.gstType,
-            currency: group.currency || 'INR',
-            exchangeRate: group.exchangeRate ?? '1.00',
-            paymentTerms: group.paymentTerms || '',
-            deliveryTerms: group.deliveryTerms || '',
-            warranty: group.warranty || '',
-            contactPerson: group.contactPerson || '',
-            cellNo: group.cellNo || '',
-            warehouseId: group.warehouseId,
-            expectedDeliveryDate: group.expectedDeliveryDate,
-            items: group.rows.map(row => ({
-              id: row.itemId,
-              name: row.itemName,
-              hsnCode: row.hsnCode || '',
-              modelNumber: row.modelNumber || '',
-              itemDetail: row.itemDetail || '',
-              unit: row.unit,
-              quantity: String(row.quantity ?? ''),
-              rate: String(row.rate ?? ''),
-              ...(row.gstRate !== '' && row.gstRate !== undefined && row.gstRate !== null
-                ? { gstRate: String(row.gstRate) }
-                : {})
-            })),
-            otherCharges: group.otherCharges.map(charge => ({
-              name: charge.name,
-              amount: charge.amount.toString()
-            }))
-          };
-
-          const response = await Api.post('/purchase/purchase-orders/create', poData);
-
-          if (response.data.success) {
-            successCount++;
-          } else {
-            failCount++;
-            failedGroups.push({
-              poReference: group.poReference,
-              error: response.data.message || 'Failed to create PO'
-            });
-          }
-        } catch (error) {
-          failCount++;
-          failedGroups.push({
-            poReference: group.poReference,
-            error: error?.response?.data?.message || error.message
-          });
-        }
-
-        const progress = ((i + 1) / validGroups.length) * 100;
-        setUploadProgress(Math.round(progress));
-      }
-
-      // Show results
-      const resultData = {
-        total: validGroups.length,
-        successful: successCount,
-        failed: failCount,
-        failedGroups
-      };
-
-      setResults(resultData);
-      setStep(4);
-
-      let message = `✅ Processed ${validGroups.length} PO(s)\n`;
-      message += `✅ Success: ${successCount}\n`;
-      message += `❌ Failed: ${failCount}`;
-
-      if (failedGroups.length > 0) {
-        message += '\n\nFailed PO Groups:\n';
-        failedGroups.forEach(f => {
-          message += `${f.poReference}: ${f.error}\n`;
-        });
-      }
-
-      alert(message);
-
-      if (successCount > 0) {
-        onSuccess?.(resultData);
-      }
-
-    } catch (error) {
-      console.error('Error processing groups:', error);
-      alert('Error processing data: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Render upload step
   const renderUploadStep = () => (
     <div>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-blue-800 mb-2">📋 Instructions:</h3>
-        <ul className="text-sm text-blue-700 list-disc pl-5 space-y-1">
+      {/* <div className="bg-brand-50 border border-brand-300 rounded-lg p-4 mb-6">
+        <h3 className="font-semibold text-ink-950 mb-2">📋 Instructions:</h3>
+        <ul className="text-sm text-ink-950 list-disc pl-5 space-y-1">
           <li>Supported formats: .xlsx, .xls, .csv</li>
           <li>
             <strong>GST Type</strong> must be one of:{' '}
@@ -1707,7 +1592,7 @@ const ExcelPurchaseOrderUpload = ({
           <li><strong>Other Charge Name</strong> and <strong>Other Charge Amount</strong>: add multiple charges per PO – rows with the same PO Reference will aggregate charges with the same name (sum amounts)</li>
           <li>Amounts can include commas (e.g., 20,650,000) – they will be automatically removed.</li>
         </ul>
-      </div>
+      </div> */}
 
       <button
         onClick={downloadTemplate}
@@ -1719,7 +1604,7 @@ const ExcelPurchaseOrderUpload = ({
         Download Template
       </button>
 
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors">
+      <div className="border-2 border-dashed border-ink-300 rounded-lg p-8 text-center hover:border-brand-500 transition-colors">
         <input
           type="file"
           accept=".xlsx,.xls,.csv"
@@ -1728,23 +1613,23 @@ const ExcelPurchaseOrderUpload = ({
           id="excelFileUpload"
         />
         <label htmlFor="excelFileUpload" className="cursor-pointer block">
-          <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-16 h-16 text-ink-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          <p className="text-gray-600 font-medium">Click to upload or drag and drop</p>
-          <p className="text-sm text-gray-400 mt-1">Excel or CSV files only</p>
+          <p className="text-ink-600 font-medium">Click to upload or drag and drop</p>
+          <p className="text-sm text-ink-400 mt-1">Excel or CSV files only</p>
         </label>
       </div>
 
       {file && (
-        <div className="mt-4 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
+        <div className="mt-4 p-3 bg-ink-50 rounded-lg flex items-center justify-between">
           <div className="flex items-center">
             <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div>
-              <p className="text-sm font-medium text-gray-700">{file.name}</p>
-              <p className="text-xs text-gray-500">{(file.size / 1024).toFixed(2)} KB</p>
+              <p className="text-sm font-medium text-ink-700">{file.name}</p>
+              <p className="text-xs text-ink-500">{(file.size / 1024).toFixed(2)} KB</p>
             </div>
           </div>
           <button
@@ -1769,46 +1654,31 @@ const ExcelPurchaseOrderUpload = ({
     <div>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">
+          <h3 className="text-lg font-semibold text-ink-800">
             Preview Data ({groupedData.length} PO(s), {previewData.length} items)
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-ink-500">
             Review the data. Click "Auto-fill Form" to fill the form with selected PO data.
           </p>
         </div>
       </div>
 
-      {loading && (
-        <div className="mb-4">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
-            <span>Processing...</span>
-            <span>{uploadProgress}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${uploadProgress}%` }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Grouped PO Cards */}
       <div className="space-y-6 max-h-96 overflow-y-auto">
         {groupedData.map((group, index) => (
-          <div key={index} className={`border rounded-lg p-4 ${group.isValid ? 'border-gray-200' : 'border-red-300 bg-red-50'}`}>
+          <div key={index} className={`border rounded-lg p-4 ${group.isValid ? 'border-ink-200' : 'border-red-300 bg-red-50'}`}>
             <div className="flex justify-between items-start mb-3">
               <div>
-                <h4 className="font-semibold text-gray-800">
+                <h4 className="font-semibold text-ink-800">
                   PO: {group.poReference}
                 </h4>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-ink-500">
                   {group.rows.length} item(s) |
                   Company: {group.companyName || '⚠️'} |
                   Vendor: {group.vendorName || '⚠️'} |
                   GST Type: {group.gstType ? getGstTypeLabel(group.gstType) : (group.gstTypeRaw || '⚠️')}
                   {group.otherCharges.length > 0 && (
-                    <span className="ml-2 text-blue-600">
+                    <span className="ml-2 text-brand-700">
                       | Other Charges: {group.otherCharges.map(c => `${c.name}(${c.amount})`).join(', ')}
                     </span>
                   )}
@@ -1827,7 +1697,7 @@ const ExcelPurchaseOrderUpload = ({
                 {group.isValid && (
                   <button
                     onClick={() => autoFillForm(group)}
-                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    className="px-3 py-1 text-sm bg-ink-950 text-white rounded hover:bg-ink-800 transition-colors"
                   >
                     Auto-fill Form
                   </button>
@@ -1844,28 +1714,28 @@ const ExcelPurchaseOrderUpload = ({
             )}
 
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-ink-200 text-sm">
+                <thead className="bg-ink-50">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">HSN</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Rate</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">GST %</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">Item</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">HSN</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">Qty</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">Rate</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">Unit</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-ink-500 uppercase">GST %</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-ink-200">
                   {group.rows.map((row, idx) => (
                     <tr key={idx}>
-                      <td className="px-3 py-2 whitespace-nowrap text-gray-500">{idx + 1}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-gray-900">{row.itemName}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-gray-500">{row.hsnCode || '-'}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-gray-900">{row.quantity}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-gray-900">{row.rate}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-gray-500">{row.unit}</td>
-                      <td className="px-3 py-2 whitespace-nowrap text-gray-900">
+                      <td className="px-3 py-2 whitespace-nowrap text-ink-500">{idx + 1}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-ink-900">{row.itemName}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-ink-500">{row.hsnCode || '-'}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-ink-900">{row.quantity}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-ink-900">{row.rate}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-ink-500">{row.unit}</td>
+                      <td className="px-3 py-2 whitespace-nowrap text-ink-900">
                         {row.gstRate !== '' ? `${row.gstRate}%` : '-'}
                       </td>
                     </tr>
@@ -1877,8 +1747,8 @@ const ExcelPurchaseOrderUpload = ({
         ))}
       </div>
 
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-600">
+      <div className="mt-4 p-4 bg-ink-50 rounded-lg">
+        <p className="text-sm text-ink-600">
           <span className="font-semibold">Summary:</span>{' '}
           {groupedData.filter(g => g.isValid).length} valid PO(s),
           {groupedData.filter(g => !g.isValid).length} invalid PO(s),
@@ -1896,11 +1766,11 @@ const ExcelPurchaseOrderUpload = ({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       </div>
-      <h3 className="text-2xl font-bold text-gray-800 mb-2">Upload Complete!</h3>
+      <h3 className="text-2xl font-bold text-ink-800 mb-2">Upload Complete!</h3>
       <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mb-6">
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="text-2xl font-bold text-gray-800">{results?.total || 0}</p>
-          <p className="text-sm text-gray-500">Total POs</p>
+        <div className="bg-ink-50 p-4 rounded-lg">
+          <p className="text-2xl font-bold text-ink-800">{results?.total || 0}</p>
+          <p className="text-sm text-ink-500">Total POs</p>
         </div>
         <div className="bg-green-50 p-4 rounded-lg">
           <p className="text-2xl font-bold text-green-600">{results?.successful || 0}</p>
@@ -1934,7 +1804,7 @@ const ExcelPurchaseOrderUpload = ({
             setGroupedData([]);
             setResults(null);
           }}
-          className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+          className="px-6 py-2 bg-ink-200 text-ink-700 rounded-lg hover:bg-ink-300 transition-colors"
         >
           Upload More
         </button>
@@ -1943,7 +1813,7 @@ const ExcelPurchaseOrderUpload = ({
             onSuccess?.(results);
             onClose();
           }}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-6 py-2 bg-ink-950 text-white rounded-lg hover:bg-ink-800 transition-colors"
         >
           Done
         </button>
@@ -1952,18 +1822,18 @@ const ExcelPurchaseOrderUpload = ({
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-2xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="bg-white rounded-xl shadow-card p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+        <h2 className="text-2xl font-bold text-ink-800 flex items-center">
           <svg className="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Bulk Upload Purchase Orders
         </h2>
-        {step !== 4 && !loading && (
+        {step !== 4 && (
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-ink-400 hover:text-ink-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1985,18 +1855,18 @@ const ExcelPurchaseOrderUpload = ({
               <div className="flex flex-col items-center">
                 <div className={`
                   w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
-                  ${step === item.step ? 'bg-blue-600 text-white' :
+                  ${step === item.step ? 'bg-ink-950 text-white' :
                     step > item.step ? 'bg-green-500 text-white' :
-                    'bg-gray-200 text-gray-600'}
+                    'bg-ink-200 text-ink-600'}
                 `}>
                   {step > item.step ? '✓' : item.step}
                 </div>
-                <span className={`text-xs mt-1 ${step === item.step ? 'font-medium text-blue-600' : 'text-gray-500'}`}>
+                <span className={`text-xs mt-1 ${step === item.step ? 'font-medium text-brand-700' : 'text-ink-500'}`}>
                   {item.label}
                 </span>
               </div>
               {index < 3 && (
-                <div className={`flex-1 h-0.5 ${step > index + 1 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                <div className={`flex-1 h-0.5 ${step > index + 1 ? 'bg-green-500' : 'bg-ink-300'}`} />
               )}
             </React.Fragment>
           ))}
@@ -2008,9 +1878,9 @@ const ExcelPurchaseOrderUpload = ({
       {step === 2 && renderPreviewStep()}
       {step === 3 && (
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-700 font-medium">Processing purchase orders...</p>
-          <p className="text-sm text-gray-500 mt-2">Please wait</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-500 mx-auto mb-4" />
+          <p className="text-ink-700 font-medium">Processing purchase orders...</p>
+          <p className="text-sm text-ink-500 mt-2">Please wait</p>
         </div>
       )}
       {step === 4 && renderSuccessStep()}
